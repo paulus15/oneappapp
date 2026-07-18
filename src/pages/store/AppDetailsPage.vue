@@ -11,7 +11,7 @@
     />
 
     <div v-if="loading" class="row justify-center q-my-xl">
-      <q-spinner-orbit color="indigo" size="48px" />
+      <q-spinner-orbit color="primary" size="48px" />
     </div>
 
     <div v-else-if="error" class="text-center q-my-xl text-red-400">
@@ -26,7 +26,7 @@
           <div class="row items-start no-wrap q-mb-md">
             <q-avatar
               size="64px"
-              class="q-mr-md bg-indigo-900 border-indigo-sm shadow-md rounded-borders"
+              class="q-mr-md bg-blue-grey-900 border-blue-grey-sm shadow-md rounded-borders"
             >
               <q-img
                 :src="
@@ -41,7 +41,7 @@
                 >Développé par {{ app.developer?.name }}</div
               >
               <div class="row items-center q-gutter-xs q-mt-xs">
-                <q-badge color="indigo-9" class="q-py-xs q-px-sm">
+                <q-badge color="blue-grey-9" class="q-py-xs q-px-sm">
                   {{ app.category }}
                 </q-badge>
                 <q-badge color="green-9" class="q-py-xs q-px-sm">
@@ -71,7 +71,7 @@
                 >
                   <q-img
                     :src="getMobileScreenshot(app.id, i)"
-                    spinner-color="indigo"
+                    spinner-color="primary"
                   />
                 </div>
               </div>
@@ -90,7 +90,7 @@
                 >
                   <q-img
                     :src="getTabletScreenshot(app.id, i)"
-                    spinner-color="indigo"
+                    spinner-color="primary"
                   />
                 </div>
               </div>
@@ -112,13 +112,13 @@
                 icon-half="star_half"
                 readonly
               />
-              <div class="text-caption text-indigo-400 q-mt-xs">
+              <div class="text-caption text-blue-grey-400 q-mt-xs">
                 {{ app.reviews_count }} avis
               </div>
             </div>
             <div class="col">
               <div class="text-weight-bold text-white">Notes et Avis</div>
-              <div class="text-caption text-indigo-300">
+              <div class="text-caption text-blue-grey-300">
                 Ce que disent les utilisateurs de l'écosystème OneApp.
               </div>
             </div>
@@ -134,7 +134,9 @@
             </div>
             <q-form @submit="submitReview">
               <div class="row items-center q-gutter-sm q-mb-sm">
-                <span class="text-caption text-indigo-300">Votre note :</span>
+                <span class="text-caption text-blue-grey-300"
+                  >Votre note :</span
+                >
                 <q-rating
                   v-model="myRating"
                   max="5"
@@ -149,7 +151,7 @@
                 placeholder="Rédigez votre avis sur l'application..."
                 filled
                 dark
-                color="indigo-500"
+                color="blue-grey-500"
                 rows="2"
                 class="q-mb-sm"
               />
@@ -171,12 +173,12 @@
             </div>
             <div
               v-if="app.reviews?.length === 0"
-              class="text-indigo-400 text-caption italic"
+              class="text-blue-grey-400 text-caption italic"
             >
               Aucun commentaire pour le moment. Soyez le premier à donner votre
               avis !
             </div>
-            <q-list v-else separator class="text-indigo-100">
+            <q-list v-else separator class="text-blue-grey-100">
               <q-item
                 v-for="review in app.reviews"
                 :key="review.id"
@@ -185,7 +187,7 @@
                 <q-item-section avatar>
                   <q-avatar
                     size="32px"
-                    color="indigo-700"
+                    color="blue-grey-700"
                     text-color="white"
                     class="text-weight-bold"
                   >
@@ -194,7 +196,7 @@
                 </q-item-section>
                 <q-item-section>
                   <div class="row justify-between items-center">
-                    <span class="text-weight-bold text-indigo-200">{{
+                    <span class="text-weight-bold text-blue-grey-200">{{
                       review.user?.name
                     }}</span>
                     <q-rating
@@ -205,9 +207,10 @@
                       readonly
                     />
                   </div>
-                  <p class="text-caption text-indigo-300 q-mt-xs q-mb-none">{{
-                    review.comment
-                  }}</p>
+                  <p
+                    class="text-caption text-blue-grey-300 q-mt-xs q-mb-none"
+                    >{{ review.comment }}</p
+                  >
                 </q-item-section>
               </q-item>
             </q-list>
@@ -220,7 +223,7 @@
         <!-- Actions Box -->
         <q-card class="glass-panel detail-card q-mb-md text-center">
           <div
-            class="text-caption text-indigo-300 text-uppercase tracking-wider text-weight-bold q-mb-xs"
+            class="text-caption text-blue-grey-300 text-uppercase tracking-wider text-weight-bold q-mb-xs"
           >
             OneInstall Engine
           </div>
@@ -229,13 +232,13 @@
             <div class="text-subtitle2 text-white text-weight-bold">
               Version {{ latestVersion.version_number }}
             </div>
-            <div class="text-caption text-indigo-300"
+            <div class="text-caption text-blue-grey-300"
               >Format universel : .oap (ZIP)</div
             >
           </div>
 
           <q-btn
-            color="indigo-700"
+            color="blue-grey-700"
             icon="launch"
             label="Lancer l'application (PWA)"
             unelevated
@@ -257,15 +260,19 @@
             :loading="installingApp"
           />
 
-          <div class="text-caption text-indigo-400 italic">
+          <div class="text-caption text-blue-grey-400 italic">
             Hash SHA-256 certifié par OneShield
           </div>
 
           <!-- PWA Installation Info -->
-          <div v-if="latestVersion" class="pwa-install-info row items-start q-gutter-xs q-mt-sm">
-            <q-icon name="info" color="indigo-4" size="xs" class="q-mt-xs" />
+          <div
+            v-if="latestVersion"
+            class="pwa-install-info row items-start q-gutter-xs q-mt-sm"
+          >
+            <q-icon name="info" color="blue-grey-4" size="xs" class="q-mt-xs" />
             <div class="col text-caption text-left text-grey-4">
-              Cette application est une PWA. Une fois lancée, vous pourrez l'installer directement sur votre écran d'accueil.
+              Cette application est une PWA. Une fois lancée, vous pourrez
+              l'installer directement sur votre écran d'accueil.
             </div>
           </div>
 
@@ -277,19 +284,19 @@
         <!-- Sandbox Permissions Box -->
         <q-card class="glass-panel detail-card q-mb-md">
           <div class="row items-center q-gutter-xs q-mb-sm">
-            <q-icon name="shield" color="indigo-300" size="20px" />
+            <q-icon name="shield" color="blue-grey-300" size="20px" />
             <span class="text-subtitle2 text-weight-bold text-white"
               >OneRuntime Sandbox</span
             >
           </div>
 
-          <div class="text-caption text-indigo-300 q-mb-sm">
+          <div class="text-caption text-blue-grey-300 q-mb-sm">
             Cette application s'exécute dans une sandbox sécurisée et déclare
             les accès suivants :
           </div>
 
           <div
-            class="text-weight-bold text-indigo-200 text-caption text-uppercase q-mb-xs"
+            class="text-weight-bold text-blue-grey-200 text-caption text-uppercase q-mb-xs"
           >
             Permissions requises :
           </div>
@@ -300,8 +307,8 @@
             <q-chip
               v-for="perm in latestVersion.permissions_required"
               :key="perm"
-              color="indigo-900"
-              text-color="indigo-200"
+              color="blue-grey-900"
+              text-color="blue-grey-200"
               icon="verified"
               dense
               dark
@@ -314,7 +321,7 @@
           </div>
 
           <div
-            class="text-weight-bold text-indigo-200 text-caption text-uppercase q-mb-xs"
+            class="text-weight-bold text-blue-grey-200 text-caption text-uppercase q-mb-xs"
           >
             Domaines Autorisés (Whitelist) :
           </div>
@@ -326,7 +333,7 @@
               v-for="domain in latestVersion.domains_whitelist"
               :key="domain"
               color="slate-900"
-              text-color="indigo-300"
+              text-color="blue-grey-300"
               icon="language"
               dense
               dark
@@ -348,14 +355,14 @@
             v-if="app.versions?.length > 0"
             dark
             separator
-            class="text-indigo-200"
+            class="text-blue-grey-200"
           >
             <q-item v-for="ver in app.versions" :key="ver.id" class="q-px-none">
               <q-item-section>
                 <div class="text-weight-bold text-white"
                   >v{{ ver.version_number }}</div
                 >
-                <div class="text-caption text-indigo-400">{{
+                <div class="text-caption text-blue-grey-400">{{
                   formatDate(ver.created_at)
                 }}</div>
               </q-item-section>
@@ -364,13 +371,13 @@
                   flat
                   round
                   icon="download"
-                  color="indigo-300"
+                  color="blue-grey-300"
                   @click="downloadVersion(ver.id)"
                 />
               </q-item-section>
             </q-item>
           </q-list>
-          <div v-else class="text-caption text-indigo-400 italic">
+          <div v-else class="text-caption text-blue-grey-400 italic">
             Aucun historique de version.
           </div>
         </q-card>
@@ -381,19 +388,33 @@
     <iframe
       v-if="isExtracted && latestVersion"
       :src="pwaUrl"
-      style="display: none; width: 0; height: 0; border: none;"
+      style="display: none; width: 0; height: 0; border: none"
       ref="pwaIframe"
       id="pwa-installer-iframe"
     ></iframe>
 
     <!-- Extraction Dialog -->
     <q-dialog v-model="extracting" persistent>
-      <q-card class="glass-panel text-white q-pa-md" style="min-width: 300px; border: 1px solid rgba(255,255,255,0.15); border-radius: 16px; background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(16px);">
-        <q-card-section class="row items-center justify-center column q-gutter-md">
-          <q-spinner-orbit color="indigo-4" size="lg" />
-          <div class="text-h6 text-weight-bold text-center">Extraction en cours...</div>
+      <q-card
+        class="glass-panel text-white q-pa-md"
+        style="
+          min-width: 300px;
+          border: 1px solid rgba(255, 255, 255, 0.15);
+          border-radius: 16px;
+          background: rgba(15, 23, 42, 0.95);
+          backdrop-filter: blur(16px);
+        "
+      >
+        <q-card-section
+          class="row items-center justify-center column q-gutter-md"
+        >
+          <q-spinner-orbit color="blue-grey-4" size="lg" />
+          <div class="text-h6 text-weight-bold text-center"
+            >Extraction en cours...</div
+          >
           <div class="text-caption text-grey-4 text-center">
-            OneInstall prépare les fichiers de l'application et sécurise le bac à sable.
+            OneInstall prépare les fichiers de l'application et sécurise le bac
+            à sable.
           </div>
         </q-card-section>
       </q-card>
@@ -495,7 +516,6 @@ async function submitReview() {
   }
 }
 
-
 function formatDate(dateStr) {
   if (!dateStr) return ''
   const date = new Date(dateStr)
@@ -508,11 +528,11 @@ function formatDate(dateStr) {
 
 function handleIframeMessage(event) {
   if (event.origin !== window.location.origin) return
-  
+
   if (event.data && event.data.type === 'pwa-installable') {
     isAppInstallable.value = true
   }
-  
+
   if (event.data && event.data.type === 'pwa-installed-success') {
     installingApp.value = false
     isAppInstallable.value = false
@@ -521,7 +541,7 @@ function handleIframeMessage(event) {
       message: `${app.value.name} a été installée avec succès sur votre appareil !`
     })
   }
-  
+
   if (event.data && event.data.type === 'pwa-install-failed') {
     installingApp.value = false
     $q.notify({
@@ -536,17 +556,20 @@ function handleIframeMessage(event) {
 function installAppFromStore() {
   if (!pwaIframe.value) return
   installingApp.value = true
-  pwaIframe.value.contentWindow.postMessage({ type: 'trigger-pwa-install' }, '*')
+  pwaIframe.value.contentWindow.postMessage(
+    { type: 'trigger-pwa-install' },
+    '*'
+  )
 }
 
 async function launchApp() {
   if (!latestVersion.value) return
-  
+
   extracting.value = true
   try {
     await api.post(`/versions/${latestVersion.value.id}/extract`)
     isExtracted.value = true
-    
+
     // Ouvrir l'application dans un nouvel onglet
     window.open(pwaUrl.value, '_blank')
   } catch (err) {
@@ -574,17 +597,17 @@ onUnmounted(() => {
 .details-page {
   background: var(--page);
   color: var(--text);
-  padding: 24px clamp(16px, 3vw, 40px) 48px;
+  padding: 16px var(--ui-page-gutter) 28px;
 }
 .back-btn {
   color: var(--primary);
-  margin-bottom: 12px;
+  margin-bottom: 8px;
 }
 .detail-card {
   background: var(--glass);
   border: 1px solid var(--outline);
   border-radius: 17px;
-  padding: clamp(16px, 2vw, 24px);
+  padding: clamp(13px, 1.6vw, 18px);
   box-shadow: var(--ui-shadow-sm);
   transition:
     border-color 0.2s ease,
@@ -597,10 +620,10 @@ onUnmounted(() => {
 .detail-card :deep(.text-white) {
   color: var(--text) !important;
 }
-.detail-card :deep(.text-indigo-100),
-.detail-card :deep(.text-indigo-200),
-.detail-card :deep(.text-indigo-300),
-.detail-card :deep(.text-indigo-400) {
+.detail-card :deep(.text-blue-grey-100),
+.detail-card :deep(.text-blue-grey-200),
+.detail-card :deep(.text-blue-grey-300),
+.detail-card :deep(.text-blue-grey-400) {
   color: var(--muted) !important;
 }
 .detail-card :deep(.q-list--dark) {
@@ -688,7 +711,9 @@ onUnmounted(() => {
   background: var(--primary) !important;
   color: #ffffff !important;
   box-shadow: 0 4px 15px rgba(99, 102, 241, 0.35);
-  transition: transform 0.2s, box-shadow 0.2s;
+  transition:
+    transform 0.2s,
+    box-shadow 0.2s;
 }
 .launch-pwa-btn:not(.q-btn--disabled):hover {
   transform: translateY(-2px);
@@ -727,7 +752,7 @@ onUnmounted(() => {
 }
 .download-btn {
   color: #fff;
-  background: linear-gradient(135deg, #6d68f3, #7842c4);
+  background: var(--primary);
   font-weight: 800;
   border-radius: 11px;
 }

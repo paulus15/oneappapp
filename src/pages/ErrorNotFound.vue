@@ -46,8 +46,8 @@
   place-items: center;
   overflow: hidden;
   padding: 80px 20px 30px;
-  color: #edf1ff;
-  background: #0a1020;
+  color: #fafafa;
+  background: #18181b;
 }
 .not-found-brand {
   position: absolute;
@@ -66,7 +66,7 @@
   height: 34px;
   display: grid;
   place-items: center;
-  background: linear-gradient(135deg, #7773ff, #783fc6);
+  background: #059669;
   border-radius: 10px;
 }
 .not-found-card {
@@ -80,7 +80,7 @@
   align-items: center;
   justify-content: center;
   gap: clamp(10px, 4vw, 28px);
-  color: #c8c7ff;
+  color: #52525b;
   font-size: clamp(92px, 19vw, 160px);
   font-weight: 900;
   line-height: 1;
@@ -92,17 +92,17 @@
   display: grid;
   place-items: center;
   color: #fff;
-  background: linear-gradient(145deg, #706bf1, #7137b5);
+  background: #059669;
   border: 1px solid rgba(255, 255, 255, 0.18);
   border-radius: 28%;
-  box-shadow: 0 24px 60px rgba(96, 71, 221, 0.35);
+  box-shadow: 0 24px 60px rgba(5, 150, 105, 0.35);
   animation: lost-float 4s ease-in-out infinite;
 }
 .lost-app .q-icon {
   font-size: 43%;
 }
 .error-kicker {
-  color: #8de7f8;
+  color: #6ee7b7;
   font-size: 10px;
   font-weight: 800;
   letter-spacing: 0.15em;
@@ -117,7 +117,7 @@
 .not-found-card p {
   max-width: 520px;
   margin: 0 auto 26px;
-  color: #9da7bf;
+  color: #a1a1aa;
   font-size: 13px;
   line-height: 1.7;
 }
@@ -130,12 +130,12 @@
 .error-actions .q-btn {
   min-height: 46px;
   padding: 0 18px;
-  color: #dfe4f7;
+  color: #e4e4e7;
 }
 .error-actions .home-action {
   color: #fff;
-  background: linear-gradient(135deg, #706bf1, #7841c3);
-  box-shadow: 0 12px 30px rgba(99, 86, 226, 0.28);
+  background: #059669;
+  box-shadow: 0 12px 30px rgba(5, 150, 105, 0.28);
 }
 .not-found-orb {
   position: absolute;
@@ -148,14 +148,14 @@
   right: 5%;
   width: 360px;
   height: 360px;
-  background: #714bdd;
+  background: #059669;
 }
 .orb-two {
   bottom: -15%;
   left: 5%;
   width: 420px;
   height: 420px;
-  background: #1fa9cf;
+  background: #3f3f46;
 }
 @keyframes lost-float {
   0%,

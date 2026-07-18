@@ -17,7 +17,7 @@
     </div>
 
     <div v-if="loading" class="row justify-center q-my-xl">
-      <q-spinner-orbit color="indigo" size="48px" />
+      <q-spinner-orbit color="primary" size="48px" />
     </div>
 
     <div v-else class="row q-col-gutter-md">
@@ -32,7 +32,7 @@
               <q-item-section avatar>
                 <q-avatar
                   size="36px"
-                  class="bg-indigo-900 border-indigo-sm rounded-borders"
+                  class="bg-blue-grey-900 border-blue-grey-sm rounded-borders"
                 >
                   <q-img
                     :src="
@@ -52,7 +52,7 @@
                     app.status
                   }}</q-badge>
                 </div>
-                <div class="text-caption text-indigo-300">
+                <div class="text-caption text-blue-grey-300">
                   Développeur : {{ app.developer?.name }} | ID:
                   {{ app.identifier }}
                 </div>
@@ -83,7 +83,7 @@
                     <q-tooltip>Mettre en quarantaine (OneShield)</q-tooltip>
                   </q-btn>
                   <q-btn
-                    color="indigo"
+                    color="primary"
                     icon="analytics"
                     dense
                     round
@@ -105,7 +105,7 @@
           <div class="row items-center q-gutter-sm q-mb-md">
             <q-avatar
               size="32px"
-              class="bg-indigo-900 border-indigo-sm rounded-borders"
+              class="bg-blue-grey-900 border-blue-grey-sm rounded-borders"
             >
               <q-img
                 :src="
@@ -118,14 +118,14 @@
               <div class="text-subtitle1 text-white text-weight-bold">{{
                 selectedApp.name
               }}</div>
-              <div class="text-caption text-indigo-400"
+              <div class="text-caption text-blue-grey-400"
                 >Statistiques de fonctionnement</div
               >
             </div>
           </div>
 
           <div v-if="loadingStats" class="row justify-center q-my-xl">
-            <q-spinner-dots color="indigo" size="48px" />
+            <q-spinner-dots color="primary" size="48px" />
           </div>
 
           <div v-else-if="stats" class="q-gutter-md">
@@ -163,7 +163,7 @@
 
             <!-- Platform breakdown -->
             <div class="q-mt-md">
-              <div class="text-subtitle2 text-indigo-300 q-mb-xs"
+              <div class="text-subtitle2 text-blue-grey-300 q-mb-xs"
                 >Répartition par plateforme</div
               >
               <q-list dark separator class="sidebar-list overflow-hidden">
@@ -174,7 +174,7 @@
                   <q-item-section avatar>
                     <q-icon
                       :name="getPlatformIcon(item.platform)"
-                      color="indigo-300"
+                      color="blue-grey-300"
                     />
                   </q-item-section>
                   <q-item-section class="text-capitalize">{{
@@ -189,7 +189,7 @@
 
             <!-- Top devices -->
             <div class="q-mt-md">
-              <div class="text-subtitle2 text-indigo-300 q-mb-xs"
+              <div class="text-subtitle2 text-blue-grey-300 q-mb-xs"
                 >Appareils les plus utilisés</div
               >
               <q-list dark separator class="sidebar-list overflow-hidden">
@@ -200,7 +200,7 @@
                   <q-item-section>{{
                     device.device_model || 'Inconnu'
                   }}</q-item-section>
-                  <q-item-section side class="text-indigo-300 font-mono"
+                  <q-item-section side class="text-blue-grey-300 font-mono"
                     >{{ device.count }} ouvertures</q-item-section
                   >
                 </q-item>
@@ -209,7 +209,7 @@
 
             <!-- Security controls -->
             <div class="q-mt-md">
-              <div class="text-subtitle2 text-indigo-300 q-mb-xs"
+              <div class="text-subtitle2 text-blue-grey-300 q-mb-xs"
                 >Contrôles de Confiance (OneShield)</div
               >
               <div class="row items-center q-col-gutter-sm">
@@ -244,7 +244,7 @@
           class="glass-panel admin-card text-center flex flex-center"
           style="height: 300px"
         >
-          <div class="text-indigo-400">
+          <div class="text-blue-grey-400">
             <q-icon name="query_stats" size="48px" class="q-mb-md" />
             <div
               >Sélectionnez une application pour charger les rapports
@@ -374,21 +374,17 @@ onMounted(() => {
 .admin-page {
   background: var(--page);
   color: var(--text);
-  padding: 28px clamp(18px, 3vw, 42px) 48px;
+  padding: 18px var(--ui-page-gutter) 28px;
 }
 .admin-hero {
   display: flex;
   align-items: flex-end;
   justify-content: space-between;
-  gap: 20px;
-  padding: 24px;
-  background: linear-gradient(
-    120deg,
-    color-mix(in srgb, var(--primary) 10%, var(--surface-low)),
-    var(--surface-low)
-  );
+  gap: 14px;
+  padding: 18px;
+  background: var(--surface-low);
   border: 1px solid var(--outline);
-  border-radius: 18px;
+  border-radius: 16px;
   box-shadow: var(--ui-shadow-sm);
 }
 .admin-eyebrow {
@@ -419,7 +415,7 @@ onMounted(() => {
   background: var(--glass);
   border: 1px solid var(--outline);
   border-radius: 16px;
-  padding: 20px;
+  padding: 15px;
   box-shadow: var(--ui-shadow-sm);
   transition:
     border-color 0.2s ease,
@@ -431,15 +427,15 @@ onMounted(() => {
 .admin-card :deep(.text-white) {
   color: var(--text) !important;
 }
-.admin-card :deep(.text-indigo-300),
-.admin-card :deep(.text-indigo-400) {
+.admin-card :deep(.text-blue-grey-300),
+.admin-card :deep(.text-blue-grey-400) {
   color: var(--muted) !important;
 }
 .admin-card :deep(.q-list--dark) {
   color: var(--text);
 }
 .admin-card :deep(.q-item) {
-  min-height: 58px;
+  min-height: 50px;
   border-radius: 10px;
   transition: background-color 0.18s ease;
 }
@@ -487,11 +483,14 @@ onMounted(() => {
   border: 1px solid var(--outline);
   border-radius: 12px;
 }
+.admin-hero.q-mb-lg {
+  margin-bottom: 16px;
+}
 @media (max-width: 700px) {
   .admin-hero {
     align-items: flex-start;
     flex-direction: column;
-    padding: 18px;
+    padding: 15px;
   }
   .system-status {
     white-space: normal;

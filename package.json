@@ -23,6 +23,7 @@
   },
   "dependencies": {
     "@fontsource-variable/inter": "^5.2.8",
+    "@fontsource-variable/manrope": "^5.2.8",
     "@quasar/extras": "^2.0.0",
     "axios": "^1.18.1",
     "pinia": "^3.0.4",

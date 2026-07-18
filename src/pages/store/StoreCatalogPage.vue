@@ -157,7 +157,7 @@
                 class="glass-panel app-card cursor-pointer"
                 @click="router.push(app.to)"
               >
-                <div class="app-icon" :style="{ background: app.gradient }">
+                <div class="app-icon" :style="{ background: app.color }">
                   <q-icon :name="app.icon" />
                 </div>
                 <h3>{{ app.name }}</h3>
@@ -198,7 +198,7 @@
                 >
                   <div
                     class="featured-card-bg"
-                    :style="{ background: app.gradient }"
+                    :style="{ background: app.color }"
                   />
                   <div class="featured-card-content row no-wrap items-center">
                     <div class="featured-card-icon">
@@ -245,7 +245,7 @@
                   class="glass-panel app-card cursor-pointer"
                   @click="router.push(app.to)"
                 >
-                  <div class="app-icon" :style="{ background: app.gradient }">
+                  <div class="app-icon" :style="{ background: app.color }">
                     <q-icon :name="app.icon" />
                   </div>
                   <h3>{{ app.name }}</h3>
@@ -278,7 +278,7 @@
                   class="glass-panel app-card cursor-pointer"
                   @click="router.push(app.to)"
                 >
-                  <div class="app-icon" :style="{ background: app.gradient }">
+                  <div class="app-icon" :style="{ background: app.color }">
                     <q-icon :name="app.icon" />
                   </div>
                   <h3>{{ app.name }}</h3>
@@ -312,7 +312,7 @@
                   class="glass-panel app-card cursor-pointer"
                   @click="router.push(app.to)"
                 >
-                  <div class="app-icon" :style="{ background: app.gradient }">
+                  <div class="app-icon" :style="{ background: app.color }">
                     <q-icon :name="app.icon" />
                   </div>
                   <h3>{{ app.name }}</h3>
@@ -361,7 +361,7 @@
               :style="{
                 background:
                   selectedCategory === category.label
-                    ? 'rgba(99, 102, 241, 0.2)'
+                    ? 'color-mix(in srgb, var(--primary) 16%, transparent)'
                     : '',
                 borderColor:
                   selectedCategory === category.label ? 'var(--primary)' : ''
@@ -400,7 +400,7 @@
               @click="router.push(app.to)"
             >
               <b>{{ index + 1 }}</b>
-              <div class="trend-icon" :style="{ background: app.gradient }">
+              <div class="trend-icon" :style="{ background: app.color }">
                 <q-icon :name="app.icon" />
               </div>
               <div>
@@ -464,16 +464,16 @@ const sortOptions = [
   { label: 'Prix décroissant', value: 'price_desc' }
 ]
 
-const getGradient = category => {
+const getCategoryColor = category => {
   switch (category) {
     case 'Jeux':
-      return 'linear-gradient(135deg, #f12711, #f5af19)'
+      return '#ea580c'
     case 'Productivité':
-      return 'linear-gradient(135deg, #2980b9, #6dd5fa)'
+      return '#2563eb'
     case 'Social':
-      return 'linear-gradient(135deg, #8e2de2, #4a00e0)'
+      return '#db2777'
     default:
-      return 'linear-gradient(135deg, #11998e, #38ef7d)'
+      return '#059669'
   }
 }
 
@@ -517,7 +517,7 @@ const popularApps = computed(() => {
     price: Number(app.price),
     rating: app.average_rating || '5.0',
     initials: app.name.substring(0, 3).toUpperCase(),
-    gradient: getGradient(app.category),
+    color: getCategoryColor(app.category),
     icon: getIcon(app.category),
     to: '/apps/' + app.id
   }))
@@ -537,7 +537,7 @@ const featuredApps = computed(() => {
       price: Number(app.price),
       rating: app.average_rating || '5.0',
       downloads: app.downloads_count || 0,
-      gradient: getGradient(app.category),
+      color: getCategoryColor(app.category),
       icon: getIcon(app.category),
       to: '/apps/' + app.id
     }))
@@ -577,7 +577,7 @@ const featuredGame = computed(() => {
     rating: '4.8',
     size: '12 Mo',
     to: '/apps/1',
-    gradient: 'linear-gradient(135deg, #f12711, #f5af19)'
+    color: '#ea580c'
   }
 })
 
@@ -614,33 +614,33 @@ const features = [
     icon: 'devices',
     title: 'Installation universelle',
     text: 'Une seule app pour Android, iOS et le Web.',
-    color: '#8f91ff'
+    color: '#2563eb'
   },
   {
     icon: 'sync',
     title: 'Mises à jour auto',
     text: 'Vos applications sont toujours à jour.',
-    color: '#22c9e6'
+    color: '#059669'
   },
   {
     icon: 'security',
     title: 'Sécurisé et fiable',
     text: 'Contrôlé et certifié par OneInstall.',
-    color: '#bb75f2'
+    color: '#52525b'
   },
   {
     icon: 'public',
     title: 'Fait en Afrique',
     text: 'Une solution pensée pour le monde.',
-    color: '#f2b84b'
+    color: '#d97706'
   }
 ]
 
 const categories = [
-  { label: 'Jeux', icon: 'sports_esports', color: '#f5b041' },
-  { label: 'Productivité', icon: 'task_alt', color: '#22c9e6' },
-  { label: 'Social', icon: 'forum', color: '#a569bd' },
-  { label: 'Utilitaires', icon: 'widgets', color: '#5dade2' }
+  { label: 'Jeux', icon: 'sports_esports', color: '#ea580c' },
+  { label: 'Productivité', icon: 'task_alt', color: '#2563eb' },
+  { label: 'Social', icon: 'forum', color: '#db2777' },
+  { label: 'Utilitaires', icon: 'widgets', color: '#059669' }
 ]
 </script>
 
@@ -655,8 +655,8 @@ const categories = [
   z-index: 1;
   display: flex;
   flex-direction: column;
-  gap: 20px;
-  padding: 20px 24px;
+  gap: 14px;
+  padding: 14px var(--ui-page-gutter);
 }
 .glass-panel {
   background: var(--glass);
@@ -666,19 +666,14 @@ const categories = [
 }
 .hero-panel {
   position: relative;
-  min-height: 280px;
+  min-height: 240px;
   display: flex;
   align-items: center;
   overflow: hidden;
-  padding: 24px 4% 24px 6%;
-  background: linear-gradient(
-    105deg,
-    var(--surface-low) 0%,
-    var(--surface) 57%,
-    color-mix(in srgb, var(--secondary) 18%, var(--surface)) 100%
-  );
+  padding: 20px 4% 20px 5%;
+  background: var(--surface);
   border: 1px solid var(--outline);
-  border-radius: 22px;
+  border-radius: 18px;
   box-shadow: var(--ui-shadow-md);
   isolation: isolate;
 }
@@ -747,22 +742,14 @@ const categories = [
   right: 5%;
   width: 250px;
   height: 250px;
-  background: radial-gradient(
-    circle,
-    color-mix(in srgb, var(--primary) 30%, transparent),
-    transparent 68%
-  );
+  background: color-mix(in srgb, var(--primary) 22%, transparent);
 }
 .hero-orb-two {
   bottom: -150px;
   left: 30%;
   width: 300px;
   height: 300px;
-  background: radial-gradient(
-    circle,
-    color-mix(in srgb, #22c9e6 18%, transparent),
-    transparent 68%
-  );
+  background: color-mix(in srgb, var(--secondary) 14%, transparent);
 }
 .device-scene {
   position: absolute;
@@ -784,11 +771,7 @@ const categories = [
   align-items: center;
   justify-content: center;
   transform: translate(-50%, -50%) rotate(2deg);
-  background: linear-gradient(
-    160deg,
-    var(--surface-low),
-    color-mix(in srgb, var(--surface-high) 87%, #0b1326)
-  );
+  background: var(--surface-low);
   border: 4px solid var(--surface-highest);
   border-radius: 24px;
   box-shadow: 15px 20px 45px rgba(2, 5, 20, 0.3);
@@ -807,8 +790,8 @@ const categories = [
   display: grid;
   place-items: center;
   margin-bottom: 12px;
-  color: var(--primary-text);
-  background: linear-gradient(135deg, var(--primary-soft), var(--primary));
+  color: #fff;
+  background: var(--primary);
   border-radius: 14px;
   box-shadow: 0 0 25px color-mix(in srgb, var(--primary) 35%, transparent);
 }
@@ -889,14 +872,14 @@ const categories = [
 .content-grid {
   display: grid;
   grid-template-columns: minmax(0, 3fr) minmax(230px, 1fr);
-  gap: 20px;
+  gap: 14px;
 }
 .main-column,
 .aside-column {
   min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 14px;
 }
 .aside-column {
   gap: 16px;
@@ -1026,9 +1009,7 @@ const categories = [
   position: relative;
   min-height: 180px;
   overflow: hidden;
-  background:
-    radial-gradient(circle at 70% 20%, #5aa7ff 0, #20377b 25%, #091a35 67%),
-    #0d1834;
+  background: #18181b;
   border: 1px solid var(--outline);
   border-radius: 12px;
 }
@@ -1036,31 +1017,14 @@ const categories = [
   content: '';
   position: absolute;
   inset: 45% 0 0;
-  background:
-    repeating-linear-gradient(
-      90deg,
-      rgba(255, 255, 255, 0.05) 0 1px,
-      transparent 1px 40px
-    ),
-    linear-gradient(#177d43, #0e5431);
+  background: #065f46;
   transform: perspective(350px) rotateX(28deg) scale(1.2);
   transform-origin: bottom;
 }
 .stadium-lights {
   position: absolute;
   inset: 0;
-  background:
-    radial-gradient(
-      ellipse at 10% 18%,
-      rgba(255, 255, 255, 0.8),
-      transparent 8%
-    ),
-    radial-gradient(
-      ellipse at 90% 18%,
-      rgba(255, 255, 255, 0.7),
-      transparent 8%
-    );
-  opacity: 0.35;
+  background: none;
 }
 .ball {
   position: absolute;
@@ -1080,11 +1044,7 @@ const categories = [
   justify-content: space-between;
   padding: 40px 14px 12px;
   color: #fff;
-  background: linear-gradient(
-    0deg,
-    rgba(4, 9, 28, 0.95),
-    rgba(4, 9, 28, 0.1) 78%
-  );
+  background: rgba(4, 9, 28, 0.65);
 }
 .featured-overlay h3 {
   margin: 2px 0 1px;
@@ -1096,7 +1056,7 @@ const categories = [
   font-size: 10px;
 }
 .feature-tag {
-  color: #8eecff;
+  color: #6ee7b7;
   font-size: 8px;
   font-weight: 800;
   letter-spacing: 0.06em;
@@ -1112,8 +1072,8 @@ const categories = [
   font-weight: 400;
 }
 .featured-overlay .q-btn {
-  color: var(--primary-text);
-  background: #c0c1ff;
+  color: #18181b;
+  background: #fff;
   border-radius: 6px;
   font-size: 10px;
   font-weight: 800;
@@ -1248,11 +1208,7 @@ const categories = [
   position: relative;
   overflow: hidden;
   padding: 14px;
-  background: linear-gradient(
-    135deg,
-    color-mix(in srgb, var(--primary) 18%, var(--surface)),
-    color-mix(in srgb, var(--secondary) 22%, var(--surface))
-  );
+  background: color-mix(in srgb, var(--primary) 12%, var(--surface));
   border: 1px solid color-mix(in srgb, var(--primary) 20%, transparent);
   border-radius: 16px;
 }
@@ -1422,13 +1378,13 @@ const categories = [
 }
 @media (max-width: 699px) {
   .home-content {
-    gap: 16px;
+    gap: 12px;
     padding: 12px;
   }
   .hero-panel {
-    min-height: 320px;
+    min-height: 286px;
     align-items: flex-start;
-    padding: 24px 16px;
+    padding: 18px 16px;
   }
   .hero-copy {
     max-width: none;
@@ -1447,7 +1403,7 @@ const categories = [
   }
   .content-grid,
   .main-column {
-    gap: 16px;
+    gap: 12px;
   }
   .app-grid {
     grid-template-columns: repeat(2, 1fr);
@@ -1474,8 +1430,8 @@ const categories = [
 }
 @media (max-width: 420px) {
   .hero-panel {
-    min-height: 360px;
-    padding: 20px 12px;
+    min-height: 314px;
+    padding: 16px 12px;
   }
   .hero-copy h1 {
     font-size: 24px;
@@ -1655,8 +1611,11 @@ const categories = [
   }
 
   .filter-bar-panel {
+    width: 100%;
+    max-width: 100%;
     align-items: stretch;
     flex-direction: column;
+    overflow: hidden;
     padding: 12px !important;
   }
 
@@ -1668,7 +1627,9 @@ const categories = [
 
   .filter-select {
     width: 100%;
+    max-width: 100%;
     min-width: 0;
+    overflow: hidden;
   }
 
   .filter-select:last-child {

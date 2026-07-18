@@ -1,13 +1,15 @@
 @import '@fontsource-variable/inter';
 
 :root {
-  --ui-radius-xs: 8px;
-  --ui-radius-sm: 12px;
-  --ui-radius-md: 16px;
-  --ui-radius-lg: 24px;
-  --ui-shadow-sm: 0 8px 24px rgba(7, 12, 30, 0.08);
-  --ui-shadow-md: 0 18px 48px rgba(7, 12, 30, 0.12);
-  --ui-shadow-lg: 0 28px 80px rgba(7, 12, 30, 0.18);
+  --ui-radius-xs: 6px;
+  --ui-radius-sm: 10px;
+  --ui-radius-md: 14px;
+  --ui-radius-lg: 18px;
+  --ui-page-gutter: clamp(12px, 2vw, 24px);
+  --ui-section-gap: 16px;
+  --ui-shadow-sm: 0 8px 24px rgba(24, 24, 27, 0.06);
+  --ui-shadow-md: 0 18px 48px rgba(24, 24, 27, 0.1);
+  --ui-shadow-lg: 0 28px 80px rgba(24, 24, 27, 0.16);
   --ui-ease: cubic-bezier(0.22, 1, 0.36, 1);
 }
 
@@ -29,6 +31,17 @@ body,
     'Segoe UI',
     sans-serif;
   font-optical-sizing: auto;
+  font-feature-settings: 'cv11', 'ss01';
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: 'Inter Variable', Inter, sans-serif;
+  letter-spacing: -0.015em;
 }
 
 html {
@@ -66,12 +79,12 @@ button,
 
 ::selection {
   color: #fff;
-  background: rgba(104, 99, 255, 0.72);
+  background: rgba(5, 150, 105, 0.72);
 }
 
 :focus-visible {
   outline: 3px solid
-    color-mix(in srgb, var(--primary, #6863ff) 38%, transparent);
+    color-mix(in srgb, var(--primary, #059669) 38%, transparent);
   outline-offset: 3px;
 }
 
@@ -80,7 +93,7 @@ button,
 }
 
 .q-btn {
-  min-height: 42px;
+  min-height: 36px;
   border-radius: var(--ui-radius-sm);
   letter-spacing: -0.01em;
   transition:
@@ -104,14 +117,14 @@ button,
 
 .glass-panel {
   background: var(--glass, rgba(255, 255, 255, 0.78));
-  border: 1px solid var(--outline, rgba(20, 30, 55, 0.1));
+  border: 1px solid var(--outline, rgba(24, 24, 27, 0.12));
   box-shadow: var(--ui-shadow-sm);
   backdrop-filter: blur(18px) saturate(125%);
 }
 
 .q-field--filled .q-field__control {
-  min-height: 52px;
-  background: color-mix(in srgb, var(--surface-high, #e8eaf2) 70%, transparent);
+  min-height: 46px;
+  background: color-mix(in srgb, var(--surface-high, #e4e4e7) 70%, transparent);
   border: 1px solid transparent;
   border-radius: var(--ui-radius-sm) !important;
   transition:
@@ -127,9 +140,9 @@ button,
 
 .q-field--focused .q-field__control {
   background: var(--surface-low, #fff);
-  border-color: color-mix(in srgb, var(--primary, #6863ff) 58%, transparent);
+  border-color: color-mix(in srgb, var(--primary, #059669) 58%, transparent);
   box-shadow: 0 0 0 4px
-    color-mix(in srgb, var(--primary, #6863ff) 12%, transparent);
+    color-mix(in srgb, var(--primary, #059669) 12%, transparent);
 }
 
 .q-dialog__inner > .q-card {
@@ -137,7 +150,7 @@ button,
 }
 
 .q-menu {
-  border: 1px solid var(--outline, rgba(20, 30, 55, 0.1));
+  border: 1px solid var(--outline, rgba(24, 24, 27, 0.12));
   border-radius: var(--ui-radius-sm);
   box-shadow: var(--ui-shadow-md);
   backdrop-filter: blur(20px);

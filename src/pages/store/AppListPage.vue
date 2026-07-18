@@ -37,7 +37,7 @@
           </div>
 
           <div v-if="loading" class="row justify-center q-my-xl">
-            <q-spinner-orbit color="indigo" size="48px" />
+            <q-spinner-orbit color="primary" size="48px" />
           </div>
 
           <div v-else-if="apps.length" class="app-grid">
@@ -47,7 +47,7 @@
               class="glass-panel app-card cursor-pointer"
               @click="router.push('/apps/' + app.id)"
             >
-              <div class="app-icon" :style="{ background: app.gradient }">
+              <div class="app-icon" :style="{ background: app.color }">
                 <q-icon v-if="app.icon" :name="app.icon" />
                 <strong v-else>{{ app.initials }}</strong>
               </div>
@@ -176,16 +176,16 @@ const description = computed(() => {
   }
 })
 
-const getGradient = category => {
+const getCategoryColor = category => {
   switch (category) {
     case 'Jeux':
-      return 'linear-gradient(135deg, #f12711, #f5af19)'
+      return '#ea580c'
     case 'Productivité':
-      return 'linear-gradient(135deg, #2980b9, #6dd5fa)'
+      return '#2563eb'
     case 'Social':
-      return 'linear-gradient(135deg, #8e2de2, #4a00e0)'
+      return '#db2777'
     default:
-      return 'linear-gradient(135deg, #11998e, #38ef7d)'
+      return '#059669'
   }
 }
 
@@ -220,7 +220,7 @@ async function fetchApps() {
       category: app.category,
       rating: app.average_rating || '5.0',
       initials: app.name.substring(0, 3).toUpperCase(),
-      gradient: getGradient(app.category),
+      color: getCategoryColor(app.category),
       icon: getIcon(app.category)
     }))
   } catch (err) {
@@ -261,10 +261,10 @@ onMounted(() => {
 })
 
 const categories = [
-  { label: 'Jeux', icon: 'sports_esports', color: '#f5b041' },
-  { label: 'Productivité', icon: 'task_alt', color: '#22c9e6' },
-  { label: 'Social', icon: 'forum', color: '#a569bd' },
-  { label: 'Utilitaires', icon: 'widgets', color: '#5dade2' }
+  { label: 'Jeux', icon: 'sports_esports', color: '#ea580c' },
+  { label: 'Productivité', icon: 'task_alt', color: '#2563eb' },
+  { label: 'Social', icon: 'forum', color: '#db2777' },
+  { label: 'Utilitaires', icon: 'widgets', color: '#059669' }
 ]
 </script>
 
@@ -275,19 +275,15 @@ const categories = [
   background: var(--page);
 }
 .list-content {
-  padding: 28px clamp(16px, 3vw, 40px) 48px;
+  padding: 18px var(--ui-page-gutter) 28px;
 }
 .back-btn {
   color: var(--primary);
 }
 .list-header {
   max-width: 800px;
-  padding: 22px 24px;
-  background: linear-gradient(
-    125deg,
-    color-mix(in srgb, var(--primary) 9%, var(--surface-low)),
-    var(--surface-low)
-  );
+  padding: 17px 19px;
+  background: var(--surface-low);
   border: 1px solid var(--outline);
   border-radius: 18px;
   box-shadow: var(--ui-shadow-sm);
@@ -326,7 +322,7 @@ const categories = [
 .content-grid {
   display: grid;
   grid-template-columns: minmax(0, 3fr) minmax(230px, 1fr);
-  gap: 20px;
+  gap: 14px;
 }
 .main-column,
 .aside-column {
@@ -351,7 +347,7 @@ const categories = [
 }
 .list-search input {
   width: 100%;
-  height: 46px;
+  height: 42px;
   padding: 0 18px 0 48px;
   color: var(--text);
   background: var(--glass);
@@ -371,13 +367,13 @@ const categories = [
 .app-grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 12px;
+  gap: 10px;
 }
 .app-card {
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 14px 12px 12px;
+  padding: 11px 10px 10px;
   border-radius: 15px;
   transition:
     transform 0.25s var(--ui-ease),
@@ -392,8 +388,8 @@ const categories = [
   border-color: color-mix(in srgb, var(--primary) 35%, transparent);
 }
 .app-icon {
-  width: 60px;
-  height: 60px;
+  width: 54px;
+  height: 54px;
   display: grid;
   place-items: center;
   margin-bottom: 10px;
@@ -462,11 +458,11 @@ const categories = [
   font-size: 12px;
 }
 .side-card {
-  padding: 16px;
+  padding: 13px;
   border-radius: 16px;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 9px;
 }
 .side-card header {
   display: flex;

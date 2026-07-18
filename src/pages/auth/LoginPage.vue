@@ -136,7 +136,7 @@ async function onSubmit() {
   background: transparent;
 }
 .card-header {
-  padding: 0 16px 28px;
+  padding: 0 12px 18px;
 }
 .auth-eyebrow {
   display: inline-flex;
@@ -198,12 +198,12 @@ async function onSubmit() {
   text-align: left;
 }
 .submit-btn {
-  min-height: 50px;
+  min-height: 44px;
   color: #fff;
-  background: linear-gradient(135deg, #6d68f3, #7842c4);
+  background: var(--primary);
   font-weight: 800;
   border-radius: 12px;
-  box-shadow: 0 12px 26px rgba(97, 87, 230, 0.24);
+  box-shadow: 0 12px 26px color-mix(in srgb, var(--primary) 24%, transparent);
   font-size: 13px;
 }
 .card-footer {

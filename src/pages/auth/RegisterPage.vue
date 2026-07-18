@@ -40,7 +40,7 @@
                 v-model="role"
                 val="user"
                 label="Utilisateur"
-                color="indigo"
+                color="primary"
                 class="full-width radio-box"
               />
             </div>
@@ -49,7 +49,7 @@
                 v-model="role"
                 val="developer"
                 label="Développeur"
-                color="indigo"
+                color="primary"
                 class="full-width radio-box"
               />
             </div>
@@ -171,7 +171,7 @@ async function onSubmit() {
   background: transparent;
 }
 .card-header {
-  padding: 0 16px 22px;
+  padding: 0 12px 16px;
 }
 .auth-eyebrow {
   display: inline-flex;
@@ -212,12 +212,12 @@ async function onSubmit() {
   font-size: 12px;
 }
 .submit-btn {
-  min-height: 50px;
+  min-height: 44px;
   color: #fff;
-  background: linear-gradient(135deg, #6d68f3, #7842c4);
+  background: var(--primary);
   font-weight: 800;
   border-radius: 12px;
-  box-shadow: 0 12px 26px rgba(97, 87, 230, 0.24);
+  box-shadow: 0 12px 26px color-mix(in srgb, var(--primary) 24%, transparent);
   font-size: 13px;
 }
 .form-error {

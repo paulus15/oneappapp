@@ -22,7 +22,7 @@
 
     <!-- Apps list -->
     <div v-if="loading" class="row justify-center q-my-xl" id="applications">
-      <q-spinner-orbit color="indigo" size="48px" />
+      <q-spinner-orbit color="primary" size="48px" />
     </div>
 
     <div
@@ -30,11 +30,11 @@
       class="text-center q-my-xl"
       id="applications"
     >
-      <q-avatar size="64px" class="bg-indigo-900 q-mb-md">
-        <q-icon name="code" color="indigo-200" size="36px" />
+      <q-avatar size="64px" class="bg-blue-grey-900 q-mb-md">
+        <q-icon name="code" color="blue-grey-200" size="36px" />
       </q-avatar>
-      <div class="text-h6 text-indigo-200">Aucune application soumise</div>
-      <div class="text-caption text-indigo-400 q-mb-md">
+      <div class="text-h6 text-blue-grey-200">Aucune application soumise</div>
+      <div class="text-caption text-blue-grey-400 q-mb-md">
         Commencez par soumettre votre première application Web.
       </div>
       <q-btn
@@ -53,7 +53,7 @@
             <div class="row items-center">
               <q-avatar
                 size="44px"
-                class="q-mr-md bg-indigo-900 border-indigo-sm rounded-borders"
+                class="q-mr-md bg-blue-grey-900 border-blue-grey-sm rounded-borders"
               >
                 <q-img
                   :src="
@@ -66,7 +66,7 @@
                 <div class="text-subtitle1 text-white text-weight-bold">{{
                   app.name
                 }}</div>
-                <div class="text-caption text-indigo-300 font-mono">{{
+                <div class="text-caption text-blue-grey-300 font-mono">{{
                   app.identifier
                 }}</div>
               </div>
@@ -90,19 +90,19 @@
             </div>
           </div>
 
-          <div class="text-caption text-indigo-200 q-mb-md">
+          <div class="text-caption text-blue-grey-200 q-mb-md">
             {{ app.description || 'Pas de description renseignée.' }}
           </div>
 
           <!-- Versions Table -->
           <div class="q-mt-md">
-            <div class="text-subtitle2 text-indigo-300 q-mb-xs">
+            <div class="text-subtitle2 text-blue-grey-300 q-mb-xs">
               Historique des versions (.zip)
             </div>
             <q-list dark separator class="version-list overflow-hidden">
               <q-item
                 v-if="app.versions?.length === 0"
-                class="text-indigo-400 italic text-caption"
+                class="text-blue-grey-400 italic text-caption"
               >
                 <q-item-section
                   >Aucun build chargé. Veuillez téléverser un fichier
@@ -116,18 +116,18 @@
                     <span class="text-weight-bold text-white text-subtitle2"
                       >v{{ ver.version_number }}</span
                     >
-                    <q-badge color="indigo-9" dense>
+                    <q-badge color="blue-grey-9" dense>
                       SHA256: {{ ver.hash_sha256.substring(0, 16) }}...
                     </q-badge>
                   </div>
-                  <div class="text-caption text-indigo-400">
+                  <div class="text-caption text-blue-grey-400">
                     Permissions :
                     {{ ver.permissions_required?.join(', ') || 'aucune' }}
                   </div>
                 </q-item-section>
 
                 <q-item-section side>
-                  <span class="text-caption text-indigo-400 font-mono">
+                  <span class="text-caption text-blue-grey-400 font-mono">
                     {{ ver.signature_digital ? 'Signé' : 'Non signé' }}
                   </span>
                 </q-item-section>
@@ -156,7 +156,7 @@
               label="Nom de l'application"
               filled
               dark
-              color="indigo-500"
+              color="blue-grey-500"
               required
               :rules="[val => (val && val.length > 0) || 'Nom requis']"
             />
@@ -166,7 +166,7 @@
               label="Identifiant unique (ex: com.example.myapp)"
               filled
               dark
-              color="indigo-500"
+              color="blue-grey-500"
               required
               :rules="[val => (val && val.length > 0) || 'Identifiant requis']"
             />
@@ -177,7 +177,7 @@
               label="Catégorie"
               filled
               dark
-              color="indigo-500"
+              color="blue-grey-500"
             />
 
             <q-input
@@ -185,7 +185,7 @@
               label="URL de l'icône"
               filled
               dark
-              color="indigo-500"
+              color="blue-grey-500"
             />
 
             <q-input
@@ -194,7 +194,7 @@
               label="Description"
               filled
               dark
-              color="indigo-500"
+              color="blue-grey-500"
               rows="3"
             />
 
@@ -203,7 +203,7 @@
               <q-btn
                 label="Soumettre"
                 type="submit"
-                color="indigo-600"
+                color="blue-grey-600"
                 :loading="creatingApp"
               />
             </div>
@@ -230,7 +230,7 @@
               label="Numéro de version (ex: 1.0.0)"
               filled
               dark
-              color="indigo-500"
+              color="blue-grey-500"
               required
               :rules="[val => (val && val.length > 0) || 'Numéro requis']"
             />
@@ -240,7 +240,7 @@
               label="Sélectionner le fichier ZIP (.oap)"
               filled
               dark
-              color="indigo-500"
+              color="blue-grey-500"
               accept=".zip"
               required
               :rules="[val => val || 'Fichier ZIP requis']"
@@ -250,7 +250,7 @@
               </template>
             </q-file>
 
-            <div class="text-subtitle2 text-indigo-300"
+            <div class="text-subtitle2 text-blue-grey-300"
               >Permissions requises par l'application :</div
             >
             <div class="row wrap q-gutter-sm">
@@ -261,7 +261,7 @@
                 :val="perm"
                 :label="perm"
                 dark
-                color="indigo"
+                color="primary"
               />
             </div>
 
@@ -271,7 +271,7 @@
               placeholder="ex: api.example.com, cdn.example.com"
               filled
               dark
-              color="indigo-500"
+              color="blue-grey-500"
             />
 
             <div class="row justify-end q-gutter-sm">
@@ -279,7 +279,7 @@
               <q-btn
                 label="Uploader & Signer"
                 type="submit"
-                color="indigo-600"
+                color="blue-grey-600"
                 :loading="uploadingBuild"
               />
             </div>
@@ -429,7 +429,7 @@ async function uploadBuild(autoGenerate = false) {
         },
         ok: {
           label: 'Oui, générer automatiquement',
-          color: 'indigo'
+          color: 'primary'
         },
         persistent: true
       })
@@ -473,20 +473,14 @@ onMounted(() => {
 .console-page {
   background: var(--page);
   color: var(--text);
-  padding: 28px clamp(18px, 3vw, 42px) 48px;
+  padding: 18px var(--ui-page-gutter) 28px;
 }
 .console-hero {
-  gap: 18px;
-  padding: 26px;
-  background:
-    radial-gradient(
-      circle at 85% 20%,
-      color-mix(in srgb, var(--primary) 16%, transparent),
-      transparent 28%
-    ),
-    linear-gradient(125deg, var(--surface-low), var(--surface));
+  gap: 14px;
+  padding: 18px;
+  background: var(--surface-low);
   border: 1px solid var(--outline);
-  border-radius: 20px;
+  border-radius: 16px;
   box-shadow: var(--ui-shadow-sm);
 }
 .console-eyebrow {
@@ -515,7 +509,7 @@ onMounted(() => {
   background: var(--glass);
   border: 1px solid var(--outline);
   border-radius: 17px;
-  padding: 22px;
+  padding: 16px;
   box-shadow: var(--ui-shadow-sm);
   transition:
     transform 0.25s var(--ui-ease),
@@ -531,22 +525,22 @@ onMounted(() => {
 .dialog-card :deep(.text-white) {
   color: var(--text) !important;
 }
-.console-page :deep(.text-indigo-200),
-.console-page :deep(.text-indigo-300),
-.console-page :deep(.text-indigo-400) {
+.console-page :deep(.text-blue-grey-200),
+.console-page :deep(.text-blue-grey-300),
+.console-page :deep(.text-blue-grey-400) {
   color: var(--muted) !important;
 }
 .console-page :deep(.q-list--dark) {
   color: var(--text);
 }
 .create-btn {
-  min-height: 44px;
+  min-height: 40px;
   padding: 0 16px;
   color: #fff;
-  background: linear-gradient(135deg, #6e69f1, #7740c0);
+  background: var(--primary);
   font-weight: 700;
   border-radius: 11px;
-  box-shadow: 0 10px 24px rgba(102, 87, 224, 0.22);
+  box-shadow: 0 10px 24px color-mix(in srgb, var(--primary) 22%, transparent);
   font-size: 12px;
 }
 .upload-btn {
@@ -567,10 +561,13 @@ onMounted(() => {
   border-radius: 18px;
   color: var(--text);
 }
+.console-hero.q-mb-lg {
+  margin-bottom: 16px;
+}
 @media (max-width: 700px) {
   .console-hero {
     align-items: flex-start;
-    padding: 19px;
+    padding: 15px;
   }
   .console-hero .create-btn {
     width: 100%;

@@ -107,8 +107,8 @@
                   :key="trend"
                   clickable
                   dark
-                  color="indigo-900"
-                  text-color="indigo-200"
+                  color="blue-grey-900"
+                  text-color="blue-grey-200"
                   class="trend-chip"
                   @mousedown="selectSearchTerm(trend)"
                 >
@@ -256,7 +256,7 @@
         <!-- Install Store Button -->
         <div v-if="canInstallStore" class="q-px-md q-pb-md">
           <q-btn
-            color="indigo-7"
+            color="blue-grey-7"
             unelevated
             no-caps
             class="full-width text-weight-bold"
@@ -358,7 +358,7 @@ onMounted(() => {
   }
 
   // Listen to PWA installation events
-  window.addEventListener('beforeinstallprompt', (e) => {
+  window.addEventListener('beforeinstallprompt', e => {
     e.preventDefault()
     deferredInstallPrompt.value = e
   })
@@ -472,19 +472,19 @@ async function promptInstallStore() {
 
 <style lang="scss">
 .one-layout {
-  --page: #f5f7ff;
+  --page: #fafafa;
   --surface-low: #ffffff;
-  --surface: #f0f2fb;
-  --surface-high: #e5e8f4;
-  --surface-highest: #d9deed;
-  --text: #1a2236;
-  --muted: #61697c;
-  --outline: rgba(36, 43, 65, 0.13);
-  --glass: rgba(255, 255, 255, 0.7);
-  --primary: #5558dc;
-  --primary-soft: #e1e0ff;
-  --primary-text: #28269f;
-  --secondary: #7b21c8;
+  --surface: #f4f4f5;
+  --surface-high: #e4e4e7;
+  --surface-highest: #d4d4d8;
+  --text: #18181b;
+  --muted: #71717a;
+  --outline: rgba(24, 24, 27, 0.12);
+  --glass: rgba(255, 255, 255, 0.78);
+  --primary: #059669;
+  --primary-soft: #d1fae5;
+  --primary-text: #047857;
+  --secondary: #52525b;
   color: var(--text);
   background: var(--page);
   width: 100%;
@@ -496,23 +496,24 @@ async function promptInstallStore() {
 }
 
 .one-layout.theme-dark {
-  --page: #0b1326;
-  --surface-low: #131b2e;
-  --surface: #171f33;
-  --surface-high: #222a3d;
-  --surface-highest: #2d3449;
-  --text: #dae2fd;
-  --muted: #c7c4d7;
+  --page: #09090b;
+  --surface-low: #18181b;
+  --surface: #202023;
+  --surface-high: #27272a;
+  --surface-highest: #3f3f46;
+  --text: #fafafa;
+  --muted: #a1a1aa;
   --outline: rgba(255, 255, 255, 0.09);
-  --glass: rgba(15, 23, 42, 0.54);
-  --primary: #c0c1ff;
-  --primary-soft: #8083ff;
-  --primary-text: #0d0096;
-  --secondary: #9f4ee6;
+  --glass: rgba(9, 9, 11, 0.82);
+  --primary: #34d399;
+  --primary-soft: #065f46;
+  --primary-text: #a7f3d0;
+  --secondary: #a1a1aa;
 }
 
 .one-header {
   left: 272px;
+  max-width: 100vw;
   color: var(--text);
   background: color-mix(in srgb, var(--surface-highest) 64%, transparent);
   border-bottom: 1px solid var(--outline);
@@ -521,12 +522,15 @@ async function promptInstallStore() {
 }
 
 .one-toolbar {
-  min-height: 72px;
-  padding: 0 28px;
-  gap: 20px;
+  width: 100%;
+  min-width: 0;
+  min-height: 64px;
+  padding: 0 20px;
+  gap: 14px;
 }
 .header-search {
   position: relative;
+  min-width: 0;
   display: flex;
   align-items: center;
   flex: 1;
@@ -542,7 +546,7 @@ async function promptInstallStore() {
 }
 .header-search input {
   width: 100%;
-  height: 46px;
+  height: 42px;
   padding: 0 18px 0 48px;
   color: var(--text);
   background: var(--surface-highest);
@@ -709,7 +713,7 @@ async function promptInstallStore() {
 .profile-avatar {
   color: #fff;
   font-weight: 800;
-  background: linear-gradient(135deg, #7376ff, #7127c1);
+  background: var(--primary);
 }
 .profile-copy {
   display: flex;
@@ -733,13 +737,7 @@ async function promptInstallStore() {
 
 .one-drawer {
   color: var(--text);
-  background:
-    radial-gradient(
-      circle at 0 0,
-      color-mix(in srgb, var(--primary) 8%, transparent),
-      transparent 34%
-    ),
-    color-mix(in srgb, var(--surface-low) 95%, var(--page));
+  background: color-mix(in srgb, var(--surface-low) 95%, var(--page));
   border-right: 1px solid var(--outline) !important;
   box-shadow: 12px 0 36px rgba(5, 12, 30, 0.04);
 }
@@ -748,7 +746,7 @@ async function promptInstallStore() {
   display: flex;
   flex-direction: column;
   overflow-y: auto;
-  padding: 14px 12px 18px;
+  padding: 10px 10px 14px;
   scrollbar-width: thin;
   scrollbar-color: var(--surface-highest) transparent;
 }
@@ -761,9 +759,9 @@ async function promptInstallStore() {
 }
 .brand {
   gap: 12px;
-  min-height: 58px;
+  min-height: 52px;
   padding: 4px 10px;
-  margin-bottom: 18px;
+  margin-bottom: 12px;
   border-radius: 13px;
   transition: background-color 0.2s ease;
 }
@@ -776,8 +774,8 @@ async function promptInstallStore() {
   flex: 0 0 auto;
   display: grid;
   place-items: center;
-  color: var(--primary-text);
-  background: linear-gradient(135deg, var(--primary-soft), var(--primary));
+  color: #fff;
+  background: var(--primary);
   border-radius: 13px;
   box-shadow: 0 8px 24px color-mix(in srgb, var(--primary) 22%, transparent);
 }
@@ -799,8 +797,8 @@ async function promptInstallStore() {
 }
 .navigation-list .q-item {
   position: relative;
-  min-height: 48px;
-  margin: 3px 0;
+  min-height: 43px;
+  margin: 2px 0;
   padding: 0 11px;
   color: var(--muted);
   border: 1px solid transparent;
@@ -863,7 +861,7 @@ async function promptInstallStore() {
   font-weight: 800;
 }
 .drawer-label {
-  margin: 22px 12px 8px;
+  margin: 16px 12px 6px;
   color: var(--muted);
   font-size: 9px;
   font-weight: 800;
@@ -877,8 +875,8 @@ async function promptInstallStore() {
   display: flex;
   align-items: center;
   gap: 11px;
-  min-height: 64px;
-  padding: 10px 11px;
+  min-height: 56px;
+  padding: 8px 10px;
   color: var(--text);
   background: color-mix(in srgb, var(--primary) 9%, var(--surface-low));
   border: 1px solid color-mix(in srgb, var(--primary) 17%, var(--outline));
@@ -935,12 +933,8 @@ async function promptInstallStore() {
   position: relative;
   overflow: hidden;
   margin: auto 0 0;
-  padding: 15px;
-  background: linear-gradient(
-    145deg,
-    color-mix(in srgb, var(--surface-highest) 82%, var(--primary)),
-    var(--surface)
-  );
+  padding: 12px;
+  background: color-mix(in srgb, var(--surface-highest) 40%, var(--surface));
   border: 1px solid var(--outline);
   border-radius: 14px;
 }
@@ -961,8 +955,8 @@ async function promptInstallStore() {
 }
 .publish-card .q-btn {
   width: 100%;
-  color: var(--primary-text);
-  background: linear-gradient(90deg, var(--primary-soft), var(--primary));
+  color: #fff;
+  background: var(--primary);
   min-height: 36px;
   border-radius: 10px;
   font-size: 12px;
@@ -1002,10 +996,12 @@ async function promptInstallStore() {
 .mobile-bottom-nav {
   position: fixed;
   z-index: 3000;
-  right: 12px;
+  right: auto;
   bottom: max(10px, env(safe-area-inset-bottom));
   left: 12px;
-  height: 64px;
+  width: calc(100vw - 24px);
+  max-width: calc(100vw - 24px);
+  height: 60px;
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   padding: 6px;
@@ -1017,7 +1013,7 @@ async function promptInstallStore() {
 }
 .mobile-bottom-nav .q-btn {
   min-width: 0;
-  min-height: 50px;
+  min-height: 46px;
   padding: 3px 2px;
   color: var(--muted);
   border-radius: 13px;
@@ -1056,6 +1052,7 @@ async function promptInstallStore() {
     font-size: 16px;
   }
   .header-search {
+    width: auto;
     max-width: none;
   }
   .page-container {
@@ -1065,7 +1062,7 @@ async function promptInstallStore() {
 
 @media (max-width: 599px) {
   .one-toolbar {
-    min-height: 64px;
+    min-height: 58px;
     padding: 0 10px;
   }
   .menu-button {

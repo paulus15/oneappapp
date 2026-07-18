@@ -107,50 +107,50 @@ function toggleTheme() {
 
 <style lang="scss">
 .auth-layout {
-  --page: #f5f6fb;
+  --page: #fafafa;
   --surface-low: #fff;
-  --surface: #f4f3fb;
-  --surface-high: #ecebf5;
-  --surface-highest: #deddeb;
-  --text: #171b2e;
-  --muted: #687086;
-  --outline: rgba(27, 31, 53, 0.11);
+  --surface: #f4f4f5;
+  --surface-high: #e4e4e7;
+  --surface-highest: #d4d4d8;
+  --text: #18181b;
+  --muted: #71717a;
+  --outline: rgba(24, 24, 27, 0.12);
   --glass: rgba(255, 255, 255, 0.82);
-  --primary: #625ff0;
-  --primary-soft: #e9e8ff;
+  --primary: #059669;
+  --primary-soft: #d1fae5;
   min-height: 100vh;
   color: var(--text);
   background: var(--page);
 }
 
 .auth-layout.theme-dark {
-  --page: #080d1b;
-  --surface-low: #11182a;
-  --surface: #151d30;
-  --surface-high: #1c263b;
-  --surface-highest: #28334c;
-  --text: #edf1ff;
-  --muted: #9ba6be;
+  --page: #09090b;
+  --surface-low: #18181b;
+  --surface: #202023;
+  --surface-high: #27272a;
+  --surface-highest: #3f3f46;
+  --text: #fafafa;
+  --muted: #a1a1aa;
   --outline: rgba(255, 255, 255, 0.09);
-  --glass: rgba(17, 24, 42, 0.84);
-  --primary: #aaa8ff;
-  --primary-soft: #29295e;
+  --glass: rgba(9, 9, 11, 0.84);
+  --primary: #34d399;
+  --primary-soft: #065f46;
 }
 
 .auth-page-container {
   min-height: 100vh;
-  padding: 24px;
+  padding: 16px;
 }
 .auth-shell {
-  width: min(1180px, calc(100vw - 48px));
-  min-height: min(760px, calc(100vh - 48px));
+  width: min(1120px, calc(100vw - 32px));
+  min-height: min(700px, calc(100vh - 32px));
   display: grid;
   grid-template-columns: minmax(390px, 0.95fr) minmax(420px, 1.05fr);
   margin: 0 auto;
   overflow: hidden;
   background: var(--surface-low);
   border: 1px solid var(--outline);
-  border-radius: 28px;
+  border-radius: 22px;
   box-shadow: var(--ui-shadow-lg);
 }
 
@@ -202,20 +202,9 @@ function toggleTheme() {
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  padding: 120px 52px 38px;
+  padding: 96px 42px 30px;
   color: #fff;
-  background:
-    radial-gradient(
-      circle at 15% 10%,
-      rgba(49, 213, 241, 0.32),
-      transparent 28%
-    ),
-    radial-gradient(
-      circle at 90% 75%,
-      rgba(205, 89, 255, 0.3),
-      transparent 36%
-    ),
-    linear-gradient(145deg, #514ce3, #2b276e 62%, #15193d);
+  background: #18181b;
 }
 .story-grid {
   position: absolute;
@@ -235,20 +224,20 @@ function toggleTheme() {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  color: #d7e9ff;
+  color: #6ee7b7;
   font-size: 10px;
   font-weight: 800;
   letter-spacing: 0.12em;
   text-transform: uppercase;
 }
 .auth-story h2 {
-  margin: 18px 0 16px;
+  margin: 14px 0 12px;
   font-size: clamp(34px, 4vw, 52px);
   line-height: 1.02;
   letter-spacing: -0.055em;
 }
 .auth-story h2 em {
-  color: #b8f0ff;
+  color: #6ee7b7;
   font-style: normal;
 }
 .auth-story > .story-content > p {
@@ -260,8 +249,8 @@ function toggleTheme() {
 }
 .story-benefits {
   display: grid;
-  gap: 17px;
-  margin-top: 42px;
+  gap: 13px;
+  margin-top: 28px;
 }
 .story-benefits > div {
   display: flex;
@@ -279,7 +268,7 @@ function toggleTheme() {
   border-radius: 11px;
 }
 .story-benefits > div > span .q-icon {
-  color: #b8f0ff;
+  color: #6ee7b7;
   font-size: 19px;
 }
 .story-benefits div div {
@@ -312,9 +301,9 @@ function toggleTheme() {
   display: grid;
   place-items: center;
   margin-left: -7px;
-  color: #29255e;
-  background: #d8e7ff;
-  border: 2px solid #3d388d;
+  color: #18181b;
+  background: #d4d4d8;
+  border: 2px solid #27272a;
   border-radius: 50%;
   font-size: 8px;
   font-weight: 800;
@@ -337,14 +326,8 @@ function toggleTheme() {
   min-width: 0;
   display: grid;
   place-items: center;
-  padding: 88px 7% 46px;
-  background:
-    radial-gradient(
-      circle at 100% 0,
-      color-mix(in srgb, var(--primary) 8%, transparent),
-      transparent 35%
-    ),
-    var(--surface-low);
+  padding: 68px 6% 32px;
+  background: var(--surface-low);
 }
 .auth-ambient {
   position: fixed;
@@ -357,14 +340,14 @@ function toggleTheme() {
   right: 8%;
   width: 260px;
   height: 260px;
-  background: rgba(94, 89, 246, 0.12);
+  background: color-mix(in srgb, var(--primary) 12%, transparent);
 }
 .auth-ambient-two {
   bottom: -100px;
   left: 5%;
   width: 300px;
   height: 300px;
-  background: rgba(35, 200, 229, 0.1);
+  background: color-mix(in srgb, var(--secondary) 10%, transparent);
 }
 
 @media (max-width: 900px) {
@@ -388,7 +371,7 @@ function toggleTheme() {
   }
   .auth-brand-mark {
     color: #fff;
-    background: linear-gradient(135deg, #716df4, #7438bb);
+    background: var(--primary);
     border: 0;
   }
   .auth-brand small {

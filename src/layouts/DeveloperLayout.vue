@@ -202,33 +202,33 @@ async function handleLogout() {
 
 <style lang="scss">
 .developer-layout {
-  --page: #f4f6fb;
+  --page: #fafafa;
   --surface-low: #ffffff;
-  --surface: #f7f8fc;
-  --surface-high: #eceff6;
-  --surface-highest: #e1e5ef;
-  --text: #172033;
-  --muted: #667085;
-  --outline: rgba(23, 32, 51, 0.11);
+  --surface: #f4f4f5;
+  --surface-high: #e4e4e7;
+  --surface-highest: #d4d4d8;
+  --text: #18181b;
+  --muted: #71717a;
+  --outline: rgba(24, 24, 27, 0.12);
   --glass: rgba(255, 255, 255, 0.86);
-  --primary: #5856d6;
-  --primary-soft: #e8e7ff;
+  --primary: #059669;
+  --primary-soft: #d1fae5;
   color: var(--text);
   background: var(--page);
 }
 
 .developer-layout.theme-dark {
-  --page: #0b1020;
-  --surface-low: #11182a;
-  --surface: #151d30;
-  --surface-high: #1b253a;
-  --surface-highest: #263149;
-  --text: #edf1ff;
-  --muted: #98a2b8;
+  --page: #09090b;
+  --surface-low: #18181b;
+  --surface: #202023;
+  --surface-high: #27272a;
+  --surface-highest: #3f3f46;
+  --text: #fafafa;
+  --muted: #a1a1aa;
   --outline: rgba(255, 255, 255, 0.09);
-  --glass: rgba(17, 24, 42, 0.84);
-  --primary: #a8a7ff;
-  --primary-soft: #29295e;
+  --glass: rgba(9, 9, 11, 0.84);
+  --primary: #34d399;
+  --primary-soft: #065f46;
 }
 
 .developer-header {
@@ -241,8 +241,8 @@ async function handleLogout() {
 }
 
 .developer-toolbar {
-  min-height: 72px;
-  padding: 0 28px;
+  min-height: 64px;
+  padding: 0 20px;
   gap: 6px;
 }
 
@@ -281,7 +281,7 @@ async function handleLogout() {
 
 .developer-profile .q-avatar {
   color: #fff;
-  background: linear-gradient(135deg, #7775ff, #6f35bd);
+  background: var(--primary);
   font-weight: 800;
 }
 
@@ -317,14 +317,14 @@ async function handleLogout() {
   display: flex;
   flex-direction: column;
   overflow-y: auto;
-  padding: 22px 12px 18px;
+  padding: 14px 10px;
 }
 
 .developer-brand {
   display: flex;
   align-items: center;
   gap: 12px;
-  margin: 0 10px 30px;
+  margin: 0 10px 20px;
   color: var(--text);
   text-decoration: none;
 }
@@ -336,9 +336,9 @@ async function handleLogout() {
   flex: 0 0 auto;
   place-items: center;
   color: #fff;
-  background: linear-gradient(135deg, #6f6cf4, #7131bd);
+  background: var(--primary);
   border-radius: 11px;
-  box-shadow: 0 8px 25px rgba(94, 80, 220, 0.28);
+  box-shadow: 0 8px 25px color-mix(in srgb, var(--primary) 28%, transparent);
 }
 
 .developer-logo .q-icon {
@@ -368,10 +368,10 @@ async function handleLogout() {
 }
 
 .developer-nav {
-  margin-bottom: 24px;
+  margin-bottom: 16px;
 }
 .developer-nav .q-item {
-  min-height: 45px;
+  min-height: 41px;
   margin: 2px 0;
   padding: 0 13px;
   color: var(--muted);
@@ -406,8 +406,8 @@ async function handleLogout() {
   display: flex;
   gap: 10px;
   margin: auto 4px 14px;
-  padding: 14px;
-  background: linear-gradient(145deg, var(--surface-high), var(--surface));
+  padding: 11px;
+  background: var(--surface-high);
   border: 1px solid var(--outline);
   border-radius: 12px;
 }
@@ -476,7 +476,7 @@ async function handleLogout() {
 
 @media (max-width: 599px) {
   .developer-toolbar {
-    min-height: 64px;
+    min-height: 58px;
     padding: 0 10px;
   }
   .toolbar-eyebrow {
