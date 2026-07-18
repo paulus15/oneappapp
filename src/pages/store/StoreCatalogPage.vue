@@ -60,98 +60,278 @@
         />
       </div>
 
+      <!-- Advanced Filter Panel -->
+      <div
+        class="filter-bar-panel glass-panel row items-center justify-between q-pa-md q-mb-sm"
+      >
+        <div class="filter-controls">
+          <!-- Platform Filter -->
+          <q-select
+            v-model="selectedPlatform"
+            :options="platformOptions"
+            label="Plateforme"
+            dense
+            outlined
+            emit-value
+            map-options
+            class="filter-select"
+            @update:model-value="fetchApps"
+          >
+            <template v-slot:prepend>
+              <q-icon name="devices" size="xs" />
+            </template>
+          </q-select>
+
+          <!-- Price Filter -->
+          <q-select
+            v-model="selectedPriceType"
+            :options="priceOptions"
+            label="Prix"
+            dense
+            outlined
+            emit-value
+            map-options
+            class="filter-select"
+            @update:model-value="fetchApps"
+          >
+            <template v-slot:prepend>
+              <q-icon name="payments" size="xs" />
+            </template>
+          </q-select>
+
+          <!-- Sort By Filter -->
+          <q-select
+            v-model="sortBy"
+            :options="sortOptions"
+            label="Trier par"
+            dense
+            outlined
+            emit-value
+            map-options
+            class="filter-select"
+            @update:model-value="fetchApps"
+          >
+            <template v-slot:prepend>
+              <q-icon name="sort" size="xs" />
+            </template>
+          </q-select>
+        </div>
+
+        <q-btn
+          v-if="selectedPlatform || selectedPriceType || sortBy !== 'latest'"
+          flat
+          dense
+          no-caps
+          label="Réinitialiser"
+          icon="refresh"
+          color="primary"
+          @click="resetFilters"
+        />
+      </div>
+
       <div class="content-grid">
         <div class="main-column">
-          <section id="popular" class="home-section">
+          <!-- If activeSearch or filters are set, show search results grid -->
+          <section
+            v-if="
+              activeSearch ||
+              selectedPlatform ||
+              selectedPriceType ||
+              sortBy !== 'latest'
+            "
+            class="home-section"
+          >
             <header class="section-heading">
-              <div
-                ><span class="section-kicker">Les incontournables</span
-                ><h2>Applications populaires</h2></div
-              >
-              <a href="#recommended"
-                >Voir tout <q-icon name="arrow_forward"
-              /></a>
+              <div>
+                <span class="section-kicker">Catalogue</span>
+                <h2
+                  >Applications correspondantes ({{ filteredApps.length }})</h2
+                >
+              </div>
             </header>
 
             <div v-if="filteredApps.length" class="app-grid">
               <article
                 v-for="app in filteredApps"
-                :key="app.name"
-                class="glass-panel app-card"
+                :key="app.id"
+                class="glass-panel app-card cursor-pointer"
+                @click="router.push(app.to)"
               >
-                <div class="app-icon" :style="{ background: app.gradient }"
-                  ><q-icon v-if="app.icon" :name="app.icon" /><strong v-else>{{
-                    app.initials
-                  }}</strong></div
-                >
+                <div class="app-icon" :style="{ background: app.gradient }">
+                  <q-icon :name="app.icon" />
+                </div>
                 <h3>{{ app.name }}</h3>
                 <p>{{ app.category }}</p>
-                <div class="rating"
-                  ><q-icon name="star" /><span>{{ app.rating }}</span></div
-                >
-                <q-btn
-                  unelevated
-                  no-caps
-                  icon="download"
-                  label="Installer"
-                  :to="app.to || '/'"
-                />
+                <div class="row items-center justify-between q-mt-sm">
+                  <span class="price-text text-weight-bold">{{
+                    app.price > 0 ? app.price + ' FCFA' : 'Gratuit'
+                  }}</span>
+                  <div class="rating">
+                    <q-icon name="star" /><span>{{ app.rating }}</span>
+                  </div>
+                </div>
               </article>
             </div>
             <div v-else class="empty-state glass-panel">
-              <q-icon name="search_off" /><h3>Aucune application trouvée</h3
-              ><p>Essayez une recherche plus générale.</p>
+              <q-icon name="search_off" />
+              <h3>Aucune application trouvée</h3>
+              <p>Essayez avec d'autres filtres ou mots-clés.</p>
             </div>
           </section>
 
-          <section id="recommended" class="home-section">
-            <header class="section-heading">
-              <div
-                ><span class="section-kicker">Sélection OneInstall</span
-                ><h2>Recommandé pour vous</h2></div
-              >
-              <a href="#trending">Voir tout <q-icon name="arrow_forward" /></a>
-            </header>
-            <div class="recommendation-grid">
-              <article class="featured-game" :style="{ background: featuredGame.gradient }">
-                <div class="stadium-lights" />
-                <div class="ball"><span>⚽</span></div>
-                <div class="featured-overlay">
-                  <div>
-                    <span class="feature-tag">Jeu du moment</span>
-                    <h3>{{ featuredGame.name }}</h3>
-                    <p>{{ featuredGame.category }}</p>
-                    <span class="meta">
-                      <q-icon name="star" /> {{ featuredGame.rating }} <small>{{ featuredGame.size }}</small>
-                    </span>
-                  </div>
-                  <q-btn unelevated no-caps label="Installer" :to="featuredGame.to" />
+          <!-- Standard homepage sections -->
+          <div v-else>
+            <!-- Selection de l'équipe (Featured Apps) -->
+            <section v-if="featuredApps.length > 0" class="home-section">
+              <header class="section-heading">
+                <div>
+                  <span class="section-kicker">Sélection de l'équipe</span>
+                  <h2>À la une</h2>
                 </div>
-              </article>
-              <div class="compact-apps">
-                <article
-                  v-for="app in recommendedApps"
-                  :key="app.name"
-                  class="glass-panel compact-card"
+              </header>
+              <div class="featured-scroll-container">
+                <div
+                  v-for="app in featuredApps"
+                  :key="app.id"
+                  class="glass-panel featured-app-card cursor-pointer"
+                  @click="router.push(app.to)"
                 >
                   <div
-                    class="compact-icon"
+                    class="featured-card-bg"
                     :style="{ background: app.gradient }"
-                    ><q-icon :name="app.icon"
-                  /></div>
-                  <div class="compact-copy"
-                    ><h3>{{ app.name }}</h3>
-                    <p>{{ app.category }}</p>
-                    <span>
-                      <q-icon name="star" /> {{ app.rating }}
-                      <small>• {{ app.size }}</small>
-                    </span>
+                  />
+                  <div class="featured-card-content row no-wrap items-center">
+                    <div class="featured-card-icon">
+                      <q-icon :name="app.icon" />
+                    </div>
+                    <div class="featured-card-text col q-ml-md">
+                      <h3>{{ app.name }}</h3>
+                      <p>{{ app.category }}</p>
+                      <div class="row items-center q-gutter-x-sm q-mt-xs">
+                        <span class="badge-custom price-badge">{{
+                          app.price > 0 ? app.price + ' FCFA' : 'Gratuit'
+                        }}</span>
+                        <span class="badge-custom rating-badge"
+                          ><q-icon name="star" size="xs" />
+                          {{ app.rating }}</span
+                        >
+                        <span class="badge-custom download-badge"
+                          ><q-icon name="download" size="xs" />
+                          {{ app.downloads }}</span
+                        >
+                      </div>
+                    </div>
                   </div>
-                  <q-btn unelevated no-caps label="Installer" :to="app.to" />
+                </div>
+              </div>
+            </section>
+
+            <!-- Section Populaires -->
+            <section id="popular" class="home-section">
+              <header class="section-heading">
+                <div>
+                  <span class="section-kicker">Les incontournables</span>
+                  <h2>Applications populaires</h2>
+                </div>
+                <router-link to="/popular"
+                  >Voir tout <q-icon name="arrow_forward"
+                /></router-link>
+              </header>
+
+              <div v-if="popularApps.length" class="app-grid">
+                <article
+                  v-for="app in popularApps.slice(0, 6)"
+                  :key="app.id"
+                  class="glass-panel app-card cursor-pointer"
+                  @click="router.push(app.to)"
+                >
+                  <div class="app-icon" :style="{ background: app.gradient }">
+                    <q-icon :name="app.icon" />
+                  </div>
+                  <h3>{{ app.name }}</h3>
+                  <p>{{ app.category }}</p>
+                  <div class="row items-center justify-between q-mt-sm">
+                    <span class="price-text text-weight-bold">{{
+                      app.price > 0 ? app.price + ' FCFA' : 'Gratuit'
+                    }}</span>
+                    <div class="rating">
+                      <q-icon name="star" /><span>{{ app.rating }}</span>
+                    </div>
+                  </div>
                 </article>
               </div>
-            </div>
-          </section>
+            </section>
+
+            <!-- Section Gratuites -->
+            <section class="home-section">
+              <header class="section-heading">
+                <div>
+                  <span class="section-kicker">Gratuites</span>
+                  <h2>Nouveautés gratuites</h2>
+                </div>
+              </header>
+
+              <div v-if="freeApps.length" class="app-grid">
+                <article
+                  v-for="app in freeApps"
+                  :key="app.id"
+                  class="glass-panel app-card cursor-pointer"
+                  @click="router.push(app.to)"
+                >
+                  <div class="app-icon" :style="{ background: app.gradient }">
+                    <q-icon :name="app.icon" />
+                  </div>
+                  <h3>{{ app.name }}</h3>
+                  <p>{{ app.category }}</p>
+                  <div class="row items-center justify-between q-mt-sm">
+                    <span class="price-text text-weight-bold">Gratuit</span>
+                    <div class="rating">
+                      <q-icon name="star" /><span>{{ app.rating }}</span>
+                    </div>
+                  </div>
+                </article>
+              </div>
+              <div v-else class="empty-state glass-panel">
+                <p>Aucune application gratuite disponible.</p>
+              </div>
+            </section>
+
+            <!-- Section Premium -->
+            <section class="home-section">
+              <header class="section-heading">
+                <div>
+                  <span class="section-kicker">Payantes</span>
+                  <h2>Applications Premium</h2>
+                </div>
+              </header>
+
+              <div v-if="premiumApps.length" class="app-grid">
+                <article
+                  v-for="app in premiumApps"
+                  :key="app.id"
+                  class="glass-panel app-card cursor-pointer"
+                  @click="router.push(app.to)"
+                >
+                  <div class="app-icon" :style="{ background: app.gradient }">
+                    <q-icon :name="app.icon" />
+                  </div>
+                  <h3>{{ app.name }}</h3>
+                  <p>{{ app.category }}</p>
+                  <div class="row items-center justify-between q-mt-sm">
+                    <span class="price-text text-primary text-weight-bold"
+                      >{{ app.price }} FCFA</span
+                    >
+                    <div class="rating">
+                      <q-icon name="star" /><span>{{ app.rating }}</span>
+                    </div>
+                  </div>
+                </article>
+              </div>
+              <div v-else class="empty-state glass-panel">
+                <p>Aucune application premium disponible.</p>
+              </div>
+            </section>
+          </div>
 
           <section
             id="features"
@@ -164,8 +344,8 @@
               class="glass-panel feature-card"
             >
               <q-icon :name="feature.icon" :style="{ color: feature.color }" />
-              <h3>{{ feature.title }}</h3
-              ><p>{{ feature.text }}</p>
+              <h3>{{ feature.title }}</h3>
+              <p>{{ feature.text }}</p>
             </article>
           </section>
         </div>
@@ -178,15 +358,23 @@
               :key="category.label"
               href="#popular"
               class="category-row"
-              :style="{ background: selectedCategory === category.label ? 'rgba(99, 102, 241, 0.2)' : '', borderColor: selectedCategory === category.label ? 'var(--primary)' : '' }"
+              :style="{
+                background:
+                  selectedCategory === category.label
+                    ? 'rgba(99, 102, 241, 0.2)'
+                    : '',
+                borderColor:
+                  selectedCategory === category.label ? 'var(--primary)' : ''
+              }"
               @click="selectCategory(category.label)"
             >
-              <span
-                ><q-icon
+              <span>
+                <q-icon
                   :name="category.icon"
                   :style="{ color: category.color }"
-                />{{ category.label }}</span
-              ><q-icon name="chevron_right" />
+                />{{ category.label }}
+              </span>
+              <q-icon name="chevron_right" />
             </a>
           </section>
 
@@ -202,7 +390,8 @@
 
           <section id="trending" class="glass-panel side-card trending-card">
             <header
-              ><h2>Top tendances</h2><a href="#popular">Voir tout</a></header
+              ><h2>Top tendances</h2
+              ><router-link to="/trending">Voir tout</router-link></header
             >
             <article
               v-for="(app, index) in trendingApps"
@@ -249,21 +438,55 @@ const rawApps = ref([])
 const loading = ref(false)
 const selectedCategory = ref('')
 
-const getGradient = (category) => {
+const selectedPriceType = ref('')
+const selectedPlatform = ref('')
+const sortBy = ref('latest')
+
+const platformOptions = [
+  { label: 'Toutes plateformes', value: '' },
+  { label: 'Web / PWA', value: 'web' },
+  { label: 'Android', value: 'android' },
+  { label: 'Windows', value: 'windows' },
+  { label: 'iOS', value: 'ios' }
+]
+
+const priceOptions = [
+  { label: 'Tous tarifs', value: '' },
+  { label: 'Gratuites', value: 'free' },
+  { label: 'Payantes', value: 'paid' }
+]
+
+const sortOptions = [
+  { label: 'Nouveautés', value: 'latest' },
+  { label: 'Téléchargements', value: 'downloads' },
+  { label: 'Note moyenne', value: 'rating' },
+  { label: 'Prix croissant', value: 'price_asc' },
+  { label: 'Prix décroissant', value: 'price_desc' }
+]
+
+const getGradient = category => {
   switch (category) {
-    case 'Jeux': return 'linear-gradient(135deg, #f12711, #f5af19)'
-    case 'Productivité': return 'linear-gradient(135deg, #2980b9, #6dd5fa)'
-    case 'Social': return 'linear-gradient(135deg, #8e2de2, #4a00e0)'
-    default: return 'linear-gradient(135deg, #11998e, #38ef7d)'
+    case 'Jeux':
+      return 'linear-gradient(135deg, #f12711, #f5af19)'
+    case 'Productivité':
+      return 'linear-gradient(135deg, #2980b9, #6dd5fa)'
+    case 'Social':
+      return 'linear-gradient(135deg, #8e2de2, #4a00e0)'
+    default:
+      return 'linear-gradient(135deg, #11998e, #38ef7d)'
   }
 }
 
-const getIcon = (category) => {
+const getIcon = category => {
   switch (category) {
-    case 'Jeux': return 'sports_esports'
-    case 'Productivité': return 'task_alt'
-    case 'Social': return 'forum'
-    default: return 'widgets'
+    case 'Jeux':
+      return 'sports_esports'
+    case 'Productivité':
+      return 'task_alt'
+    case 'Social':
+      return 'forum'
+    default:
+      return 'widgets'
   }
 }
 
@@ -273,6 +496,9 @@ async function fetchApps() {
     const params = {}
     if (activeSearch.value) params.search = activeSearch.value
     if (selectedCategory.value) params.category = selectedCategory.value
+    if (selectedPriceType.value) params.price_type = selectedPriceType.value
+    if (selectedPlatform.value) params.platform = selectedPlatform.value
+    if (sortBy.value) params.sort_by = sortBy.value
 
     const response = await api.get('/apps', { params })
     rawApps.value = response.data.data || response.data || []
@@ -288,6 +514,7 @@ const popularApps = computed(() => {
     id: app.id,
     name: app.name,
     category: app.category,
+    price: Number(app.price),
     rating: app.average_rating || '5.0',
     initials: app.name.substring(0, 3).toUpperCase(),
     gradient: getGradient(app.category),
@@ -298,6 +525,30 @@ const popularApps = computed(() => {
 
 const filteredApps = computed(() => {
   return popularApps.value
+})
+
+const featuredApps = computed(() => {
+  return rawApps.value
+    .filter(app => app.is_featured)
+    .map(app => ({
+      id: app.id,
+      name: app.name,
+      category: app.category,
+      price: Number(app.price),
+      rating: app.average_rating || '5.0',
+      downloads: app.downloads_count || 0,
+      gradient: getGradient(app.category),
+      icon: getIcon(app.category),
+      to: '/apps/' + app.id
+    }))
+})
+
+const freeApps = computed(() => {
+  return popularApps.value.filter(app => app.price <= 0).slice(0, 6)
+})
+
+const premiumApps = computed(() => {
+  return popularApps.value.filter(app => app.price > 0).slice(0, 6)
 })
 
 const recommendedApps = computed(() => {
@@ -341,6 +592,13 @@ function selectCategory(categoryName) {
 
 function clearSearch() {
   router.push({ path: '/' })
+}
+
+function resetFilters() {
+  selectedPriceType.value = ''
+  selectedPlatform.value = ''
+  sortBy.value = 'latest'
+  fetchApps()
 }
 
 watch(activeSearch, () => {
@@ -420,8 +678,9 @@ const categories = [
     color-mix(in srgb, var(--secondary) 18%, var(--surface)) 100%
   );
   border: 1px solid var(--outline);
-  border-radius: 16px;
-  box-shadow: 0 20px 50px rgba(4, 8, 24, 0.1);
+  border-radius: 22px;
+  box-shadow: var(--ui-shadow-md);
+  isolation: isolate;
 }
 .hero-copy {
   position: relative;
@@ -674,14 +933,14 @@ const categories = [
   flex-direction: column;
   align-items: center;
   padding: 12px 10px 10px;
-  border-radius: 12px;
+  border-radius: 15px;
   transition:
-    transform 0.2s,
+    transform 0.25s var(--ui-ease),
     background 0.2s,
     border-color 0.2s;
 }
 .app-card:hover {
-  transform: translateY(-3px);
+  transform: translateY(-5px);
   background: var(--surface-high);
   border-color: color-mix(in srgb, var(--primary) 35%, transparent);
 }
@@ -923,7 +1182,14 @@ const categories = [
 .feature-card {
   padding: 12px 8px;
   text-align: center;
-  border-radius: 10px;
+  border-radius: 14px;
+  transition:
+    transform 0.25s var(--ui-ease),
+    border-color 0.2s ease;
+}
+.feature-card:hover {
+  border-color: color-mix(in srgb, var(--primary) 25%, var(--outline));
+  transform: translateY(-3px);
 }
 .feature-card > .q-icon {
   font-size: 22px;
@@ -941,7 +1207,7 @@ const categories = [
 }
 .side-card {
   padding: 12px 14px;
-  border-radius: 12px;
+  border-radius: 16px;
 }
 .side-card header {
   display: flex;
@@ -988,7 +1254,7 @@ const categories = [
     color-mix(in srgb, var(--secondary) 22%, var(--surface))
   );
   border: 1px solid color-mix(in srgb, var(--primary) 20%, transparent);
-  border-radius: 12px;
+  border-radius: 16px;
 }
 .developer-card h2 {
   position: relative;
@@ -1239,6 +1505,188 @@ const categories = [
   }
   * {
     scroll-behavior: auto !important;
+  }
+}
+
+.filter-bar-panel {
+  background: var(--glass);
+  border: 1px solid var(--outline);
+  border-radius: 16px;
+  backdrop-filter: blur(16px);
+  gap: 16px;
+}
+
+.filter-controls {
+  min-width: 0;
+  display: flex;
+  flex: 1;
+  align-items: center;
+  gap: 16px;
+}
+
+.filter-select {
+  min-width: 170px;
+  background: var(--surface-highest);
+  border-radius: 8px;
+
+  :deep(.q-field__control) {
+    border-radius: 8px;
+  }
+}
+
+.price-text {
+  font-size: 14px;
+  color: var(--primary);
+}
+
+.featured-scroll-container {
+  display: flex;
+  gap: 16px;
+  overflow-x: auto;
+  padding: 8px 4px 16px;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+
+  &::-webkit-scrollbar {
+    height: 6px;
+  }
+  &::-webkit-scrollbar-thumb {
+    background: var(--outline);
+    border-radius: 4px;
+  }
+}
+
+.featured-app-card {
+  position: relative;
+  flex: 0 0 320px;
+  height: 140px;
+  border-radius: 16px;
+  overflow: hidden;
+  display: flex;
+  align-items: flex-end;
+  padding: 16px;
+  scroll-snap-align: start;
+  transition:
+    transform 0.25s var(--ui-ease),
+    box-shadow 0.25s ease;
+
+  &:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  }
+}
+
+.featured-card-bg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  opacity: 0.85;
+  z-index: 1;
+}
+
+.featured-card-content {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  color: #ffffff;
+}
+
+.featured-card-icon {
+  width: 64px;
+  height: 64px;
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-radius: 14px;
+  display: grid;
+  place-items: center;
+
+  .q-icon {
+    font-size: 32px;
+    color: #ffffff;
+  }
+}
+
+.featured-card-text {
+  h3 {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 700;
+    line-height: 1.2;
+    color: #ffffff;
+  }
+  p {
+    margin: 2px 0 6px;
+    font-size: 11px;
+    opacity: 0.8;
+    color: #ffffff;
+  }
+}
+
+.badge-custom {
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 6px;
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+@media (max-width: 699px) {
+  .home-page,
+  .home-content,
+  .content-grid,
+  .main-column,
+  .home-section,
+  .featured-scroll-container {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+  }
+
+  .home-page {
+    overflow-x: clip;
+  }
+
+  .filter-bar-panel {
+    align-items: stretch;
+    flex-direction: column;
+    padding: 12px !important;
+  }
+
+  .filter-controls {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+  }
+
+  .filter-select {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .filter-select:last-child {
+    grid-column: 1 / -1;
+  }
+
+  .featured-app-card {
+    flex-basis: min(320px, calc(100vw - 48px));
+  }
+}
+
+@media (max-width: 420px) {
+  .filter-controls {
+    grid-template-columns: 1fr;
+  }
+
+  .filter-select:last-child {
+    grid-column: auto;
   }
 }
 </style>

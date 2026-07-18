@@ -34,5 +34,24 @@ export default defineRouter((/* { store, ssrContext } */) => {
     history: createHistory(import.meta.env.QUASAR_VUE_ROUTER_BASE)
   })
 
+  Router.beforeEach((to, from, next) => {
+    const token = localStorage.getItem('auth_token')
+    const userJson = localStorage.getItem('user')
+    const user = userJson ? JSON.parse(userJson) : null
+    const isAuthenticated = !!token
+
+    if (to.meta.guestOnly && isAuthenticated) {
+      next('/')
+    } else if (to.meta.requiresAuth && !isAuthenticated) {
+      next('/login')
+    } else if (to.meta.developerOnly && user?.role !== 'developer' && user?.role !== 'admin') {
+      next('/')
+    } else if (to.meta.adminOnly && user?.role !== 'admin') {
+      next('/')
+    } else {
+      next()
+    }
+  })
+
   return Router
 })

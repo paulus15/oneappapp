@@ -1,10 +1,19 @@
 <template>
   <q-page class="admin-page">
-    <div class="q-mb-lg">
-      <h1 class="admin-title">Console d'Administration OneApp</h1>
-      <div class="admin-subtitle">
-        Modération des applications (OneStore), Surveillance de sécurité (OneShield) et Analytics (OneAnalytics)
+    <div class="admin-hero q-mb-lg">
+      <div>
+        <span class="admin-eyebrow"
+          ><q-icon name="shield" /> Centre de contrôle</span
+        >
+        <h1 class="admin-title">Administration OneInstall</h1>
+        <div class="admin-subtitle">
+          Modération des applications (OneStore), Surveillance de sécurité
+          (OneShield) et Analytics (OneAnalytics)
+        </div>
       </div>
+      <div class="system-status"
+        ><span /> Tous les services sont opérationnels</div
+      >
     </div>
 
     <div v-if="loading" class="row justify-center q-my-xl">
@@ -15,11 +24,16 @@
       <!-- Applications List -->
       <div class="col-12 col-lg-7">
         <q-card class="glass-panel admin-card">
-          <div class="text-subtitle1 text-white text-weight-bold q-mb-md">Modération OneStore</div>
+          <div class="text-subtitle1 text-white text-weight-bold q-mb-md"
+            >Modération OneStore</div
+          >
           <q-list dark separator>
             <q-item v-for="app in apps" :key="app.id" class="q-py-sm">
               <q-item-section avatar>
-                <q-avatar size="36px" class="bg-indigo-900 border-indigo-sm rounded-borders">
+                <q-avatar
+                  size="36px"
+                  class="bg-indigo-900 border-indigo-sm rounded-borders"
+                >
                   <q-img
                     :src="
                       app.icon_url ||
@@ -31,11 +45,16 @@
 
               <q-item-section>
                 <div class="row items-center q-gutter-xs">
-                  <span class="text-weight-bold text-white text-subtitle2">{{ app.name }}</span>
-                  <q-badge :color="getStatusColor(app.status)" dense>{{ app.status }}</q-badge>
+                  <span class="text-weight-bold text-white text-subtitle2">{{
+                    app.name
+                  }}</span>
+                  <q-badge :color="getStatusColor(app.status)" dense>{{
+                    app.status
+                  }}</q-badge>
                 </div>
                 <div class="text-caption text-indigo-300">
-                  Développeur : {{ app.developer?.name }} | ID: {{ app.identifier }}
+                  Développeur : {{ app.developer?.name }} | ID:
+                  {{ app.identifier }}
                 </div>
               </q-item-section>
 
@@ -84,7 +103,10 @@
       <div class="col-12 col-lg-5">
         <q-card v-if="selectedApp" class="glass-panel admin-card">
           <div class="row items-center q-gutter-sm q-mb-md">
-            <q-avatar size="32px" class="bg-indigo-900 border-indigo-sm rounded-borders">
+            <q-avatar
+              size="32px"
+              class="bg-indigo-900 border-indigo-sm rounded-borders"
+            >
               <q-img
                 :src="
                   selectedApp.icon_url ||
@@ -93,8 +115,12 @@
               />
             </q-avatar>
             <div>
-              <div class="text-subtitle1 text-white text-weight-bold">{{ selectedApp.name }}</div>
-              <div class="text-caption text-indigo-400">Statistiques de fonctionnement</div>
+              <div class="text-subtitle1 text-white text-weight-bold">{{
+                selectedApp.name
+              }}</div>
+              <div class="text-caption text-indigo-400"
+                >Statistiques de fonctionnement</div
+              >
             </div>
           </div>
 
@@ -119,13 +145,17 @@
               </div>
               <div class="col-6">
                 <div class="stats-box">
-                  <div class="stats-value text-red-400">{{ stats.total_crashes }}</div>
+                  <div class="stats-value text-red-400">{{
+                    stats.total_crashes
+                  }}</div>
                   <div class="stats-label">Crashs</div>
                 </div>
               </div>
               <div class="col-6">
                 <div class="stats-box">
-                  <div class="stats-value text-orange-400">{{ stats.crashes_ratio }}</div>
+                  <div class="stats-value text-orange-400">{{
+                    stats.crashes_ratio
+                  }}</div>
                   <div class="stats-label">Ratio de crash</div>
                 </div>
               </div>
@@ -133,35 +163,65 @@
 
             <!-- Platform breakdown -->
             <div class="q-mt-md">
-              <div class="text-subtitle2 text-indigo-300 q-mb-xs">Répartition par plateforme</div>
+              <div class="text-subtitle2 text-indigo-300 q-mb-xs"
+                >Répartition par plateforme</div
+              >
               <q-list dark separator class="sidebar-list overflow-hidden">
-                <q-item v-for="item in stats.installations_by_platform" :key="item.platform">
+                <q-item
+                  v-for="item in stats.installations_by_platform"
+                  :key="item.platform"
+                >
                   <q-item-section avatar>
-                    <q-icon :name="getPlatformIcon(item.platform)" color="indigo-300" />
+                    <q-icon
+                      :name="getPlatformIcon(item.platform)"
+                      color="indigo-300"
+                    />
                   </q-item-section>
-                  <q-item-section class="text-capitalize">{{ item.platform }}</q-item-section>
-                  <q-item-section side class="text-white text-weight-bold">{{ item.total }}</q-item-section>
+                  <q-item-section class="text-capitalize">{{
+                    item.platform
+                  }}</q-item-section>
+                  <q-item-section side class="text-white text-weight-bold">{{
+                    item.total
+                  }}</q-item-section>
                 </q-item>
               </q-list>
             </div>
 
             <!-- Top devices -->
             <div class="q-mt-md">
-              <div class="text-subtitle2 text-indigo-300 q-mb-xs">Appareils les plus utilisés</div>
+              <div class="text-subtitle2 text-indigo-300 q-mb-xs"
+                >Appareils les plus utilisés</div
+              >
               <q-list dark separator class="sidebar-list overflow-hidden">
-                <q-item v-for="device in stats.top_devices" :key="device.device_model">
-                  <q-item-section>{{ device.device_model || 'Inconnu' }}</q-item-section>
-                  <q-item-section side class="text-indigo-300 font-mono">{{ device.count }} ouvertures</q-item-section>
+                <q-item
+                  v-for="device in stats.top_devices"
+                  :key="device.device_model"
+                >
+                  <q-item-section>{{
+                    device.device_model || 'Inconnu'
+                  }}</q-item-section>
+                  <q-item-section side class="text-indigo-300 font-mono"
+                    >{{ device.count }} ouvertures</q-item-section
+                  >
                 </q-item>
               </q-list>
             </div>
 
             <!-- Security controls -->
             <div class="q-mt-md">
-              <div class="text-subtitle2 text-indigo-300 q-mb-xs">Contrôles de Confiance (OneShield)</div>
+              <div class="text-subtitle2 text-indigo-300 q-mb-xs"
+                >Contrôles de Confiance (OneShield)</div
+              >
               <div class="row items-center q-col-gutter-sm">
                 <div class="col-8">
-                  <q-slider v-model="trustScoreSlider" :min="0" :max="100" label color="green" dark />
+                  <q-slider
+                    v-model="trustScoreSlider"
+                    :min="0"
+                    :max="100"
+                    label
+                    color="green"
+                    dark
+                  />
                 </div>
                 <div class="col-4">
                   <q-btn
@@ -179,10 +239,17 @@
           </div>
         </q-card>
 
-        <q-card v-else class="glass-panel admin-card text-center flex flex-center" style="height: 300px">
+        <q-card
+          v-else
+          class="glass-panel admin-card text-center flex flex-center"
+          style="height: 300px"
+        >
           <div class="text-indigo-400">
             <q-icon name="query_stats" size="48px" class="q-mb-md" />
-            <div>Sélectionnez une application pour charger les rapports analytiques et contrôler la sécurité.</div>
+            <div
+              >Sélectionnez une application pour charger les rapports
+              analytiques et contrôler la sécurité.</div
+            >
           </div>
         </q-card>
       </div>
@@ -307,31 +374,103 @@ onMounted(() => {
 .admin-page {
   background: var(--page);
   color: var(--text);
-  padding: 20px 24px;
+  padding: 28px clamp(18px, 3vw, 42px) 48px;
+}
+.admin-hero {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 24px;
+  background: linear-gradient(
+    120deg,
+    color-mix(in srgb, var(--primary) 10%, var(--surface-low)),
+    var(--surface-low)
+  );
+  border: 1px solid var(--outline);
+  border-radius: 18px;
+  box-shadow: var(--ui-shadow-sm);
+}
+.admin-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin-bottom: 8px;
+  color: var(--primary);
+  font-size: 9px;
+  font-weight: 850;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
 }
 .admin-title {
   color: var(--text);
-  font-size: 22px;
+  font-size: clamp(23px, 2.5vw, 32px);
   font-weight: 800;
   margin: 0;
 }
 .admin-subtitle {
   color: var(--muted);
-  font-size: 13px;
+  max-width: 720px;
+  font-size: 11px;
+  line-height: 1.6;
   margin-top: 4px;
 }
 .admin-card {
   background: var(--glass);
   border: 1px solid var(--outline);
-  border-radius: 12px;
-  padding: 16px;
-  box-shadow: 0 12px 30px rgba(4, 9, 25, 0.06);
+  border-radius: 16px;
+  padding: 20px;
+  box-shadow: var(--ui-shadow-sm);
+  transition:
+    border-color 0.2s ease,
+    transform 0.25s var(--ui-ease);
+}
+.admin-card:hover {
+  border-color: color-mix(in srgb, var(--primary) 24%, var(--outline));
+}
+.admin-card :deep(.text-white) {
+  color: var(--text) !important;
+}
+.admin-card :deep(.text-indigo-300),
+.admin-card :deep(.text-indigo-400) {
+  color: var(--muted) !important;
+}
+.admin-card :deep(.q-list--dark) {
+  color: var(--text);
+}
+.admin-card :deep(.q-item) {
+  min-height: 58px;
+  border-radius: 10px;
+  transition: background-color 0.18s ease;
+}
+.admin-card :deep(.q-item:hover) {
+  background: var(--surface-high);
+}
+.system-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex: 0 0 auto;
+  padding: 8px 11px;
+  color: var(--muted);
+  background: var(--surface-low);
+  border: 1px solid var(--outline);
+  border-radius: 999px;
+  font-size: 9px;
+  font-weight: 700;
+}
+.system-status span {
+  width: 7px;
+  height: 7px;
+  background: #34c98a;
+  border-radius: 50%;
+  box-shadow: 0 0 0 4px rgba(52, 201, 138, 0.12);
 }
 .stats-box {
   background: var(--surface-low);
   border: 1px solid var(--outline);
   padding: 12px;
-  border-radius: 8px;
+  border-radius: 12px;
   text-align: center;
 }
 .stats-value {
@@ -346,6 +485,19 @@ onMounted(() => {
 .sidebar-list {
   background: var(--surface-low);
   border: 1px solid var(--outline);
-  border-radius: 8px;
+  border-radius: 12px;
+}
+@media (max-width: 700px) {
+  .admin-hero {
+    align-items: flex-start;
+    flex-direction: column;
+    padding: 18px;
+  }
+  .system-status {
+    white-space: normal;
+  }
+  .admin-card {
+    padding: 14px;
+  }
 }
 </style>

@@ -1,6 +1,6 @@
 <template>
   <q-layout
-    view="hHh Lpr lFf"
+    view="lHh Lpr lFf"
     class="one-layout"
     :class="{ 'theme-dark': isDark }"
   >
@@ -25,16 +25,99 @@
           <strong>OneInstall</strong>
         </router-link>
 
-        <label class="header-search">
+        <div class="header-search">
           <q-icon name="search" />
           <input
             v-model="search"
             type="search"
             placeholder="Rechercher une application, un jeu, une entreprise..."
             aria-label="Rechercher"
+            @focus="searchFocused = true"
+            @blur="onSearchBlur"
             @keyup.enter="submitSearch"
           />
-        </label>
+
+          <!-- Search Overlay Suggestions / History -->
+          <div v-if="searchFocused" class="search-overlay-box glass-panel">
+            <!-- Autocomplete Suggestions -->
+            <div v-if="suggestions.length > 0" class="search-section">
+              <div class="search-section-title"
+                ><q-icon name="auto_awesome" /> Suggestions</div
+              >
+              <div class="search-suggestions-list">
+                <div
+                  v-for="sug in suggestions"
+                  :key="sug"
+                  class="search-item cursor-pointer"
+                  @mousedown="selectSearchTerm(sug)"
+                >
+                  <q-icon name="search" />
+                  <span>{{ sug }}</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Search History -->
+            <div v-if="searchHistory.length > 0" class="search-section">
+              <div
+                class="search-section-title row justify-between items-center"
+              >
+                <span><q-icon name="history" /> Historique récent</span>
+                <q-btn
+                  flat
+                  dense
+                  no-caps
+                  label="Effacer"
+                  class="clear-history-btn"
+                  @mousedown="clearHistory"
+                />
+              </div>
+              <div class="search-history-list">
+                <div
+                  v-for="(hist, index) in searchHistory"
+                  :key="index"
+                  class="search-item row justify-between items-center cursor-pointer"
+                  @mousedown="selectSearchTerm(hist)"
+                >
+                  <div class="row items-center q-gutter-xs">
+                    <q-icon name="history" />
+                    <span>{{ hist }}</span>
+                  </div>
+                  <q-btn
+                    flat
+                    round
+                    dense
+                    icon="close"
+                    size="xs"
+                    class="remove-history-btn"
+                    @mousedown.stop="removeHistoryItem(index)"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <!-- Trending Searches -->
+            <div class="search-section">
+              <div class="search-section-title"
+                ><q-icon name="trending_up" /> Recherches populaires</div
+              >
+              <div class="search-trending-chips">
+                <q-chip
+                  v-for="trend in trendingQueries"
+                  :key="trend"
+                  clickable
+                  dark
+                  color="indigo-900"
+                  text-color="indigo-200"
+                  class="trend-chip"
+                  @mousedown="selectSearchTerm(trend)"
+                >
+                  {{ trend }}
+                </q-chip>
+              </div>
+            </div>
+          </div>
+        </div>
 
         <nav class="top-links gt-md" aria-label="Liens secondaires">
           <router-link to="/developer">Développeurs</router-link>
@@ -115,7 +198,7 @@
     <q-drawer
       v-model="leftDrawerOpen"
       show-if-above
-      :width="256"
+      :width="272"
       :breakpoint="1024"
       class="one-drawer"
     >
@@ -128,6 +211,7 @@
           </span>
         </router-link>
 
+        <p class="drawer-label drawer-label-first">Explorer</p>
         <q-list class="navigation-list">
           <q-item
             v-for="item in mainNavigation"
@@ -135,39 +219,51 @@
             clickable
             v-ripple
             :to="item.to"
-            :href="item.href"
             exact
             active-class="nav-active"
+            @click="handleNavigation(item)"
           >
-            <q-item-section avatar><q-icon :name="item.icon" /></q-item-section>
+            <q-item-section avatar>
+              <span class="nav-icon"><q-icon :name="item.icon" /></span>
+            </q-item-section>
             <q-item-section>{{ item.label }}</q-item-section>
+            <q-item-section v-if="item.badge" side>
+              <q-badge rounded :label="item.badge" class="nav-badge" />
+            </q-item-section>
           </q-item>
         </q-list>
 
         <p class="drawer-label">Espace développeur</p>
-        <q-list class="navigation-list developer-list">
-          <q-item
-            v-for="item in developerNavigation"
-            :key="item.label"
-            clickable
-            v-ripple
-            :to="item.to"
-            :href="item.href"
-            active-class="nav-active"
-          >
-            <q-item-section avatar><q-icon :name="item.icon" /></q-item-section>
-            <q-item-section>{{ item.label }}</q-item-section>
-          </q-item>
-        </q-list>
+        <router-link to="/developer" class="developer-entry">
+          <span class="developer-entry-icon"><q-icon name="terminal" /></span>
+          <span class="developer-entry-copy">
+            <strong>Developer Center</strong>
+            <small>Gérez vos apps et vos builds</small>
+          </span>
+          <q-icon name="arrow_forward" class="developer-entry-arrow" />
+        </router-link>
 
         <div class="publish-card">
           <span class="publish-glow" />
+          <span class="publish-icon"><q-icon name="rocket_launch" /></span>
           <strong>Publiez votre application</strong>
-          <p
-            >Atteignez des millions d’utilisateurs en Afrique et dans le
-            monde.</p
-          >
+          <p>
+            Atteignez des millions d’utilisateurs en Afrique et dans le monde.
+          </p>
           <q-btn unelevated no-caps label="Commencer" to="/developer" />
+        </div>
+
+        <!-- Install Store Button -->
+        <div v-if="canInstallStore" class="q-px-md q-pb-md">
+          <q-btn
+            color="indigo-7"
+            unelevated
+            no-caps
+            class="full-width text-weight-bold"
+            icon="add_to_home_screen"
+            label="Installer OneInstall"
+            @click="promptInstallStore"
+          />
         </div>
       </div>
     </q-drawer>
@@ -175,14 +271,53 @@
     <q-page-container class="page-container">
       <router-view />
     </q-page-container>
+
+    <nav
+      class="mobile-bottom-nav lt-md"
+      aria-label="Navigation mobile principale"
+    >
+      <q-btn
+        flat
+        no-caps
+        icon="home"
+        label="Accueil"
+        to="/"
+        :class="{ active: route.path === '/' }"
+      />
+      <q-btn
+        flat
+        no-caps
+        icon="apps"
+        label="Apps"
+        @click="handleNavigation(mainNavigation[1])"
+      />
+      <q-btn
+        flat
+        no-caps
+        icon="category"
+        label="Catégories"
+        @click="handleNavigation(mainNavigation[3])"
+      />
+      <q-btn
+        flat
+        no-caps
+        icon="person_outline"
+        label="Compte"
+        :to="authStore.isAuthenticated ? '/developer' : '/login'"
+        :class="{
+          active: route.path === '/developer' || route.path === '/login'
+        }"
+      />
+    </nav>
   </q-layout>
 </template>
 
 <script setup>
-import { onMounted, ref } from 'vue'
+import { nextTick, onMounted, ref, watch, computed } from 'vue'
 import { useQuasar } from 'quasar'
 import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
+import { api } from '@/boot/axios'
 
 const $q = useQuasar()
 const route = useRoute()
@@ -192,21 +327,21 @@ const leftDrawerOpen = ref(false)
 const search = ref('')
 const isDark = ref(true)
 
+const searchFocused = ref(false)
+const searchHistory = ref([])
+const suggestions = ref([])
+const trendingQueries = ['Retro Games', 'Taskify', 'Chat', 'Secure Notes']
+
+const deferredInstallPrompt = ref(null)
+const canInstallStore = computed(() => !!deferredInstallPrompt.value)
+
 const mainNavigation = [
   { label: 'Accueil', icon: 'home', to: '/' },
-  { label: 'Applications', icon: 'apps', href: '#popular' },
-  { label: 'Jeux', icon: 'sports_esports', href: '#recommended' },
-  { label: 'Catégories', icon: 'category', href: '#categories' },
-  { label: 'Entreprises', icon: 'business', href: '#business' },
-  { label: 'Collections', icon: 'collections_bookmark', href: '#recommended' },
-  { label: 'Mises à jour', icon: 'update', href: '#trending' }
-]
-
-const developerNavigation = [
-  { label: 'Mes applications', icon: 'terminal', to: '/developer' },
-  { label: 'Statistiques', icon: 'insert_chart', to: '/developer' },
-  { label: 'Publier une app', icon: 'publish', to: '/developer' },
-  { label: 'Revenus', icon: 'payments', to: '/developer' }
+  { label: 'Populaires', icon: 'apps', to: '/popular' },
+  { label: 'Recommandés', icon: 'auto_awesome', to: '/recommended' },
+  { label: 'Tendances', icon: 'trending_up', to: '/trending' },
+  { label: 'Catégories', icon: 'category', section: 'categories' },
+  { label: 'Entreprises', icon: 'business', section: 'business' }
 ]
 
 onMounted(() => {
@@ -215,7 +350,55 @@ onMounted(() => {
   isDark.value = savedTheme ? savedTheme === 'dark' : prefersDark
   $q.dark.set(isDark.value)
   search.value = String(route.query.search || '')
+
+  // Load search history
+  const history = localStorage.getItem('oneapp_search_history')
+  if (history) {
+    searchHistory.value = JSON.parse(history)
+  }
+
+  // Listen to PWA installation events
+  window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault()
+    deferredInstallPrompt.value = e
+  })
+
+  window.addEventListener('appinstalled', () => {
+    deferredInstallPrompt.value = null
+    $q.notify({
+      type: 'positive',
+      message: 'OneInstall a été installé avec succès sur votre appareil !'
+    })
+  })
 })
+
+// Watch search query for autocomplete suggestions
+watch(search, async newVal => {
+  const query = String(newVal || '').trim()
+  if (query.length < 2) {
+    suggestions.value = []
+    return
+  }
+  try {
+    const response = await api.get('/apps/suggestions', {
+      params: { search: query }
+    })
+    suggestions.value = response.data || []
+  } catch (err) {
+    console.error('Error fetching search suggestions', err)
+  }
+})
+
+function onSearchBlur() {
+  setTimeout(() => {
+    searchFocused.value = false
+  }, 200)
+}
+
+function selectSearchTerm(term) {
+  search.value = term
+  submitSearch()
+}
 
 function toggleTheme() {
   isDark.value = !isDark.value
@@ -224,15 +407,66 @@ function toggleTheme() {
 }
 
 function submitSearch() {
+  const query = search.value.trim()
+  if (query) {
+    // Add to history
+    if (!searchHistory.value.includes(query)) {
+      searchHistory.value.unshift(query)
+      if (searchHistory.value.length > 5) {
+        searchHistory.value.pop()
+      }
+      localStorage.setItem(
+        'oneapp_search_history',
+        JSON.stringify(searchHistory.value)
+      )
+    }
+  }
   router.push({
     path: '/',
-    query: search.value.trim() ? { search: search.value.trim() } : {}
+    query: query ? { search: query } : {}
+  })
+}
+
+function clearHistory() {
+  searchHistory.value = []
+  localStorage.removeItem('oneapp_search_history')
+}
+
+function removeHistoryItem(index) {
+  searchHistory.value.splice(index, 1)
+  localStorage.setItem(
+    'oneapp_search_history',
+    JSON.stringify(searchHistory.value)
+  )
+}
+
+async function handleNavigation(item) {
+  if ($q.screen.lt.md) leftDrawerOpen.value = false
+
+  if (!item.section) return
+
+  if (route.path !== '/') await router.push('/')
+  await nextTick()
+
+  requestAnimationFrame(() => {
+    document.getElementById(item.section)?.scrollIntoView({
+      behavior: 'smooth',
+      block: 'start'
+    })
   })
 }
 
 async function handleLogout() {
   await authStore.logout()
   router.push('/')
+}
+
+async function promptInstallStore() {
+  if (!deferredInstallPrompt.value) return
+  deferredInstallPrompt.value.prompt()
+  const { outcome } = await deferredInstallPrompt.value.userChoice
+  console.log(`Store install user choice: ${outcome}`)
+  deferredInstallPrompt.value = null
 }
 </script>
 
@@ -253,6 +487,9 @@ async function handleLogout() {
   --secondary: #7b21c8;
   color: var(--text);
   background: var(--page);
+  width: 100%;
+  max-width: 100vw;
+  overflow-x: clip;
   transition:
     background-color 0.25s ease,
     color 0.25s ease;
@@ -275,7 +512,7 @@ async function handleLogout() {
 }
 
 .one-header {
-  left: 256px;
+  left: 272px;
   color: var(--text);
   background: color-mix(in srgb, var(--surface-highest) 64%, transparent);
   border-bottom: 1px solid var(--outline);
@@ -294,6 +531,7 @@ async function handleLogout() {
   align-items: center;
   flex: 1;
   max-width: 650px;
+  z-index: 20;
 }
 .header-search .q-icon {
   position: absolute;
@@ -316,6 +554,87 @@ async function handleLogout() {
   transition:
     border-color 0.2s,
     box-shadow 0.2s;
+}
+.search-overlay-box {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  right: 0;
+  background: var(--glass);
+  border: 1px solid var(--outline);
+  border-radius: 16px;
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.25);
+  backdrop-filter: blur(20px);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.search-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.search-section-title {
+  font-size: 10px;
+  font-weight: 800;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.clear-history-btn {
+  font-size: 9px;
+  color: var(--primary);
+  padding: 0;
+  min-height: 0;
+}
+.search-suggestions-list,
+.search-history-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.search-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 600;
+  transition: background-color 0.2s;
+
+  &:hover {
+    background-color: var(--surface-high);
+  }
+
+  .q-icon {
+    position: static;
+    font-size: 16px;
+    color: var(--muted);
+  }
+}
+.remove-history-btn {
+  color: var(--muted);
+  opacity: 0.7;
+
+  &:hover {
+    color: var(--text);
+    opacity: 1;
+  }
+}
+.search-trending-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.trend-chip {
+  font-size: 11px;
+  font-weight: 700;
 }
 .header-search input::placeholder {
   color: var(--muted);
@@ -414,16 +733,24 @@ async function handleLogout() {
 
 .one-drawer {
   color: var(--text);
-  background: color-mix(in srgb, var(--surface-low) 88%, transparent);
+  background:
+    radial-gradient(
+      circle at 0 0,
+      color-mix(in srgb, var(--primary) 8%, transparent),
+      transparent 34%
+    ),
+    color-mix(in srgb, var(--surface-low) 95%, var(--page));
   border-right: 1px solid var(--outline) !important;
-  backdrop-filter: blur(20px);
+  box-shadow: 12px 0 36px rgba(5, 12, 30, 0.04);
 }
 .drawer-content {
   height: 100%;
   display: flex;
   flex-direction: column;
   overflow-y: auto;
-  padding: 24px 10px 20px;
+  padding: 14px 12px 18px;
+  scrollbar-width: thin;
+  scrollbar-color: var(--surface-highest) transparent;
 }
 .brand,
 .mobile-brand {
@@ -434,18 +761,24 @@ async function handleLogout() {
 }
 .brand {
   gap: 12px;
-  padding: 0 14px;
-  margin-bottom: 27px;
+  min-height: 58px;
+  padding: 4px 10px;
+  margin-bottom: 18px;
+  border-radius: 13px;
+  transition: background-color 0.2s ease;
+}
+.brand:hover {
+  background: color-mix(in srgb, var(--surface-high) 65%, transparent);
 }
 .brand-mark {
-  width: 40px;
-  height: 40px;
+  width: 42px;
+  height: 42px;
   flex: 0 0 auto;
   display: grid;
   place-items: center;
   color: var(--primary-text);
   background: linear-gradient(135deg, var(--primary-soft), var(--primary));
-  border-radius: 12px;
+  border-radius: 13px;
   box-shadow: 0 8px 24px color-mix(in srgb, var(--primary) 22%, transparent);
 }
 .brand-mark .q-icon {
@@ -456,7 +789,7 @@ async function handleLogout() {
   flex-direction: column;
 }
 .brand strong {
-  font-size: 20px;
+  font-size: 19px;
   letter-spacing: -0.6px;
 }
 .brand small {
@@ -465,42 +798,149 @@ async function handleLogout() {
   font-size: 11px;
 }
 .navigation-list .q-item {
-  min-height: 46px;
-  margin: 2px 0;
-  padding: 0 14px;
+  position: relative;
+  min-height: 48px;
+  margin: 3px 0;
+  padding: 0 11px;
   color: var(--muted);
-  border-radius: 10px;
+  border: 1px solid transparent;
+  border-radius: 12px;
   font-size: 13px;
-  font-weight: 600;
+  font-weight: 650;
+  transition:
+    color 0.18s ease,
+    background-color 0.18s ease,
+    border-color 0.18s ease,
+    transform 0.18s ease;
 }
 .navigation-list .q-item:hover {
   color: var(--text);
-  background: var(--surface-high);
+  background: color-mix(in srgb, var(--surface-high) 70%, transparent);
+  border-color: var(--outline);
+  transform: translateX(2px);
 }
 .navigation-list .q-item__section--avatar {
-  min-width: 37px;
+  min-width: 42px;
+}
+.nav-icon {
+  width: 31px;
+  height: 31px;
+  display: grid;
+  place-items: center;
+  background: color-mix(in srgb, var(--surface-highest) 56%, transparent);
+  border: 1px solid color-mix(in srgb, var(--outline) 68%, transparent);
+  border-radius: 9px;
+  transition: 0.18s ease;
 }
 .navigation-list .q-icon {
-  font-size: 21px;
+  font-size: 19px;
 }
 .navigation-list .nav-active {
   color: var(--primary);
-  background: color-mix(in srgb, var(--secondary) 22%, var(--surface));
+  background: color-mix(in srgb, var(--primary) 12%, var(--surface-low));
+  border-color: color-mix(in srgb, var(--primary) 20%, transparent);
+  box-shadow: 0 8px 20px color-mix(in srgb, var(--primary) 8%, transparent);
+}
+.navigation-list .nav-active::before {
+  position: absolute;
+  left: -1px;
+  width: 3px;
+  height: 22px;
+  background: var(--primary);
+  border-radius: 0 4px 4px 0;
+  content: '';
+}
+.navigation-list .nav-active .nav-icon {
+  color: var(--primary);
+  background: color-mix(in srgb, var(--primary) 14%, var(--surface-low));
+  border-color: color-mix(in srgb, var(--primary) 22%, transparent);
+}
+.nav-badge {
+  min-width: 20px;
+  color: var(--primary);
+  background: color-mix(in srgb, var(--primary) 13%, var(--surface));
+  font-size: 9px;
+  font-weight: 800;
 }
 .drawer-label {
-  margin: 24px 14px 7px;
+  margin: 22px 12px 8px;
   color: var(--muted);
-  font-size: 10px;
+  font-size: 9px;
   font-weight: 800;
-  letter-spacing: 0.1em;
+  letter-spacing: 0.13em;
   text-transform: uppercase;
+}
+.drawer-label-first {
+  margin-top: 0;
+}
+.developer-entry {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  min-height: 64px;
+  padding: 10px 11px;
+  color: var(--text);
+  background: color-mix(in srgb, var(--primary) 9%, var(--surface-low));
+  border: 1px solid color-mix(in srgb, var(--primary) 17%, var(--outline));
+  border-radius: 13px;
+  text-decoration: none;
+  transition:
+    transform 0.2s ease,
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+.developer-entry:hover {
+  border-color: color-mix(in srgb, var(--primary) 38%, transparent);
+  box-shadow: 0 10px 24px color-mix(in srgb, var(--primary) 10%, transparent);
+  transform: translateY(-1px);
+}
+.developer-entry-icon {
+  width: 36px;
+  height: 36px;
+  display: grid;
+  flex: 0 0 auto;
+  place-items: center;
+  color: var(--primary);
+  background: color-mix(in srgb, var(--primary) 14%, var(--surface-low));
+  border-radius: 10px;
+}
+.developer-entry-icon .q-icon {
+  font-size: 20px;
+}
+.developer-entry-copy {
+  min-width: 0;
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+}
+.developer-entry-copy strong {
+  font-size: 12px;
+}
+.developer-entry-copy small {
+  overflow: hidden;
+  color: var(--muted);
+  font-size: 9px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.developer-entry-arrow {
+  color: var(--primary);
+  font-size: 17px;
+  transition: transform 0.2s ease;
+}
+.developer-entry:hover .developer-entry-arrow {
+  transform: translateX(2px);
 }
 .publish-card {
   position: relative;
   overflow: hidden;
-  margin: auto 8px 0;
-  padding: 16px;
-  background: linear-gradient(135deg, var(--surface-highest), var(--surface));
+  margin: auto 0 0;
+  padding: 15px;
+  background: linear-gradient(
+    145deg,
+    color-mix(in srgb, var(--surface-highest) 82%, var(--primary)),
+    var(--surface)
+  );
   border: 1px solid var(--outline);
   border-radius: 14px;
 }
@@ -510,7 +950,8 @@ async function handleLogout() {
 }
 .publish-card strong {
   display: block;
-  font-size: 13px;
+  margin-top: 9px;
+  font-size: 12px;
 }
 .publish-card p {
   margin: 5px 0 12px;
@@ -522,9 +963,22 @@ async function handleLogout() {
   width: 100%;
   color: var(--primary-text);
   background: linear-gradient(90deg, var(--primary-soft), var(--primary));
-  border-radius: 9px;
+  min-height: 36px;
+  border-radius: 10px;
   font-size: 12px;
   font-weight: 800;
+}
+.publish-icon {
+  width: 29px;
+  height: 29px;
+  display: grid;
+  place-items: center;
+  color: var(--primary);
+  background: color-mix(in srgb, var(--primary) 14%, var(--surface-low));
+  border-radius: 9px;
+}
+.publish-icon .q-icon {
+  font-size: 17px;
 }
 .publish-glow {
   position: absolute;
@@ -541,6 +995,44 @@ async function handleLogout() {
 .page-container {
   min-height: 100vh;
   background: var(--page);
+}
+.page-container :is(#popular, #recommended, #categories, #business, #trending) {
+  scroll-margin-top: 92px;
+}
+.mobile-bottom-nav {
+  position: fixed;
+  z-index: 3000;
+  right: 12px;
+  bottom: max(10px, env(safe-area-inset-bottom));
+  left: 12px;
+  height: 64px;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  padding: 6px;
+  background: color-mix(in srgb, var(--surface-low) 88%, transparent);
+  border: 1px solid var(--outline);
+  border-radius: 18px;
+  box-shadow: 0 16px 50px rgba(4, 9, 25, 0.22);
+  backdrop-filter: blur(22px) saturate(145%);
+}
+.mobile-bottom-nav .q-btn {
+  min-width: 0;
+  min-height: 50px;
+  padding: 3px 2px;
+  color: var(--muted);
+  border-radius: 13px;
+  font-size: 8px;
+}
+.mobile-bottom-nav .q-btn .q-btn__content {
+  gap: 1px;
+  flex-direction: column;
+}
+.mobile-bottom-nav .q-btn .q-icon {
+  font-size: 21px;
+}
+.mobile-bottom-nav .q-btn.active {
+  color: var(--primary);
+  background: color-mix(in srgb, var(--primary) 12%, var(--surface));
 }
 
 @media (max-width: 1023px) {
@@ -565,6 +1057,9 @@ async function handleLogout() {
   }
   .header-search {
     max-width: none;
+  }
+  .page-container {
+    padding-bottom: 82px;
   }
 }
 

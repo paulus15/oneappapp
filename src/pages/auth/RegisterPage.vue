@@ -1,12 +1,13 @@
 <template>
-  <q-page class="flex flex-center auth-page">
-    <q-card class="glass-panel auth-card">
-      <q-card-section class="text-center card-header">
-        <q-avatar size="52px" class="brand-avatar">
-          <q-icon name="person_add" />
-        </q-avatar>
-        <h1 class="auth-title">Rejoindre OneApp</h1>
-        <p class="auth-subtitle">Créez votre compte développeur ou utilisateur</p>
+  <q-page class="auth-page">
+    <q-card flat class="auth-card">
+      <q-card-section class="card-header">
+        <span class="auth-eyebrow">Rejoindre la communauté</span>
+        <h1 class="auth-title">Créez votre espace OneInstall</h1>
+        <p class="auth-subtitle"
+          >Un compte unique pour explorer ou publier sur toutes les
+          plateformes.</p
+        >
       </q-card-section>
 
       <q-card-section>
@@ -14,25 +15,23 @@
           <q-input
             v-model="name"
             label="Nom complet"
-            label-color="indigo-300"
-            color="indigo-500"
             filled
-            dark
+            color="primary"
             required
             :rules="[val => (val && val.length > 0) || 'Nom requis']"
-          />
+            ><template #prepend><q-icon name="person_outline" /></template
+          ></q-input>
 
           <q-input
             v-model="email"
             type="email"
             label="Adresse Email"
-            label-color="indigo-300"
-            color="indigo-500"
             filled
-            dark
+            color="primary"
             required
             :rules="[val => (val && val.length > 0) || 'Email requis']"
-          />
+            ><template #prepend><q-icon name="alternate_email" /></template
+          ></q-input>
 
           <div class="account-type-title">Type de Compte</div>
           <div class="row q-col-gutter-sm q-mb-md">
@@ -41,7 +40,6 @@
                 v-model="role"
                 val="user"
                 label="Utilisateur"
-                dark
                 color="indigo"
                 class="full-width radio-box"
               />
@@ -51,7 +49,6 @@
                 v-model="role"
                 val="developer"
                 label="Développeur"
-                dark
                 color="indigo"
                 class="full-width radio-box"
               />
@@ -60,35 +57,40 @@
 
           <q-input
             v-model="password"
-            type="password"
+            :type="showPassword ? 'text' : 'password'"
             label="Mot de passe"
-            label-color="indigo-300"
-            color="indigo-500"
             filled
-            dark
+            color="primary"
             required
             :rules="[val => (val && val.length >= 8) || 'Minimum 8 caractères']"
-          />
+            ><template #prepend><q-icon name="lock_outline" /></template
+          ></q-input>
 
           <q-input
             v-model="passwordConfirmation"
-            type="password"
+            :type="showPassword ? 'text' : 'password'"
             label="Confirmer le mot de passe"
-            label-color="indigo-300"
-            color="indigo-500"
             filled
-            dark
+            color="primary"
             required
             :rules="[
               val =>
                 val === password || 'Les mots de passe ne correspondent pas'
             ]"
-          />
-
-          <div
-            v-if="error"
-            class="text-red-400 text-center text-caption q-my-sm"
           >
+            <template #prepend><q-icon name="verified_user" /></template>
+            <template #append
+              ><q-btn
+                flat
+                round
+                dense
+                :icon="showPassword ? 'visibility_off' : 'visibility'"
+                aria-label="Afficher ou masquer les mots de passe"
+                @click="showPassword = !showPassword"
+            /></template>
+          </q-input>
+
+          <div v-if="error" class="form-error" role="alert">
             {{ error }}
           </div>
 
@@ -130,6 +132,7 @@ const email = ref('')
 const role = ref('user')
 const password = ref('')
 const passwordConfirmation = ref('')
+const showPassword = ref(false)
 const error = ref('')
 const loading = ref(false)
 
@@ -157,37 +160,41 @@ async function onSubmit() {
 
 <style scoped lang="scss">
 .auth-page {
-  background: var(--page);
+  width: 100%;
+  min-height: 0 !important;
+  display: grid;
+  place-items: center;
   color: var(--text);
 }
 .auth-card {
-  width: 380px;
-  max-width: 90vw;
-  padding: 12px;
-  border-radius: 12px;
-  background: var(--glass);
-  border: 1px solid var(--outline);
-  backdrop-filter: blur(16px);
-  box-shadow: 0 12px 30px rgba(4, 9, 25, 0.08);
+  width: min(460px, 100%);
+  background: transparent;
 }
-.brand-avatar {
-  background: var(--surface-highest);
+.card-header {
+  padding: 0 16px 22px;
+}
+.auth-eyebrow {
+  display: inline-flex;
+  margin-bottom: 8px;
   color: var(--primary);
-  margin-bottom: 12px;
-}
-.brand-avatar .q-icon {
-  font-size: 24px;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
 }
 .auth-title {
   margin: 0;
   color: var(--text);
-  font-size: 18px;
-  font-weight: 800;
+  font-size: clamp(25px, 3vw, 34px);
+  font-weight: 850;
+  line-height: 1.08;
+  letter-spacing: -0.045em;
 }
 .auth-subtitle {
-  margin: 4px 0 0;
+  margin: 10px 0 0;
   color: var(--muted);
   font-size: 11px;
+  line-height: 1.55;
 }
 .account-type-title {
   color: var(--muted);
@@ -196,20 +203,38 @@ async function onSubmit() {
   margin-bottom: 6px;
 }
 .radio-box {
-  background: var(--surface-low);
+  min-height: 44px;
+  background: var(--surface-high);
   border: 1px solid var(--outline);
-  padding: 6px 10px;
-  border-radius: 8px;
+  padding: 7px 10px;
+  border-radius: 11px;
   color: var(--text);
   font-size: 12px;
 }
 .submit-btn {
-  background: var(--text);
-  color: var(--page);
+  min-height: 50px;
+  color: #fff;
+  background: linear-gradient(135deg, #6d68f3, #7842c4);
   font-weight: 800;
-  border-radius: 8px;
-  min-height: 38px;
-  font-size: 12px;
+  border-radius: 12px;
+  box-shadow: 0 12px 26px rgba(97, 87, 230, 0.24);
+  font-size: 13px;
+}
+.form-error {
+  padding: 10px 12px;
+  color: #ff6978;
+  background: rgba(239, 91, 103, 0.1);
+  border: 1px solid rgba(239, 91, 103, 0.2);
+  border-radius: 10px;
+  font-size: 10px;
+}
+.auth-card :deep(.q-field__label),
+.auth-card :deep(.q-field__native) {
+  color: var(--text);
+}
+.auth-card :deep(.q-field__prepend),
+.auth-card :deep(.q-field__append) {
+  color: var(--muted);
 }
 .footer-text {
   color: var(--muted);

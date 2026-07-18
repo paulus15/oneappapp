@@ -1,8 +1,11 @@
 <template>
   <q-page class="console-page">
-    <div class="row justify-between items-center q-mb-lg">
+    <div class="console-hero row justify-between items-center q-mb-lg">
       <div>
-        <h1 class="console-title">Console Développeur OneApp</h1>
+        <span class="console-eyebrow"
+          ><q-icon name="code" /> Votre workspace</span
+        >
+        <h1 class="console-title">Construisez la prochaine expérience.</h1>
         <div class="console-subtitle">
           Soumettez vos applications Web et gérez vos builds (.oap / ZIP)
         </div>
@@ -18,11 +21,15 @@
     </div>
 
     <!-- Apps list -->
-    <div v-if="loading" class="row justify-center q-my-xl">
+    <div v-if="loading" class="row justify-center q-my-xl" id="applications">
       <q-spinner-orbit color="indigo" size="48px" />
     </div>
 
-    <div v-else-if="myApps.length === 0" class="text-center q-my-xl">
+    <div
+      v-else-if="myApps.length === 0"
+      class="text-center q-my-xl"
+      id="applications"
+    >
       <q-avatar size="64px" class="bg-indigo-900 q-mb-md">
         <q-icon name="code" color="indigo-200" size="36px" />
       </q-avatar>
@@ -39,7 +46,7 @@
       />
     </div>
 
-    <div v-else class="row q-col-gutter-md">
+    <div v-else class="row q-col-gutter-md" id="applications">
       <div v-for="app in myApps" :key="app.id" class="col-12">
         <q-card class="glass-panel app-console-card">
           <div class="row justify-between items-start no-wrap q-mb-md">
@@ -56,8 +63,12 @@
                 />
               </q-avatar>
               <div>
-                <div class="text-subtitle1 text-white text-weight-bold">{{ app.name }}</div>
-                <div class="text-caption text-indigo-300 font-mono">{{ app.identifier }}</div>
+                <div class="text-subtitle1 text-white text-weight-bold">{{
+                  app.name
+                }}</div>
+                <div class="text-caption text-indigo-300 font-mono">{{
+                  app.identifier
+                }}</div>
               </div>
             </div>
 
@@ -88,25 +99,30 @@
             <div class="text-subtitle2 text-indigo-300 q-mb-xs">
               Historique des versions (.zip)
             </div>
-            <q-list
-              dark
-              separator
-              class="version-list overflow-hidden"
-            >
-              <q-item v-if="app.versions?.length === 0" class="text-indigo-400 italic text-caption">
-                <q-item-section>Aucun build chargé. Veuillez téléverser un fichier ZIP.</q-item-section>
+            <q-list dark separator class="version-list overflow-hidden">
+              <q-item
+                v-if="app.versions?.length === 0"
+                class="text-indigo-400 italic text-caption"
+              >
+                <q-item-section
+                  >Aucun build chargé. Veuillez téléverser un fichier
+                  ZIP.</q-item-section
+                >
               </q-item>
 
               <q-item v-for="ver in app.versions" :key="ver.id" class="q-py-sm">
                 <q-item-section>
                   <div class="row items-center q-gutter-xs">
-                    <span class="text-weight-bold text-white text-subtitle2">v{{ ver.version_number }}</span>
+                    <span class="text-weight-bold text-white text-subtitle2"
+                      >v{{ ver.version_number }}</span
+                    >
                     <q-badge color="indigo-9" dense>
                       SHA256: {{ ver.hash_sha256.substring(0, 16) }}...
                     </q-badge>
                   </div>
                   <div class="text-caption text-indigo-400">
-                    Permissions : {{ ver.permissions_required?.join(', ') || 'aucune' }}
+                    Permissions :
+                    {{ ver.permissions_required?.join(', ') || 'aucune' }}
                   </div>
                 </q-item-section>
 
@@ -126,7 +142,9 @@
     <q-dialog v-model="showCreateAppDialog" persistent>
       <q-card class="dialog-card q-pa-md" style="width: 500px; max-width: 90vw">
         <q-card-section class="row items-center q-pb-none">
-          <div class="text-h6 text-white text-weight-bold">Créer une Application</div>
+          <div class="text-h6 text-white text-weight-bold"
+            >Créer une Application</div
+          >
           <q-space />
           <q-btn flat round dense icon="close" v-close-popup />
         </q-card-section>
@@ -182,7 +200,12 @@
 
             <div class="row justify-end q-gutter-sm">
               <q-btn flat label="Annuler" v-close-popup />
-              <q-btn label="Soumettre" type="submit" color="indigo-600" :loading="creatingApp" />
+              <q-btn
+                label="Soumettre"
+                type="submit"
+                color="indigo-600"
+                :loading="creatingApp"
+              />
             </div>
           </q-form>
         </q-card-section>
@@ -227,7 +250,9 @@
               </template>
             </q-file>
 
-            <div class="text-subtitle2 text-indigo-300">Permissions requises par l'application :</div>
+            <div class="text-subtitle2 text-indigo-300"
+              >Permissions requises par l'application :</div
+            >
             <div class="row wrap q-gutter-sm">
               <q-checkbox
                 v-for="perm in availablePermissions"
@@ -251,7 +276,12 @@
 
             <div class="row justify-end q-gutter-sm">
               <q-btn flat label="Annuler" v-close-popup />
-              <q-btn label="Uploader & Signer" type="submit" color="indigo-600" :loading="uploadingBuild" />
+              <q-btn
+                label="Uploader & Signer"
+                type="submit"
+                color="indigo-600"
+                :loading="uploadingBuild"
+              />
             </div>
           </q-form>
         </q-card-section>
@@ -349,13 +379,17 @@ function openUploadDialog(app) {
   showUploadDialog.value = true
 }
 
-async function uploadBuild() {
+async function uploadBuild(autoGenerate = false) {
+  const shouldGenerate = autoGenerate === true
   uploadingBuild.value = true
   try {
     const formData = new FormData()
     formData.append('application_id', selectedAppForUpload.value.id)
     formData.append('version_number', newVersion.value.version_number)
     formData.append('zip_file', newVersion.value.zip_file)
+    if (shouldGenerate) {
+      formData.append('auto_generate_pwa', 1)
+    }
 
     newVersion.value.permissions_required.forEach((perm, index) => {
       formData.append(`permissions_required[${index}]`, perm)
@@ -383,10 +417,37 @@ async function uploadBuild() {
     showUploadDialog.value = false
     await fetchMyApps()
   } catch (err) {
-    $q.notify({
-      type: 'negative',
-      message: err.response?.data?.message || "Erreur lors de l'upload"
-    })
+    if (err.response?.data?.error_code === 'MISSING_PWA_FILES') {
+      $q.dialog({
+        title: 'Fichiers PWA manquants',
+        message:
+          'Votre archive ne contient pas de fichier "manifest.json" ou de "service-worker.js".\n\nVoulez-vous que OneInstall génère automatiquement ces fichiers pour rendre votre application installable en tant que PWA ?',
+        cancel: {
+          label: "Annuler l'upload",
+          color: 'negative',
+          flat: true
+        },
+        ok: {
+          label: 'Oui, générer automatiquement',
+          color: 'indigo'
+        },
+        persistent: true
+      })
+        .onOk(() => {
+          uploadBuild(true)
+        })
+        .onCancel(() => {
+          $q.notify({
+            type: 'warning',
+            message: 'Upload annulé par le développeur.'
+          })
+        })
+    } else {
+      $q.notify({
+        type: 'negative',
+        message: err.response?.data?.message || "Erreur lors de l'upload"
+      })
+    }
   } finally {
     uploadingBuild.value = false
   }
@@ -412,11 +473,36 @@ onMounted(() => {
 .console-page {
   background: var(--page);
   color: var(--text);
-  padding: 20px 24px;
+  padding: 28px clamp(18px, 3vw, 42px) 48px;
+}
+.console-hero {
+  gap: 18px;
+  padding: 26px;
+  background:
+    radial-gradient(
+      circle at 85% 20%,
+      color-mix(in srgb, var(--primary) 16%, transparent),
+      transparent 28%
+    ),
+    linear-gradient(125deg, var(--surface-low), var(--surface));
+  border: 1px solid var(--outline);
+  border-radius: 20px;
+  box-shadow: var(--ui-shadow-sm);
+}
+.console-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin-bottom: 8px;
+  color: var(--primary);
+  font-size: 9px;
+  font-weight: 850;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
 }
 .console-title {
   color: var(--text);
-  font-size: 22px;
+  font-size: clamp(22px, 2.4vw, 30px);
   font-weight: 800;
   margin: 0;
 }
@@ -428,33 +514,74 @@ onMounted(() => {
 .app-console-card {
   background: var(--glass);
   border: 1px solid var(--outline);
-  border-radius: 12px;
-  padding: 16px;
-  box-shadow: 0 12px 30px rgba(4, 9, 25, 0.06);
+  border-radius: 17px;
+  padding: 22px;
+  box-shadow: var(--ui-shadow-sm);
+  transition:
+    transform 0.25s var(--ui-ease),
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+.app-console-card:hover {
+  border-color: color-mix(in srgb, var(--primary) 26%, var(--outline));
+  box-shadow: var(--ui-shadow-md);
+  transform: translateY(-2px);
+}
+.console-page :deep(.text-white),
+.dialog-card :deep(.text-white) {
+  color: var(--text) !important;
+}
+.console-page :deep(.text-indigo-200),
+.console-page :deep(.text-indigo-300),
+.console-page :deep(.text-indigo-400) {
+  color: var(--muted) !important;
+}
+.console-page :deep(.q-list--dark) {
+  color: var(--text);
 }
 .create-btn {
-  background: var(--text);
-  color: var(--page);
+  min-height: 44px;
+  padding: 0 16px;
+  color: #fff;
+  background: linear-gradient(135deg, #6e69f1, #7740c0);
   font-weight: 700;
-  border-radius: 6px;
+  border-radius: 11px;
+  box-shadow: 0 10px 24px rgba(102, 87, 224, 0.22);
   font-size: 12px;
 }
 .upload-btn {
   background: var(--surface-highest);
   color: var(--primary);
   font-weight: 700;
-  border-radius: 6px;
+  border-radius: 10px;
   font-size: 11px;
 }
 .version-list {
   background: var(--surface-low);
   border: 1px solid var(--outline);
-  border-radius: 8px;
+  border-radius: 12px;
 }
 .dialog-card {
   background: var(--surface);
   border: 1px solid var(--outline);
-  border-radius: 12px;
+  border-radius: 18px;
   color: var(--text);
+}
+@media (max-width: 700px) {
+  .console-hero {
+    align-items: flex-start;
+    padding: 19px;
+  }
+  .console-hero .create-btn {
+    width: 100%;
+  }
+  .app-console-card {
+    padding: 15px;
+  }
+  .app-console-card > .row:first-child {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 14px;
+  }
 }
 </style>
