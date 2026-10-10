@@ -19,12 +19,17 @@
         <router-link
           to="/"
           class="mobile-brand lt-md"
-          aria-label="OneInstall, accueil"
+          aria-label="PWA Store, accueil"
         >
-          <span class="brand-mark"><q-icon name="apps" /></span>
-          <strong>OneInstall</strong>
+          <BrandLogo compact />
         </router-link>
 
+        <router-link
+          to="/"
+          class="desktop-brand gt-sm"
+          aria-label="PWA Store, accueil"
+          ><BrandLogo
+        /></router-link>
         <div class="header-search">
           <q-icon name="search" />
           <input
@@ -106,7 +111,6 @@
                   v-for="trend in trendingQueries"
                   :key="trend"
                   clickable
-                  dark
                   color="blue-grey-900"
                   text-color="blue-grey-200"
                   class="trend-chip"
@@ -203,12 +207,8 @@
       class="one-drawer"
     >
       <div class="drawer-content">
-        <router-link to="/" class="brand" aria-label="OneInstall, accueil">
-          <span class="brand-mark"><q-icon name="apps" /></span>
-          <span>
-            <strong>OneInstall</strong>
-            <small>One App. All Platforms.</small>
-          </span>
+        <router-link to="/" class="brand" aria-label="PWA Store, accueil">
+          <BrandLogo />
         </router-link>
 
         <p class="drawer-label drawer-label-first">Explorer</p>
@@ -261,7 +261,7 @@
             no-caps
             class="full-width text-weight-bold"
             icon="add_to_home_screen"
-            label="Installer OneInstall"
+            label="Installer PWA Store"
             @click="promptInstallStore"
           />
         </div>
@@ -296,7 +296,7 @@
         no-caps
         icon="category"
         label="Catégories"
-        @click="handleNavigation(mainNavigation[3])"
+        @click="handleNavigation(mainNavigation[4])"
       />
       <q-btn
         flat
@@ -313,6 +313,8 @@
 </template>
 
 <script setup>
+import BrandLogo from '@/components/BrandLogo.vue'
+import { useTheme } from '@/composables/useTheme'
 import { nextTick, onMounted, ref, watch, computed } from 'vue'
 import { useQuasar } from 'quasar'
 import { useRoute, useRouter } from 'vue-router'
@@ -325,7 +327,7 @@ const router = useRouter()
 const authStore = useAuthStore()
 const leftDrawerOpen = ref(false)
 const search = ref('')
-const isDark = ref(true)
+const { isDark, toggleTheme } = useTheme()
 
 const searchFocused = ref(false)
 const searchHistory = ref([])
@@ -345,10 +347,6 @@ const mainNavigation = [
 ]
 
 onMounted(() => {
-  const savedTheme = localStorage.getItem('oneinstall-theme')
-  const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
-  isDark.value = savedTheme ? savedTheme === 'dark' : prefersDark
-  $q.dark.set(isDark.value)
   search.value = String(route.query.search || '')
 
   // Load search history
@@ -367,7 +365,7 @@ onMounted(() => {
     deferredInstallPrompt.value = null
     $q.notify({
       type: 'positive',
-      message: 'OneInstall a été installé avec succès sur votre appareil !'
+      message: 'PWA Store a été installé avec succès sur votre appareil !'
     })
   })
 })
@@ -398,12 +396,6 @@ function onSearchBlur() {
 function selectSearchTerm(term) {
   search.value = term
   submitSearch()
-}
-
-function toggleTheme() {
-  isDark.value = !isDark.value
-  $q.dark.set(isDark.value)
-  localStorage.setItem('oneinstall-theme', isDark.value ? 'dark' : 'light')
 }
 
 function submitSearch() {
@@ -472,19 +464,6 @@ async function promptInstallStore() {
 
 <style lang="scss">
 .one-layout {
-  --page: #fafafa;
-  --surface-low: #ffffff;
-  --surface: #f4f4f5;
-  --surface-high: #e4e4e7;
-  --surface-highest: #d4d4d8;
-  --text: #18181b;
-  --muted: #71717a;
-  --outline: rgba(24, 24, 27, 0.12);
-  --glass: rgba(255, 255, 255, 0.78);
-  --primary: #059669;
-  --primary-soft: #d1fae5;
-  --primary-text: #047857;
-  --secondary: #52525b;
   color: var(--text);
   background: var(--page);
   width: 100%;
@@ -493,22 +472,6 @@ async function promptInstallStore() {
   transition:
     background-color 0.25s ease,
     color 0.25s ease;
-}
-
-.one-layout.theme-dark {
-  --page: #09090b;
-  --surface-low: #18181b;
-  --surface: #202023;
-  --surface-high: #27272a;
-  --surface-highest: #3f3f46;
-  --text: #fafafa;
-  --muted: #a1a1aa;
-  --outline: rgba(255, 255, 255, 0.09);
-  --glass: rgba(9, 9, 11, 0.82);
-  --primary: #34d399;
-  --primary-soft: #065f46;
-  --primary-text: #a7f3d0;
-  --secondary: #a1a1aa;
 }
 
 .one-header {
@@ -591,7 +554,7 @@ async function promptInstallStore() {
 }
 .clear-history-btn {
   font-size: 9px;
-  color: var(--primary);
+  color: var(--pwa-link);
   padding: 0;
   min-height: 0;
 }
@@ -645,7 +608,7 @@ async function promptInstallStore() {
   opacity: 0.72;
 }
 .header-search input:focus {
-  border-color: var(--primary);
+  border-color: var(--pwa-link);
   box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 16%, transparent);
 }
 .top-links {
@@ -661,7 +624,7 @@ async function promptInstallStore() {
   font-weight: 600;
 }
 .top-links a:hover {
-  color: var(--primary);
+  color: var(--pwa-link);
 }
 .header-actions {
   display: flex;
@@ -702,7 +665,7 @@ async function promptInstallStore() {
   width: 7px;
   height: 7px;
   border-radius: 50%;
-  background: #ff7066;
+  background: var(--pwa-accent);
   box-shadow: 0 0 0 2px var(--surface-highest);
 }
 .profile-button {
@@ -711,7 +674,7 @@ async function promptInstallStore() {
   padding: 4px 6px;
 }
 .profile-avatar {
-  color: #fff;
+  color: var(--pwa-on-primary);
   font-weight: 800;
   background: var(--primary);
 }
@@ -774,7 +737,7 @@ async function promptInstallStore() {
   flex: 0 0 auto;
   display: grid;
   place-items: center;
-  color: #fff;
+  color: var(--pwa-on-primary);
   background: var(--primary);
   border-radius: 13px;
   box-shadow: 0 8px 24px color-mix(in srgb, var(--primary) 22%, transparent);
@@ -782,7 +745,7 @@ async function promptInstallStore() {
 .brand-mark .q-icon {
   font-size: 23px;
 }
-.brand > span:last-child {
+.brand > span:last-child:not(.pwa-brand) {
   display: flex;
   flex-direction: column;
 }
@@ -834,7 +797,7 @@ async function promptInstallStore() {
   font-size: 19px;
 }
 .navigation-list .nav-active {
-  color: var(--primary);
+  color: var(--pwa-link);
   background: color-mix(in srgb, var(--primary) 12%, var(--surface-low));
   border-color: color-mix(in srgb, var(--primary) 20%, transparent);
   box-shadow: 0 8px 20px color-mix(in srgb, var(--primary) 8%, transparent);
@@ -849,13 +812,13 @@ async function promptInstallStore() {
   content: '';
 }
 .navigation-list .nav-active .nav-icon {
-  color: var(--primary);
+  color: var(--pwa-link);
   background: color-mix(in srgb, var(--primary) 14%, var(--surface-low));
   border-color: color-mix(in srgb, var(--primary) 22%, transparent);
 }
 .nav-badge {
   min-width: 20px;
-  color: var(--primary);
+  color: var(--pwa-link);
   background: color-mix(in srgb, var(--primary) 13%, var(--surface));
   font-size: 9px;
   font-weight: 800;
@@ -898,7 +861,7 @@ async function promptInstallStore() {
   display: grid;
   flex: 0 0 auto;
   place-items: center;
-  color: var(--primary);
+  color: var(--pwa-link);
   background: color-mix(in srgb, var(--primary) 14%, var(--surface-low));
   border-radius: 10px;
 }
@@ -922,7 +885,7 @@ async function promptInstallStore() {
   white-space: nowrap;
 }
 .developer-entry-arrow {
-  color: var(--primary);
+  color: var(--pwa-link);
   font-size: 17px;
   transition: transform 0.2s ease;
 }
@@ -955,7 +918,7 @@ async function promptInstallStore() {
 }
 .publish-card .q-btn {
   width: 100%;
-  color: #fff;
+  color: var(--pwa-on-primary);
   background: var(--primary);
   min-height: 36px;
   border-radius: 10px;
@@ -967,7 +930,7 @@ async function promptInstallStore() {
   height: 29px;
   display: grid;
   place-items: center;
-  color: var(--primary);
+  color: var(--pwa-link);
   background: color-mix(in srgb, var(--primary) 14%, var(--surface-low));
   border-radius: 9px;
 }
@@ -1027,7 +990,7 @@ async function promptInstallStore() {
   font-size: 21px;
 }
 .mobile-bottom-nav .q-btn.active {
-  color: var(--primary);
+  color: var(--pwa-link);
   background: color-mix(in srgb, var(--primary) 12%, var(--surface));
 }
 

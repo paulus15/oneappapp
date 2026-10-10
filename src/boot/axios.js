@@ -1,9 +1,10 @@
 import { boot } from 'quasar/wrappers'
 import axios from 'axios'
+import { API_BASE_URL } from '@/utils/media'
 
 // Create an axios instance
 const api = axios.create({
-  baseURL: 'https://oneapp.test/api',
+  baseURL: API_BASE_URL,
   headers: {
     'Content-Type': 'application/json',
     Accept: 'application/json'

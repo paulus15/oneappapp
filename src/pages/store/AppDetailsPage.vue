@@ -28,11 +28,10 @@
               size="64px"
               class="q-mr-md bg-blue-grey-900 border-blue-grey-sm shadow-md rounded-borders"
             >
-              <q-img
-                :src="
-                  app.icon_url ||
-                  'https://cdn-icons-png.flaticon.com/512/8422/8422116.png'
-                "
+              <AppIcon
+                :src="app.icon_url"
+                :alt="`Icône de ${app.name}`"
+                fallback-icon="apps"
               />
             </q-avatar>
             <div class="col">
@@ -47,6 +46,17 @@
                 <q-badge color="green-9" class="q-py-xs q-px-sm">
                   Sécurité: {{ app.trust_score }}/100
                 </q-badge>
+                <q-btn
+                  v-if="isOwnerOrAdmin"
+                  outline
+                  dense
+                  no-caps
+                  icon="edit"
+                  label="Éditer l'application"
+                  color="primary"
+                  class="q-ml-xs text-caption text-weight-bold"
+                  :to="`/developer/apps/${app.id}/edit`"
+                />
               </div>
             </div>
           </div>
@@ -97,7 +107,7 @@
             </div>
           </div>
 
-          <q-separator dark class="q-my-md opacity-35" />
+          <q-separator class="q-my-md opacity-35" />
 
           <!-- Ratings & Reviews overview -->
           <div class="row items-center q-gutter-md q-mb-md">
@@ -119,7 +129,7 @@
             <div class="col">
               <div class="text-weight-bold text-white">Notes et Avis</div>
               <div class="text-caption text-blue-grey-300">
-                Ce que disent les utilisateurs de l'écosystème OneApp.
+                Ce que disent les utilisateurs de l'écosystème PWA Store.
               </div>
             </div>
           </div>
@@ -150,7 +160,6 @@
                 type="textarea"
                 placeholder="Rédigez votre avis sur l'application..."
                 filled
-                dark
                 color="blue-grey-500"
                 rows="2"
                 class="q-mb-sm"
@@ -225,7 +234,7 @@
           <div
             class="text-caption text-blue-grey-300 text-uppercase tracking-wider text-weight-bold q-mb-xs"
           >
-            OneInstall Engine
+            PWA Store Engine
           </div>
 
           <div v-if="latestVersion" class="q-mb-md">
@@ -261,7 +270,7 @@
           />
 
           <div class="text-caption text-blue-grey-400 italic">
-            Hash SHA-256 certifié par OneShield
+            Hash SHA-256 certifié par PWA Store Security
           </div>
 
           <!-- PWA Installation Info -->
@@ -286,7 +295,7 @@
           <div class="row items-center q-gutter-xs q-mb-sm">
             <q-icon name="shield" color="blue-grey-300" size="20px" />
             <span class="text-subtitle2 text-weight-bold text-white"
-              >OneRuntime Sandbox</span
+              >PWA Store Sandbox</span
             >
           </div>
 
@@ -311,7 +320,6 @@
               text-color="blue-grey-200"
               icon="verified"
               dense
-              dark
             >
               {{ perm }}
             </q-chip>
@@ -336,7 +344,6 @@
               text-color="blue-grey-300"
               icon="language"
               dense
-              dark
             >
               {{ domain }}
             </q-chip>
@@ -353,7 +360,6 @@
           </div>
           <q-list
             v-if="app.versions?.length > 0"
-            dark
             separator
             class="text-blue-grey-200"
           >
@@ -396,25 +402,19 @@
     <!-- Extraction Dialog -->
     <q-dialog v-model="extracting" persistent>
       <q-card
-        class="glass-panel text-white q-pa-md"
-        style="
-          min-width: 300px;
-          border: 1px solid rgba(255, 255, 255, 0.15);
-          border-radius: 16px;
-          background: rgba(15, 23, 42, 0.95);
-          backdrop-filter: blur(16px);
-        "
+        class="extraction-dialog q-pa-md"
+        style="min-width: 300px; border-radius: 16px"
       >
         <q-card-section
           class="row items-center justify-center column q-gutter-md"
         >
-          <q-spinner-orbit color="blue-grey-4" size="lg" />
+          <q-spinner-orbit color="primary" size="lg" />
           <div class="text-h6 text-weight-bold text-center"
             >Extraction en cours...</div
           >
-          <div class="text-caption text-grey-4 text-center">
-            OneInstall prépare les fichiers de l'application et sécurise le bac
-            à sable.
+          <div class="extraction-caption text-caption text-center">
+            PWA Store prépare les fichiers de l'application et sécurise le bac à
+            sable.
           </div>
         </q-card-section>
       </q-card>
@@ -428,6 +428,7 @@ import { useRoute } from 'vue-router'
 import { api } from '@/boot/axios'
 import { useAuthStore } from '@/stores/auth'
 import { useQuasar } from 'quasar'
+import AppIcon from '@/components/AppIcon.vue'
 
 const route = useRoute()
 const authStore = useAuthStore()
@@ -451,6 +452,14 @@ const submittingReview = ref(false)
 const latestVersion = computed(() => {
   if (!app.value?.versions || app.value.versions.length === 0) return null
   return app.value.versions[0]
+})
+
+const isOwnerOrAdmin = computed(() => {
+  if (!authStore.isAuthenticated || !app.value) return false
+  return (
+    authStore.user?.id === app.value.developer_id ||
+    authStore.user?.role === 'admin'
+  )
 })
 
 const pwaUrl = computed(() => {
@@ -600,7 +609,7 @@ onUnmounted(() => {
   padding: 16px var(--ui-page-gutter) 28px;
 }
 .back-btn {
-  color: var(--primary);
+  color: var(--pwa-link);
   margin-bottom: 8px;
 }
 .detail-card {
@@ -641,7 +650,7 @@ onUnmounted(() => {
   font-size: 12px;
 }
 .section-title {
-  color: var(--primary);
+  color: var(--pwa-link);
   font-size: 12px;
   font-weight: 800;
   text-transform: uppercase;
@@ -709,15 +718,15 @@ onUnmounted(() => {
 }
 .launch-pwa-btn {
   background: var(--primary) !important;
-  color: #ffffff !important;
-  box-shadow: 0 4px 15px rgba(99, 102, 241, 0.35);
+  color: var(--pwa-on-primary) !important;
+  box-shadow: 0 4px 15px rgba(var(--pwa-primary-rgb), 0.35);
   transition:
     transform 0.2s,
     box-shadow 0.2s;
 }
 .launch-pwa-btn:not(.q-btn--disabled):hover {
   transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(99, 102, 241, 0.45);
+  box-shadow: 0 6px 20px rgba(var(--pwa-primary-rgb), 0.45);
 }
 .launch-pwa-btn.q-btn--disabled {
   background: var(--outline) !important;
@@ -751,7 +760,7 @@ onUnmounted(() => {
   color: var(--text);
 }
 .download-btn {
-  color: #fff;
+  color: var(--pwa-on-primary);
   background: var(--primary);
   font-weight: 800;
   border-radius: 11px;
@@ -769,9 +778,16 @@ onUnmounted(() => {
   }
 }
 .pwa-install-info {
-  background: rgba(99, 102, 241, 0.08);
-  border: 1px solid rgba(99, 102, 241, 0.2);
+  background: rgba(var(--pwa-primary-rgb), 0.08);
+  border: 1px solid rgba(var(--pwa-primary-rgb), 0.2);
   border-radius: 12px;
   padding: 10px 12px;
+}
+.extraction-dialog {
+  color: var(--pwa-text);
+  background: var(--pwa-surface);
+}
+.extraction-caption {
+  color: var(--pwa-muted);
 }
 </style>

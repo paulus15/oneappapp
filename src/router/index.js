@@ -44,13 +44,42 @@ export default defineRouter((/* { store, ssrContext } */) => {
       next('/')
     } else if (to.meta.requiresAuth && !isAuthenticated) {
       next('/login')
-    } else if (to.meta.developerOnly && user?.role !== 'developer' && user?.role !== 'admin') {
+    } else if (
+      to.meta.developerOnly &&
+      user?.role !== 'developer' &&
+      user?.role !== 'admin'
+    ) {
       next('/')
     } else if (to.meta.adminOnly && user?.role !== 'admin') {
       next('/')
     } else {
       next()
     }
+  })
+
+  Router.afterEach(to => {
+    const titles = {
+      '/': 'Découvrez les applications Web',
+      '/popular': 'Applications populaires',
+      '/recommended': 'Applications recommandées',
+      '/trending': 'Tendances',
+      '/login': 'Connexion',
+      '/register': 'Inscription',
+      '/developer': 'Espace développeur',
+      '/developer/apps/create': 'Publier une application',
+      '/admin': 'Administration'
+    }
+    const title =
+      titles[to.path] ||
+      (to.path.startsWith('/developer/apps/')
+        ? 'Modifier une application'
+        : to.path.startsWith('/apps/')
+          ? 'Fiche application'
+          : 'Page introuvable')
+    document.title = `${title} · PWA Store`
+    document
+      .querySelector('meta[property="og:title"]')
+      ?.setAttribute('content', document.title)
   })
 
   return Router

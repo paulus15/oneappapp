@@ -57,6 +57,16 @@ const routes = [
         path: '',
         component: () => import('@/pages/developer/DeveloperConsolePage.vue'),
         meta: { requiresAuth: true, developerOnly: true }
+      },
+      {
+        path: 'apps/create',
+        component: () => import('@/pages/developer/CreateAppPage.vue'),
+        meta: { requiresAuth: true, developerOnly: true }
+      },
+      {
+        path: 'apps/:id/edit',
+        component: () => import('@/pages/developer/EditAppPage.vue'),
+        meta: { requiresAuth: true, developerOnly: true }
       }
     ]
   },

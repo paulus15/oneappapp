@@ -3,12 +3,8 @@
     <div class="auth-ambient auth-ambient-one" aria-hidden="true" />
     <div class="auth-ambient auth-ambient-two" aria-hidden="true" />
 
-    <router-link to="/" class="auth-brand" aria-label="Retour à OneInstall">
-      <span class="auth-brand-mark"><q-icon name="apps" /></span>
-      <span>
-        <strong>OneInstall</strong>
-        <small>One App. All Platforms.</small>
-      </span>
+    <router-link to="/" class="auth-brand" aria-label="Retour à PWA Store">
+      <BrandLogo />
     </router-link>
 
     <q-btn
@@ -24,7 +20,7 @@
 
     <q-page-container class="auth-page-container">
       <div class="auth-shell">
-        <aside class="auth-story" aria-label="Présentation OneInstall">
+        <aside class="auth-story" aria-label="Présentation PWA Store">
           <div class="story-grid" aria-hidden="true" />
           <div class="story-content">
             <span class="story-kicker"
@@ -67,11 +63,10 @@
 </template>
 
 <script setup>
-import { onMounted, ref } from 'vue'
-import { useQuasar } from 'quasar'
+import BrandLogo from '@/components/BrandLogo.vue'
+import { useTheme } from '@/composables/useTheme'
 
-const $q = useQuasar()
-const isDark = ref(true)
+const { isDark, toggleTheme } = useTheme()
 
 const benefits = [
   {
@@ -90,51 +85,13 @@ const benefits = [
     text: 'Commencez en quelques secondes.'
   }
 ]
-
-onMounted(() => {
-  const savedTheme = localStorage.getItem('oneinstall-theme')
-  const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
-  isDark.value = savedTheme ? savedTheme === 'dark' : prefersDark
-  $q.dark.set(isDark.value)
-})
-
-function toggleTheme() {
-  isDark.value = !isDark.value
-  $q.dark.set(isDark.value)
-  localStorage.setItem('oneinstall-theme', isDark.value ? 'dark' : 'light')
-}
 </script>
 
 <style lang="scss">
 .auth-layout {
-  --page: #fafafa;
-  --surface-low: #fff;
-  --surface: #f4f4f5;
-  --surface-high: #e4e4e7;
-  --surface-highest: #d4d4d8;
-  --text: #18181b;
-  --muted: #71717a;
-  --outline: rgba(24, 24, 27, 0.12);
-  --glass: rgba(255, 255, 255, 0.82);
-  --primary: #059669;
-  --primary-soft: #d1fae5;
   min-height: 100vh;
   color: var(--text);
   background: var(--page);
-}
-
-.auth-layout.theme-dark {
-  --page: #09090b;
-  --surface-low: #18181b;
-  --surface: #202023;
-  --surface-high: #27272a;
-  --surface-highest: #3f3f46;
-  --text: #fafafa;
-  --muted: #a1a1aa;
-  --outline: rgba(255, 255, 255, 0.09);
-  --glass: rgba(9, 9, 11, 0.84);
-  --primary: #34d399;
-  --primary-soft: #065f46;
 }
 
 .auth-page-container {
@@ -162,7 +119,7 @@ function toggleTheme() {
   display: flex;
   align-items: center;
   gap: 11px;
-  color: #fff;
+  color: var(--pwa-on-primary);
   text-decoration: none;
 }
 .auth-brand-mark {
@@ -175,7 +132,7 @@ function toggleTheme() {
   border-radius: 12px;
   backdrop-filter: blur(12px);
 }
-.auth-brand > span:last-child {
+.auth-brand > span:last-child:not(.pwa-brand) {
   display: flex;
   flex-direction: column;
 }
@@ -203,8 +160,8 @@ function toggleTheme() {
   flex-direction: column;
   overflow: hidden;
   padding: 96px 42px 30px;
-  color: #fff;
-  background: #18181b;
+  color: var(--pwa-on-primary);
+  background: var(--pwa-dark);
 }
 .story-grid {
   position: absolute;
@@ -224,7 +181,7 @@ function toggleTheme() {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  color: #6ee7b7;
+  color: var(--pwa-secondary);
   font-size: 10px;
   font-weight: 800;
   letter-spacing: 0.12em;
@@ -237,7 +194,7 @@ function toggleTheme() {
   letter-spacing: -0.055em;
 }
 .auth-story h2 em {
-  color: #6ee7b7;
+  color: var(--pwa-secondary);
   font-style: normal;
 }
 .auth-story > .story-content > p {
@@ -268,7 +225,7 @@ function toggleTheme() {
   border-radius: 11px;
 }
 .story-benefits > div > span .q-icon {
-  color: #6ee7b7;
+  color: var(--pwa-secondary);
   font-size: 19px;
 }
 .story-benefits div div {
@@ -301,9 +258,9 @@ function toggleTheme() {
   display: grid;
   place-items: center;
   margin-left: -7px;
-  color: #18181b;
-  background: #d4d4d8;
-  border: 2px solid #27272a;
+  color: var(--pwa-text);
+  background: var(--surface-highest);
+  border: 2px solid var(--pwa-text);
   border-radius: 50%;
   font-size: 8px;
   font-weight: 800;
@@ -318,7 +275,7 @@ function toggleTheme() {
   line-height: 1.5;
 }
 .story-proof strong {
-  color: #fff;
+  color: var(--pwa-on-primary);
   font-size: 9px;
 }
 
@@ -370,7 +327,7 @@ function toggleTheme() {
     color: var(--text);
   }
   .auth-brand-mark {
-    color: #fff;
+    color: var(--pwa-on-primary);
     background: var(--primary);
     border: 0;
   }

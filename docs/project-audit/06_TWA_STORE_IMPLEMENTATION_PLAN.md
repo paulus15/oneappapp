@@ -1,0 +1,495 @@
+# TWA Store — Plan d’implémentation
+
+> Audit du code accessible au 10 octobre 2026. **EXISTANT** : mécanisme constaté dans le code ; cela ne vaut pas recette en production. **PARTIEL** : chaîne incomplète ou incohérente. **ABSENT** : aucun mécanisme trouvé dans le périmètre examiné. **RECOMMANDÉ** : évolution proposée, non réalisée. **NON VÉRIFIÉ** : état inaccessible ou non testé.
+>
+> Références : **F:** = `/Users/apple/Documents/Quasar Projects/oneappapp/` ; **B:** = `/Users/apple/LaravelProjects/oneapp/`. Les chemins sont relatifs à ces racines. `Api/…Controller` désigne `B:app/Http/Controllers/Api/…Controller.php`. « TWA Store » est le nom demandé pour cette documentation ; le frontend affiche **PWA Store** et la vitrine Laravel **OneApp**. Aucun projet Android Trusted Web Activity n'a été identifié.
+
+## Cadre d’exécution
+
+Les chemins abrégés de pages renvoient à F:src/pages dans le sous-dossier store, auth, developer ou admin ; les classes Api sont dans B:app/Http/Controllers/Api. Les fichiers indiqués « futurs » sont proposés, pas présents dans le code audité.
+
+Toutes les tâches ci-dessous sont **RECOMMANDÉES**, aucune n’a été implémentée pendant cet audit. « État actuel » décrit le constat source, pas l’avancement d’un ticket. Ne pas reconstruire l’authentification, le catalogue ou l’analyseur depuis zéro : corriger et compléter leurs contrats et garanties.
+
+**Priorités.** P0 : bloqueur d’accès essentiel, de sécurité ou de lancement ; P1 : nécessaire à la fiabilité du MVP ; P2 : amélioration après stabilisation ; P3 : option selon stratégie. **Complexité indicative.** S : changement local ; M : plusieurs composants avec tests ; L : chaîne frontend/backend/stockage ou nouvelle capacité ; XL : décision d’architecture et migration opérationnelle. Ce sont des tailles relatives, pas des délais ni des engagements.
+
+Les phases thématiques ne sont pas une invitation à reporter la sécurité : **C01 et C02 doivent commencer immédiatement**, avant toute ouverture publique de contenus tiers. A01 fixe la destination du produit. Les tests pertinents accompagnent chaque correction ; la phase E organise leur couverture et leur automatisation. Aucun travail de ce plan n’est autorisé par la seule mission documentaire actuelle.
+
+## Phase A — Stabilisation
+
+### A01 — Décider l’interface et le nom canoniques
+
+**Fonctionnalité / constat :** Navigation et déploiement ; R11. **État actuel :** PARTIEL : Quasar PWA Store et Blade OneApp coexistent ; demande TWA Store.
+
+**Priorité :** P1. **Complexité :** S. **Dépendances :** Aucune.
+
+**Fichiers concernés :** F:src/router, layouts, quasar.config.js ; B:routes/web.php, resources/views.
+
+**Action et résultat attendu — RECOMMANDÉ :** Consigner nom, hôtes, interface principale et stratégie de coexistence/retrait.
+
+**Critères d’acceptation :** Une URL de recette identifiée par parcours ; aucune ambiguïté sur le frontend testé ; impact sur les liens historiques documenté.
+
+### A02 — Réparer les contrats de modération
+
+**Fonctionnalité / constat :** Administration ; R04. **État actuel :** PARTIEL : trois routes et un champ de statistiques divergents.
+
+**Priorité :** P0. **Complexité :** M. **Dépendances :** Aucune pour la correction de contrat ; C03 pour la politique finale.
+
+**Fichiers concernés :** F:src/pages/admin/AdminConsolePage.vue ; B:routes/api.php, Api/ApplicationController, Api/AnalyticsController.
+
+**Action et résultat attendu — RECOMMANDÉ :** Employer les routes existantes PUT apps/id et GET analytics/summary/app_id ; afficher crashes_ratio correctement.
+
+**Critères d’acceptation :** Admin approuve/quarantine/change le score et lit les stats ; non-admin reçoit 403 ; aucune action ne masque un échec HTTP.
+
+### A03 — Séparer publication et ouverture publique
+
+**Fonctionnalité / constat :** Installation ; R03/R07. **État actuel :** PARTIEL : bouton public appelle extraction protégée.
+
+**Priorité :** P0. **Complexité :** L. **Dépendances :** C01, C02, C03 pour une ouverture sûre.
+
+**Fichiers concernés :** F:src/pages/store/AppDetailsPage.vue ; B:Api/AppVersionController, StorefrontController.
+
+**Action et résultat attendu — RECOMMANDÉ :** Ouvrir un runtime déjà publié et admissible ; réserver la publication aux acteurs autorisés.
+
+**Critères d’acceptation :** Visiteur et rôle user ouvrent une fiche éligible sans POST extract ; version absente ou retirée donne un état clair ; propriétaire ne publie pas hors politique.
+
+### A04 — Persister les captures et leurs suppressions
+
+**Fonctionnalité / constat :** Médias ; R06. **État actuel :** PARTIEL : fichiers transmis mais pas de stockage durable.
+
+**Priorité :** P1. **Complexité :** L. **Dépendances :** Aucune ; C04 pour les réponses publiques.
+
+**Fichiers concernés :** F:src/pages/developer/CreateAppPage.vue, EditAppPage.vue, AppDetailsPage.vue ; B:Api/ApplicationController, config/filesystems.php.
+
+**Action et résultat attendu — RECOMMANDÉ :** Contrat média durable avec upload, URL, conservation et suppression explicites.
+
+**Critères d’acceptation :** Captures visibles après rechargement et depuis un autre navigateur ; suppression persistée ; fichiers invalides refusés ; accès limité au propriétaire pour modifier.
+
+### A05 — Corriger la propagation des erreurs de sauvegarde
+
+**Fonctionnalité / constat :** Édition et ZIP ; R09. **État actuel :** PARTIEL : saveAll poursuit après erreur ; code métier de reprise divergent.
+
+**Priorité :** P1. **Complexité :** M. **Dépendances :** Aucune.
+
+**Fichiers concernés :** F:src/pages/developer/EditAppPage.vue, DeveloperConsolePage.vue, CreateAppPage.vue ; B:Api/AppVersionController.
+
+**Action et résultat attendu — RECOMMANDÉ :** Stopper la suite sur échec ; conserver fiche déjà créée et permettre reprise du seul build.
+
+**Critères d’acceptation :** Un 422 de métadonnées ne téléverse pas de ZIP et ne redirige pas en succès ; reprise après échec ne recrée pas la fiche ; code d’erreur reconnu.
+
+### A06 — Aligner configuration API, CSP et messages
+
+**Fonctionnalité / constat :** Intégration navigateur ; R07. **État actuel :** PARTIEL : préfixe env à confirmer, médias/iframe bloquables, origines incohérentes.
+
+**Priorité :** P1. **Complexité :** M. **Dépendances :** A01, C02.
+
+**Fichiers concernés :** F:quasar.config.js, src/utils/media.js, index.html, AppDetailsPage.vue ; B:Api/AppVersionController.
+
+**Action et résultat attendu — RECOMMANDÉ :** Origines explicites, variable de build fiable, messages contrôlés et médias autorisés au strict besoin.
+
+**Critères d’acceptation :** Build de recette utilise son API sans repli local ; image/backend et aperçu blob fonctionnent ; message d’origine/source inattendue ignoré ; pas de wildcard inutile.
+
+### A07 — Unifier session cliente et traitement du 401
+
+**Fonctionnalité / constat :** Comptes ; R10. **État actuel :** PARTIEL : stockage supprimé mais Pinia peut rester connecté.
+
+**Priorité :** P1. **Complexité :** M. **Dépendances :** A01 ; C05 pour durée et durcissement.
+
+**Fichiers concernés :** F:src/stores/auth.js, src/boot/axios.js, src/router/index.js ; B:resources/js/app.js.
+
+**Action et résultat attendu — RECOMMANDÉ :** Réhydratation serveur, purge unique et traitement du stockage corrompu.
+
+**Critères d’acceptation :** Token révoqué provoque une seule sortie de session cohérente ; menus et garde synchronisés ; JSON invalide ne casse pas le démarrage ; retour de connexion défini.
+
+## Phase B — Finalisation fonctionnelle
+
+### B01 — Achever la bibliothèque et le suivi d’installation
+
+**Fonctionnalité / constat :** Bibliothèque ; PR08/09. **État actuel :** PARTIEL : API présente, signal client incomplet.
+
+**Priorité :** P1. **Complexité :** L. **Dépendances :** A03, A07.
+
+**Fichiers concernés :** F:src/pages/store/AppDetailsPage.vue, routeur ; B:Api/InstallationController, resources/js/app.js, views/apps/library.blade.php.
+
+**Action et résultat attendu — RECOMMANDÉ :** Relier les événements réels ou déclarés à un suivi clairement qualifié ; ouvrir un espace au rôle user.
+
+**Critères d’acceptation :** Installation confirmée apparaît au bon compte ; annulation ne compte pas comme succès ; archivage et ouverture cohérents ; aucune fuite entre comptes.
+
+### B02 — Normaliser versions, mises à jour et intentions
+
+**Fonctionnalité / constat :** Distribution et reprise. **État actuel :** PARTIEL : tris divergents, GET mutatifs, comparaison par ID.
+
+**Priorité :** P1. **Complexité :** M. **Dépendances :** A03, B01.
+
+**Fichiers concernés :** B:Api/InstallationController, InstallIntentController, AppVersionController ; F:src/pages/store/AppDetailsPage.vue.
+
+**Action et résultat attendu — RECOMMANDÉ :** Politique unique de version supérieure et consommation atomique des intentions ; reprise frontend.
+
+**Critères d’acceptation :** Une version plus ancienne ne déclenche pas de mise à jour ; deux consommations concurrentes ne réussissent pas ; expiration testée ; lecture ne modifie pas silencieusement l’état.
+
+### B03 — Définir puis réaliser le référencement par URL
+
+**Fonctionnalité / constat :** Ambition produit PR11. **État actuel :** ABSENT : URL officielle seulement descriptive.
+
+**Priorité :** P1 si retenu au MVP, sinon P2. **Complexité :** L. **Dépendances :** A01 et décision explicite URL versus ZIP ; C07.
+
+**Fichiers concernés :** B:Api/ApplicationController, app/Services ; F:src/pages/developer/CreateAppPage.vue, EditAppPage.vue.
+
+**Action et résultat attendu — RECOMMANDÉ :** Mode externe identifiable avec contrôles de disponibilité et propriété adaptés.
+
+**Critères d’acceptation :** URL vérifiée sans accès à destinations internes ; redirects bornés ; indisponibilité/revalidation exposées ; aucune affirmation de contrôle avant réussite.
+
+### B04 — Définir la preuve d’identité de l’éditeur
+
+**Fonctionnalité / constat :** Confiance PR12. **État actuel :** ABSENT : rôle developer auto-déclaré.
+
+**Priorité :** P1 si requis au lancement, sinon P2. **Complexité :** L. **Dépendances :** Décision produit sur niveau de preuve et données collectées ; C04.
+
+**Fichiers concernés :** B:app/Models/User.php, contrôleurs et futurs éléments dédiés ; F:pages developer/admin.
+
+**Action et résultat attendu — RECOMMANDÉ :** Workflow de demande, preuve, revue, refus et renouvellement ; badge après approbation uniquement.
+
+**Critères d’acceptation :** Rôle seul ne donne pas un badge ; justificatifs non publics ; décision traçable ; accès aux preuves limité et durée de conservation définie.
+
+### B05 — Rendre la récupération de compte opérationnelle
+
+**Fonctionnalité / constat :** Comptes PR13. **État actuel :** ABSENT : bouton sans flux.
+
+**Priorité :** P1. **Complexité :** M. **Dépendances :** A07, C05 ; configuration mail de recette.
+
+**Fichiers concernés :** F:pages/auth, routeur ; B:routes/api.php, auth, config/mail.php.
+
+**Action et résultat attendu — RECOMMANDÉ :** Récupération avec réponse neutre et lien expirant.
+
+**Critères d’acceptation :** Compte existant/inexistant ne s’énumère pas par message ; lien utilisé/expiré refusé ; mot de passe changé et politique de révocation appliquée.
+
+### B06 — Distinguer simulation et livraison des notifications
+
+**Fonctionnalité / constat :** Push PR15. **État actuel :** PARTIEL : statut sent sans fournisseur.
+
+**Priorité :** P2. **Complexité :** L. **Dépendances :** Choix produit d’activer le push ; B01, C05.
+
+**Fichiers concernés :** B:Api/PushNotificationController, app/Models/PushNotification.php, config et jobs futurs.
+
+**Action et résultat attendu — RECOMMANDÉ :** Retirer la promesse de livraison tant que simulée ; si retenu, intégrer consentement, abonnement et traitement réel.
+
+**Critères d’acceptation :** Aucun faux statut livré ; destinataire autorisé ; échec/retry et désabonnement testés ; correspondance macos corrigée.
+
+### B07 — Spécifier la contribution avant implémentation
+
+**Fonctionnalité / constat :** Économie PR14. **État actuel :** ABSENT : aucun paiement ni facturation.
+
+**Priorité :** P3. **Complexité :** L. **Dépendances :** Décision montant, déclencheur, débiteur et périmètre juridique.
+
+**Fichiers concernés :** Documentation produit ; futurs modules séparés, aucune table de paiement actuelle à réutiliser fictivement.
+
+**Action et résultat attendu — RECOMMANDÉ :** Spécification et choix fournisseur validés avant code.
+
+**Critères d’acceptation :** Prix descriptif distingué du paiement ; critères remboursement/échec définis ; aucun écran ne prétend encaisser avant intégration testée.
+
+### B08 — Raccorder la gestion des catégories
+
+**Fonctionnalité :** BF04. **État actuel :** backend EXISTANT ; écran de gestion Quasar ABSENT. **Priorité :** P2, ou P1 si nécessaire aux administrateurs du MVP. **Complexité :** M. **Dépendances :** A01, A07.
+
+**Fichiers concernés :** F:src/router/routes.js, src/pages/admin et navigation associée ; B:routes/api.php, app/Http/Controllers/Api/CategoryController.php ; tests de contrat futurs.
+
+**Action et résultat attendu — RECOMMANDÉ :** créer une interface de liste/création/édition/suppression utilisant les cinq routes existantes ; exposer ordre, activation, icône et couleur. Ne pas dupliquer le référentiel dans le client.
+
+**Critères d’acceptation :** l’admin peut créer et modifier une catégorie, choisir son ordre et son activation ; les non-admin reçoivent 403 aux mutations ; les erreurs de nom/slug sont lisibles ; suppression ne supprime pas les applications liées et l’interface explique le résultat.
+
+### B09 — Raccorder et qualifier les mesures d’usage
+
+**Fonctionnalité :** BF11. **État actuel :** ingestion et synthèse EXISTANTES ; instrumentation et fiabilité PARTIELLES. **Priorité :** P2, ou P1 si les indicateurs pilotent le lancement. **Complexité :** M. **Dépendances :** A02, A03, C05 ; politique de collecte F03.
+
+**Fichiers concernés :** B:app/Http/Controllers/Api/AnalyticsController.php, app/Models/AnalyticsEvent.php ; F:src/pages/store/AppDetailsPage.vue, src/pages/admin/AdminConsolePage.vue ; ressources runtime retenues et tests futurs.
+
+**Action et résultat attendu — RECOMMANDÉ :** définir la signification et la source de chaque événement, raccorder seulement les signaux effectivement observables, protéger l’ingestion contre les abus et afficher les agrégats existants avec leurs limites.
+
+**Critères d’acceptation :** une action ne génère pas de doublons involontaires ; un clic d’intention n’est pas présenté comme une ouverture confirmée ; propriétaire/admin seuls lisent la synthèse ; le ratio serveur est rendu correctement ; les statistiques sans événements ne deviennent pas des données fictives ; tout suivi ajouté respecte la politique de données retenue.
+
+## Phase C — Sécurité
+
+### C01 — Confiner les chemins et borner les archives
+
+**Fonctionnalité / constat :** Distribution ; R01. **État actuel :** PARTIEL : ZIP inspecté mais destination libre et limites non immédiatement bloquantes.
+
+**Priorité :** P0. **Complexité :** L. **Dépendances :** Aucune.
+
+**Fichiers concernés :** B:Api/ApplicationController::store/destroy, AppVersionController, app/Services/PwaPackageAnalyzer.php.
+
+**Action et résultat attendu — RECOMMANDÉ :** Identifiants/version validés, noms de stockage internes, destination canonique confinée et arrêt aux quotas.
+
+**Critères d’acceptation :** Identifiants absolus ou avec traversée refusés ; extraction/suppression ne sortent jamais de la racine ; ZIP surdimensionné interrompu avant épuisement ; liens dangereux traités ; tests en répertoire jetable.
+
+### C02 — Isoler les runtimes et supprimer le cache de données privées
+
+**Fonctionnalité / constat :** Hébergement et workers ; R02. **État actuel :** PARTIEL : même origine et cache GET trop large.
+
+**Priorité :** P0. **Complexité :** XL. **Dépendances :** A01 pour hôtes cibles, sans attendre pour exclure les API du cache.
+
+**Fichiers concernés :** B:Api/AppVersionController, public/oneapp-sw.js, resources/js/app.js ; F:src-pwa, AppDetailsPage.vue ; configuration hébergement future.
+
+**Action et résultat attendu — RECOMMANDÉ :** Origines séparées entre plateforme et contenus non fiables ; workers/cache cloisonnés ; stratégie de purge des caches déjà créés.
+
+**Critères d’acceptation :** PWA tierce ne lit ni token ni stockage de la plateforme ; aucune réponse /api privée en Cache Storage ; logout/reconnexion autre compte ne restaure aucune donnée précédente ; workers ne se désinscrivent pas mutuellement.
+
+### C03 — Appliquer une politique unique de publication et de retrait
+
+**Fonctionnalité / constat :** Autorisations ; R05. **État actuel :** PARTIEL : statut/is_active/version contrôlés différemment.
+
+**Priorité :** P0. **Complexité :** L. **Dépendances :** Aucune pour la règle ; C02 pour retrait runtime cible.
+
+**Fichiers concernés :** B:ApplicationController, AppVersionController, InstallationController, InstallIntentController, ReviewController, StorefrontController et service HTTP runtime.
+
+**Action et résultat attendu — RECOMMANDÉ :** Matrice explicite rôle × fiche × version, réutilisée partout ; retrait effectif.
+
+**Critères d’acceptation :** Pending/quarantined/inactive inaccessible publiquement dans recherche, détail, ZIP et runtime ; propriétaire consulte sans publier indûment ; version interdite non distribuée ; retrait de fichiers déjà publiés testé.
+
+### C04 — Réduire les données publiques et neutraliser le HTML injecté
+
+**Fonctionnalité / constat :** Données et XSS ; R08. **État actuel :** PARTIEL : modèles complets et interpolations non uniformes.
+
+**Priorité :** P1. **Complexité :** M. **Dépendances :** Aucune.
+
+**Fichiers concernés :** B:Api/ApplicationController, AppVersionController, Models/User.php, resources/js/app.js ; futurs serializers.
+
+**Action et résultat attendu — RECOMMANDÉ :** Réponses publiques minimales et génération de contenu sans interpolation HTML non sûre.
+
+**Critères d’acceptation :** Emails privés, chemins disque et rapports internes absents du public ; nom/icône contenant caractères HTML restent des données inertes ; schémas URL limités ; tests de régression ciblés.
+
+### C05 — Durcir authentification et contrôle d’abus
+
+**Fonctionnalité / constat :** Comptes et API ; R10. **État actuel :** PARTIEL : tokens sans durée par défaut, limiteur API absent.
+
+**Priorité :** P1. **Complexité :** M. **Dépendances :** A01 pour stratégie de session.
+
+**Fichiers concernés :** B:AuthController, bootstrap/app.php, config/sanctum.php, config/cors.php ; F:auth et axios.
+
+**Action et résultat attendu — RECOMMANDÉ :** Durée/révocation définies, limites de tentatives et quotas adaptés, origines autorisées explicites.
+
+**Critères d’acceptation :** Tentatives excessives donnent 429 sans bloquer indéfiniment les utilisateurs légitimes ; token expiré/révoqué refusé ; role admin impossible à obtenir à l’inscription ; aucune clé sensible exposée.
+
+### C06 — Rendre publication et décisions traçables et réversibles
+
+**Fonctionnalité / constat :** Déploiement et modération. **État actuel :** PARTIEL : remplacement destructif préalable, pas de trace métier structurée.
+
+**Priorité :** P1. **Complexité :** L. **Dépendances :** C01, C02, C03.
+
+**Fichiers concernés :** B:AppVersionController, ApplicationController ; stockage, modèles/migrations futurs si nécessaires.
+
+**Action et résultat attendu — RECOMMANDÉ :** Vérifier intégrité, préparer version séparément, basculer atomiquement et journaliser l’acteur/la décision.
+
+**Critères d’acceptation :** Échec avant bascule conserve l’ancienne version ; hash altéré refusé ; rollback démontré ; motif/date/acteur de modération consultables par rôle autorisé sans secrets dans les logs.
+
+### C07 — Protéger les futures vérifications d’URL
+
+**Fonctionnalité / constat :** Référencement externe. **État actuel :** ABSENT : aucune sonde, donc risque futur à prévenir.
+
+**Priorité :** P1 conditionnel à B03. **Complexité :** M. **Dépendances :** Décision B03.
+
+**Fichiers concernés :** Futur service B:app/Services de vérification distante, tests dédiés.
+
+**Action et résultat attendu — RECOMMANDÉ :** Politique anti-SSRF, DNS/redirections contrôlés, temps/taille bornés.
+
+**Critères d’acceptation :** Destinations privées/locales et rebindings refusés ; chaque redirection revalidée ; pas d’accès arbitraire depuis le serveur ; erreurs publiques ne divulguent pas d’infrastructure.
+
+## Phase D — Expérience utilisateur
+
+### D01 — Présenter des données et états honnêtes
+
+**Fonctionnalité / constat :** Catalogue, fiche et formulaires ; R09/R12. **État actuel :** PARTIEL : notes/tailles/captures de secours et erreurs silencieuses.
+
+**Priorité :** P1. **Complexité :** M. **Dépendances :** A04, A05.
+
+**Fichiers concernés :** F:src/pages/store/StoreCatalogPage.vue, AppListPage.vue, AppDetailsPage.vue, pages/developer ; B:resources/js/app.js.
+
+**Action et résultat attendu — RECOMMANDÉ :** États chargement/vide/erreur/succès uniformes, valeurs réelles ou absence explicite.
+
+**Critères d’acceptation :** Zéro avis ne devient pas cinq étoiles ; aucun succès après échec ; absence média/version compréhensible ; promesses de certification non démontrées retirées.
+
+### D02 — Exposer pagination et fiabiliser la recherche
+
+**Fonctionnalité / constat :** Découverte ; R12. **État actuel :** PARTIEL : API paginée mais clients limités aux premiers résultats.
+
+**Priorité :** P1. **Complexité :** M. **Dépendances :** Aucune.
+
+**Fichiers concernés :** F:src/layouts/MainLayout.vue, AppListPage.vue, StoreCatalogPage.vue ; B:ApplicationController::index ; recherche Blade si conservée.
+
+**Action et résultat attendu — RECOMMANDÉ :** Navigation de tous les résultats, requêtes coordonnées et URL partageable.
+
+**Critères d’acceptation :** Plus de douze résultats restent atteignables ; filtre conservé au changement de page ; réponse ancienne ne remplace pas la nouvelle ; back/forward cohérents.
+
+### D03 — Recetter accessibilité et responsive
+
+**Fonctionnalité / constat :** Tous les parcours principaux. **État actuel :** NON VÉRIFIÉ : styles adaptatifs présents, recette manuelle absente.
+
+**Priorité :** P1. **Complexité :** M. **Dépendances :** A02–A05 pour parcours fonctionnels.
+
+**Fichiers concernés :** F:layouts, pages, src/css ; B:views/css si conservés.
+
+**Action et résultat attendu — RECOMMANDÉ :** Corriger obstacles clavier, focus, annonces et contraste à partir du design existant.
+
+**Critères d’acceptation :** Catalogue/auth/soumission/admin utilisables clavier seul et avec zoom ; modales gèrent le focus ; erreurs associées aux champs ; contrôle sur mobile et desktop consigné.
+
+### D04 — Consolider marque, composants et liens
+
+**Fonctionnalité / constat :** Design system ; R11. **État actuel :** PARTIEL : composants utiles, styles et liens inactifs dispersés.
+
+**Priorité :** P2. **Complexité :** M. **Dépendances :** A01, D01.
+
+**Fichiers concernés :** F:BrandLogo.vue, AppIcon.vue, layouts, css ; B:assets et vues selon choix.
+
+**Action et résultat attendu — RECOMMANDÉ :** Marque et navigation cohérentes, cartes partagées si pertinent, liens utiles réels.
+
+**Critères d’acceptation :** Chaque lien visible mène à une destination utile ou indique clairement son indisponibilité ; marque cohérente sur manifeste/login/erreurs ; thèmes relus sans régression.
+
+## Phase E — Tests
+
+### E01 — Mettre en place la recette API isolée et les contrats
+
+**Fonctionnalité / constat :** Qualité frontend/backend. **État actuel :** PARTIEL : 4 Unit passés, 10 Feature inventoriés non exécutés ici.
+
+**Priorité :** P1. **Complexité :** M. **Dépendances :** Environnement jetable autorisé ; A02, A04, A05.
+
+**Fichiers concernés :** B:tests/Feature, tests/Unit, phpunit.xml ; F:futurs tests de contrat.
+
+**Action et résultat attendu — RECOMMANDÉ :** Exécuter et compléter la couverture sur base dédiée, sans toucher aux données utilisateur.
+
+**Critères d’acceptation :** Contrats admin, médias et erreurs testés ; tests HTTP n’utilisent jamais la base réelle ; résultat et version de code archivés ; aucun test trivial compté comme couverture métier.
+
+### E02 — Automatiser les régressions de sécurité
+
+**Fonctionnalité / constat :** R01/R02/R05/R08. **État actuel :** PARTIEL : tests ZIP et droits d’extraction limités.
+
+**Priorité :** P0 pour les contrôles bloquants. **Complexité :** L. **Dépendances :** C01–C04 ; environnement isolé E01.
+
+**Fichiers concernés :** B:tests/Unit, tests/Feature ; tests navigateur futurs.
+
+**Action et résultat attendu — RECOMMANDÉ :** Matrice rôles/états et scénarios chemins/cache/origines/XSS.
+
+**Critères d’acceptation :** Archives hostiles ne sortent pas du bac d’essai ; utilisateur A ne lit pas les données de B ; retrait bloque les accès ; code tiers ne contrôle pas le store ; échecs rendent la CI rouge.
+
+### E03 — Recetter les parcours complets et appareils
+
+**Fonctionnalité / constat :** Installation, publication, modération. **État actuel :** NON VÉRIFIÉ de bout en bout dans cet audit.
+
+**Priorité :** P1. **Complexité :** L. **Dépendances :** A03–A07, B01 selon MVP, D03.
+
+**Fichiers concernés :** F:parcours navigateur futurs ; B:tests ; documentation de recette.
+
+**Action et résultat attendu — RECOMMANDÉ :** Recette réelle Android/iOS/desktop, réseau dégradé et annulation.
+
+**Critères d’acceptation :** Dépôt → revue → publication → ouverture réussi ; installation annulée distinguée ; version retirée non ouvrable ; captures persistées ; preuves par navigateur/version.
+
+### E04 — Automatiser lint, builds et suivi de dépendances
+
+**Fonctionnalité / constat :** Maintenance et CI. **État actuel :** PARTIEL : lint local disponible, CI complète non trouvée.
+
+**Priorité :** P2. **Complexité :** M. **Dépendances :** E01 et choix hébergement.
+
+**Fichiers concernés :** F:package.json/quasar.config.js ; B:composer.json ; futurs fichiers CI.
+
+**Action et résultat attendu — RECOMMANDÉ :** Pipeline reproductible sur versions verrouillées avec secret management du fournisseur.
+
+**Critères d’acceptation :** Checkout propre produit lint/tests/build SPA/PWA retenu ; aucune migration de production au test ; échec bloque livraison ; résultats et artefacts consultables.
+
+## Phase F — Préparation au lancement
+
+### F01 — Valider le staging et le routage de production
+
+**Fonctionnalité / constat :** Environnement. **État actuel :** NON VÉRIFIÉ : production et variables non inspectées.
+
+**Priorité :** P1. **Complexité :** L. **Dépendances :** A01, A06, C02, E01.
+
+**Fichiers concernés :** Configurations de déploiement futures ; F:quasar.config.js ; B:config et health /up.
+
+**Action et résultat attendu — RECOMMANDÉ :** Hôtes, HTTPS, API, routes history et runtimes fonctionnent en staging représentatif.
+
+**Critères d’acceptation :** Aucun repli vers oneapp.test ; refresh d’une route frontend fonctionne ; API distincte du repli SPA ; debug non public ; limites et permissions documentées.
+
+### F02 — Mettre en place sauvegarde, restauration et surveillance
+
+**Fonctionnalité / constat :** Exploitation. **État actuel :** NON VÉRIFIÉ : infrastructure réelle ; configuration logs standard seulement.
+
+**Priorité :** P1. **Complexité :** L. **Dépendances :** F01, C06.
+
+**Fichiers concernés :** B:config/logging.php, queue.php, filesystems.php ; runbooks et infrastructure futurs.
+
+**Action et résultat attendu — RECOMMANDÉ :** Backups base/médias/paquets coordonnés, alertes et procédure de restauration.
+
+**Critères d’acceptation :** Restauration réalisée en environnement isolé avec version cohérente ; alerte erreur de publication testée ; responsables et objectifs de reprise définis ; secrets exclus des logs.
+
+### F03 — Arrêter périmètre, informations publiques et politique de données
+
+**Fonctionnalité / constat :** Lancement produit. **État actuel :** PARTIEL : liens légaux et confiance inachevés.
+
+**Priorité :** P1. **Complexité :** M. **Dépendances :** A01 ; décisions B03/B04/B07 ; C04.
+
+**Fichiers concernés :** Documentation produit ; F:footer/pages ; B:conservation des données.
+
+**Action et résultat attendu — RECOMMANDÉ :** Périmètre MVP signé, support réel, règles éditeur/modération et conservation communiquées.
+
+**Critères d’acceptation :** Aucune fonction absente promise ; liens valides ; responsabilités de support définies ; inventaire des données et durée de conservation approuvés par le porteur.
+
+### F04 — Prononcer la décision de lancement sur preuves
+
+**Fonctionnalité / constat :** Ouverture publique. **État actuel :** PARTIEL : socle existant mais P0 ouverts.
+
+**Priorité :** P0 comme porte de sortie. **Complexité :** M. **Dépendances :** Tous P0 ; tâches P1 retenues au MVP ; E02/E03, F01–F03.
+
+**Fichiers concernés :** Sept documents d’audit, résultats de recette et runbook.
+
+**Action et résultat attendu — RECOMMANDÉ :** Revue go/no-go, liste de limites acceptées et rollback prêt.
+
+**Critères d’acceptation :** Aucun P0 non résolu ; cinq parcours critiques réussis ; isolation et retrait démontrés ; restauration prouvée ; aucun compte de démonstration privilégié actif non maîtrisé.
+
+## Ordonnancement et responsabilités suggérés
+
+Le responsable produit tranche A01 et les capacités conditionnelles B03/B04/B07. Backend et exploitation traitent C01/C02/C03 avec revue de sécurité ; frontend et backend réparent A02/A03 en parallèle conceptuel, après définition des contrats. A04/A05 et A07 rendent ensuite les parcours fiables. Les tests sont écrits avec les correctifs, puis exécutés en staging par E01–E03. D03 et F02 doivent être terminés avant la revue de lancement retenue.
+
+```mermaid
+flowchart TD
+  A01[Choix interface et hôtes] --> C02[Isolation et caches]
+  C01[Confinement chemins] --> A03[Publication et ouverture séparées]
+  C02 --> A03
+  C03[Politique de publication et retrait] --> A03
+  A02[Contrats admin] --> E01[Recette API]
+  A04[Médias et sauvegarde fiables] --> E01
+  A03 --> E03[Recette appareils]
+  E01 --> E02[Régressions sécurité]
+  E02 --> F04[Décision de lancement]
+  E03 --> F04
+  F02[Restauration éprouvée] --> F04
+```
+
+Aucune date ni estimation de pourcentage n’est fixée sans capacité d’équipe et périmètre acceptés. Les tâches P2/P3 peuvent être différées explicitement ; une faiblesse P0 ne doit pas être dissimulée par un changement de libellé dans l’interface.
+
+## Les cinq premières actions
+
+1. **C01 :** confiner les chemins de stockage/extraction/suppression et arrêter les archives hors limites.
+2. **C02 :** séparer l’origine des contenus tiers et empêcher le cache de réponses privées.
+3. **A03 + C03 :** ouvrir une version déjà publiée et autorisée, avec retrait effectif.
+4. **A02 :** raccorder modération et statistiques aux contrats backend existants.
+5. **A04 + A05 :** rendre médias et sauvegardes durables, avec reprise après erreur sans faux succès.
+
+Ces actions corrigent des fonctions existantes ; elles ne constituent pas un projet de réécriture. La décision de nom et d’interface A01 peut être prise immédiatement pour éviter de réaliser la recette sur la mauvaise vitrine.
+
+## Raccordement des fonctionnalités Laravel existantes
+
+Le [catalogue BF](./01_TWA_STORE_PRD.md#catalogue-fonctionnel-laravel-et-intégration-dans-quasar) sert de base : ne pas redévelopper les opérations déjà présentes. Compléter leur exposition et corriger les limites constatées.
+
+| Fonctions backend                    | Travail déjà planifié        | Nature du travail                                                                  |
+| ------------------------------------ | ---------------------------- | ---------------------------------------------------------------------------------- |
+| BF01 comptes                         | A07, B05, C05                | Fiabiliser session ; ajouter uniquement la récupération absente                    |
+| BF02/BF03 catalogue et gestion       | A02, A04, A05, C03, D01, D02 | Réparer contrats/données/visibilité ; exploiter pagination existante               |
+| BF04 catégories                      | B08 (phase B)                | Ajouter le client d’administration à l’API existante                               |
+| BF05 versions/distribution           | A03, A06, C01, C02, C06      | Séparer et sécuriser les opérations existantes                                     |
+| BF06 avis                            | C04, D01, E01                | Conserver l’API et fiabiliser validation, concurrence et retours                   |
+| BF07/BF08 bibliothèque/installations | B01, B02                     | Raccorder POST/PATCH/GET et distinguer archive/désinstallation                     |
+| BF09 intentions                      | B02                          | Consommation sûre et reprise cliente                                               |
+| BF10 notifications                   | B06                          | Livraison réelle à développer ; stockage existant à conserver selon contrat retenu |
+| BF11 analytics                       | A02 et B09 (phase B)         | Réparer lecture admin et compléter instrumentation/qualité des mesures             |
+| BF12/BF13 vitrine et PWA Blade       | A01, A06, C02, D04           | Décider coexistence, préserver parcours retenus et éviter conflits de workers      |
+
+## Documents associés
+
+[00](./00_TWA_STORE_AUDIT_SUMMARY.md) · [01](./01_TWA_STORE_PRD.md) · [02](./02_TWA_STORE_TRD.md) · [03](./03_TWA_STORE_APP_FLOW.md) · [04](./04_TWA_STORE_UX_UI.md) · [05](./05_TWA_STORE_BACKEND_SCHEMA.md) · [06](./06_TWA_STORE_IMPLEMENTATION_PLAN.md)

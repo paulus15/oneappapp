@@ -16,7 +16,7 @@
         icon="add"
         label="Créer une application"
         class="create-btn"
-        @click="showCreateAppDialog = true"
+        to="/developer/apps/create"
       />
     </div>
 
@@ -42,175 +42,118 @@
         no-caps
         label="Créer une application"
         class="create-btn"
-        @click="showCreateAppDialog = true"
+        to="/developer/apps/create"
       />
     </div>
 
     <div v-else class="row q-col-gutter-md" id="applications">
-      <div v-for="app in myApps" :key="app.id" class="col-12">
-        <q-card class="glass-panel app-console-card">
-          <div class="row justify-between items-start no-wrap q-mb-md">
-            <div class="row items-center">
-              <q-avatar
-                size="44px"
-                class="q-mr-md bg-blue-grey-900 border-blue-grey-sm rounded-borders"
+      <div v-for="app in myApps" :key="app.id" class="col-12 col-md-6 col-lg-4">
+        <q-card
+          class="glass-panel app-console-card h-full flex column justify-between"
+        >
+          <div>
+            <div class="row justify-between items-start no-wrap q-mb-sm">
+              <div
+                class="row items-center app-title-clickable cursor-pointer"
+                @click="$router.push(`/developer/apps/${app.id}/edit`)"
               >
-                <q-img
-                  :src="
-                    app.icon_url ||
-                    'https://cdn-icons-png.flaticon.com/512/8422/8422116.png'
-                  "
-                />
-              </q-avatar>
-              <div>
-                <div class="text-subtitle1 text-white text-weight-bold">{{
-                  app.name
-                }}</div>
-                <div class="text-caption text-blue-grey-300 font-mono">{{
-                  app.identifier
-                }}</div>
+                <q-avatar
+                  size="44px"
+                  class="q-mr-md bg-blue-grey-900 border-blue-grey-sm rounded-borders"
+                >
+                  <AppIcon
+                    :src="app.icon_url"
+                    :alt="`Icône de ${app.name}`"
+                    fallback-icon="apps"
+                  />
+                </q-avatar>
+                <div>
+                  <div
+                    class="text-subtitle1 text-white text-weight-bold app-name-hover row items-center gap-xs"
+                  >
+                    <span>{{ app.name }}</span>
+                    <q-icon name="edit" size="14px" class="text-blue-grey-4" />
+                  </div>
+                  <div class="text-caption text-blue-grey-300 font-mono">{{
+                    app.identifier
+                  }}</div>
+                </div>
               </div>
             </div>
 
-            <div class="row items-center q-gutter-xs">
+            <div class="row items-center wrap gap-xs q-mb-sm">
+              <q-chip
+                v-if="app.versions?.length > 0"
+                dense
+                size="11px"
+                color="indigo-9"
+                text-color="indigo-2"
+                class="text-weight-bold font-mono"
+              >
+                v{{ app.versions[0].version_number }}
+              </q-chip>
+              <q-badge
+                v-if="app.is_active === false || app.is_active === 0"
+                color="amber-9"
+                class="q-py-xs q-px-sm text-weight-bold"
+              >
+                INACTIVE
+              </q-badge>
               <q-badge
                 :color="getStatusColor(app.status)"
                 class="q-py-xs q-px-sm text-weight-bold"
               >
                 {{ app.status.toUpperCase() }}
               </q-badge>
+            </div>
+
+            <div class="text-caption text-blue-grey-200 q-mb-md line-clamp-2">
+              {{
+                app.short_description ||
+                app.description ||
+                'Pas de description renseignée.'
+              }}
+            </div>
+          </div>
+
+          <div
+            class="row justify-between items-center q-pt-sm border-top-subtle"
+          >
+            <q-btn
+              flat
+              no-caps
+              dense
+              icon="edit"
+              label="Modifier"
+              color="primary"
+              class="text-caption text-weight-bold"
+              @click="$router.push(`/developer/apps/${app.id}/edit`)"
+            />
+            <div class="row items-center gap-xs">
               <q-btn
                 unelevated
                 no-caps
+                dense
                 icon="cloud_upload"
-                label="Nouveau build (ZIP)"
-                class="upload-btn"
+                label="Nouveau build"
+                class="upload-btn q-px-sm"
                 @click="openUploadDialog(app)"
               />
+              <q-btn
+                v-if="isAdmin"
+                flat
+                round
+                dense
+                icon="delete_outline"
+                class="delete-btn"
+                aria-label="Supprimer l'application"
+                @click="confirmDeleteApp(app)"
+              />
             </div>
-          </div>
-
-          <div class="text-caption text-blue-grey-200 q-mb-md">
-            {{ app.description || 'Pas de description renseignée.' }}
-          </div>
-
-          <!-- Versions Table -->
-          <div class="q-mt-md">
-            <div class="text-subtitle2 text-blue-grey-300 q-mb-xs">
-              Historique des versions (.zip)
-            </div>
-            <q-list dark separator class="version-list overflow-hidden">
-              <q-item
-                v-if="app.versions?.length === 0"
-                class="text-blue-grey-400 italic text-caption"
-              >
-                <q-item-section
-                  >Aucun build chargé. Veuillez téléverser un fichier
-                  ZIP.</q-item-section
-                >
-              </q-item>
-
-              <q-item v-for="ver in app.versions" :key="ver.id" class="q-py-sm">
-                <q-item-section>
-                  <div class="row items-center q-gutter-xs">
-                    <span class="text-weight-bold text-white text-subtitle2"
-                      >v{{ ver.version_number }}</span
-                    >
-                    <q-badge color="blue-grey-9" dense>
-                      SHA256: {{ ver.hash_sha256.substring(0, 16) }}...
-                    </q-badge>
-                  </div>
-                  <div class="text-caption text-blue-grey-400">
-                    Permissions :
-                    {{ ver.permissions_required?.join(', ') || 'aucune' }}
-                  </div>
-                </q-item-section>
-
-                <q-item-section side>
-                  <span class="text-caption text-blue-grey-400 font-mono">
-                    {{ ver.signature_digital ? 'Signé' : 'Non signé' }}
-                  </span>
-                </q-item-section>
-              </q-item>
-            </q-list>
           </div>
         </q-card>
       </div>
     </div>
-
-    <!-- Create App Dialog -->
-    <q-dialog v-model="showCreateAppDialog" persistent>
-      <q-card class="dialog-card q-pa-md" style="width: 500px; max-width: 90vw">
-        <q-card-section class="row items-center q-pb-none">
-          <div class="text-h6 text-white text-weight-bold"
-            >Créer une Application</div
-          >
-          <q-space />
-          <q-btn flat round dense icon="close" v-close-popup />
-        </q-card-section>
-
-        <q-card-section>
-          <q-form @submit="createApp" class="q-gutter-md">
-            <q-input
-              v-model="newApp.name"
-              label="Nom de l'application"
-              filled
-              dark
-              color="blue-grey-500"
-              required
-              :rules="[val => (val && val.length > 0) || 'Nom requis']"
-            />
-
-            <q-input
-              v-model="newApp.identifier"
-              label="Identifiant unique (ex: com.example.myapp)"
-              filled
-              dark
-              color="blue-grey-500"
-              required
-              :rules="[val => (val && val.length > 0) || 'Identifiant requis']"
-            />
-
-            <q-select
-              v-model="newApp.category"
-              :options="['Jeux', 'Productivité', 'Social', 'Utilitaires']"
-              label="Catégorie"
-              filled
-              dark
-              color="blue-grey-500"
-            />
-
-            <q-input
-              v-model="newApp.icon_url"
-              label="URL de l'icône"
-              filled
-              dark
-              color="blue-grey-500"
-            />
-
-            <q-input
-              v-model="newApp.description"
-              type="textarea"
-              label="Description"
-              filled
-              dark
-              color="blue-grey-500"
-              rows="3"
-            />
-
-            <div class="row justify-end q-gutter-sm">
-              <q-btn flat label="Annuler" v-close-popup />
-              <q-btn
-                label="Soumettre"
-                type="submit"
-                color="blue-grey-600"
-                :loading="creatingApp"
-              />
-            </div>
-          </q-form>
-        </q-card-section>
-      </q-card>
-    </q-dialog>
 
     <!-- Upload Build Dialog -->
     <q-dialog v-model="showUploadDialog" persistent>
@@ -229,7 +172,6 @@
               v-model="newVersion.version_number"
               label="Numéro de version (ex: 1.0.0)"
               filled
-              dark
               color="blue-grey-500"
               required
               :rules="[val => (val && val.length > 0) || 'Numéro requis']"
@@ -239,7 +181,6 @@
               v-model="newVersion.zip_file"
               label="Sélectionner le fichier ZIP (.oap)"
               filled
-              dark
               color="blue-grey-500"
               accept=".zip"
               required
@@ -260,7 +201,6 @@
                 v-model="newVersion.permissions_required"
                 :val="perm"
                 :label="perm"
-                dark
                 color="primary"
               />
             </div>
@@ -270,7 +210,6 @@
               label="Domaines réseau autorisés (séparés par des virgules)"
               placeholder="ex: api.example.com, cdn.example.com"
               filled
-              dark
               color="blue-grey-500"
             />
 
@@ -291,24 +230,18 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { computed, ref, onMounted } from 'vue'
 import { api } from '@/boot/axios'
+import AppIcon from '@/components/AppIcon.vue'
 import { useQuasar } from 'quasar'
+import { useAuthStore } from '@/stores/auth'
 
 const $q = useQuasar()
+const authStore = useAuthStore()
+const isAdmin = computed(() => authStore.user?.role === 'admin')
 
 const myApps = ref([])
 const loading = ref(true)
-
-const showCreateAppDialog = ref(false)
-const creatingApp = ref(false)
-const newApp = ref({
-  name: '',
-  identifier: '',
-  category: 'Productivité',
-  icon_url: '',
-  description: ''
-})
 
 const showUploadDialog = ref(false)
 const uploadingBuild = ref(false)
@@ -338,33 +271,6 @@ async function fetchMyApps() {
     console.error('Error fetching developer apps', err)
   } finally {
     loading.value = false
-  }
-}
-
-async function createApp() {
-  creatingApp.value = true
-  try {
-    await api.post('/apps', newApp.value)
-    $q.notify({
-      type: 'positive',
-      message: 'Application soumise avec succès. En attente de validation.'
-    })
-    showCreateAppDialog.value = false
-    newApp.value = {
-      name: '',
-      identifier: '',
-      category: 'Productivité',
-      icon_url: '',
-      description: ''
-    }
-    await fetchMyApps()
-  } catch (err) {
-    $q.notify({
-      type: 'negative',
-      message: err.response?.data?.message || 'Erreur lors de la création'
-    })
-  } finally {
-    creatingApp.value = false
   }
 }
 
@@ -412,7 +318,8 @@ async function uploadBuild(autoGenerate = false) {
 
     $q.notify({
       type: 'positive',
-      message: 'Nouveau build téléversé et signé avec succès par OneShield !'
+      message:
+        'Nouveau build téléversé et signé avec succès par PWA Store Security !'
     })
     showUploadDialog.value = false
     await fetchMyApps()
@@ -421,7 +328,7 @@ async function uploadBuild(autoGenerate = false) {
       $q.dialog({
         title: 'Fichiers PWA manquants',
         message:
-          'Votre archive ne contient pas de fichier "manifest.json" ou de "service-worker.js".\n\nVoulez-vous que OneInstall génère automatiquement ces fichiers pour rendre votre application installable en tant que PWA ?',
+          'Votre archive ne contient pas de fichier "manifest.json" ou de "service-worker.js".\n\nVoulez-vous que PWA Store génère automatiquement ces fichiers pour rendre votre application installable en tant que PWA ?',
         cancel: {
           label: "Annuler l'upload",
           color: 'negative',
@@ -442,6 +349,8 @@ async function uploadBuild(autoGenerate = false) {
             message: 'Upload annulé par le développeur.'
           })
         })
+    } else if (err.response?.data?.error_code === 'PACKAGE_VALIDATION_FAILED') {
+      showValidationErrorDialog(err.response.data)
     } else {
       $q.notify({
         type: 'negative',
@@ -450,6 +359,74 @@ async function uploadBuild(autoGenerate = false) {
     }
   } finally {
     uploadingBuild.value = false
+  }
+}
+
+function showValidationErrorDialog(data) {
+  const analysis = data.analysis || {}
+  const sections = []
+
+  if (analysis.errors?.length) {
+    sections.push(
+      '<div class="text-negative text-weight-bold q-mb-xs">Erreurs bloquantes</div><ul class="q-mb-md">' +
+        analysis.errors.map(e => `<li>${escapeHtml(e)}</li>`).join('') +
+        '</ul>'
+    )
+  }
+  if (analysis.warnings?.length) {
+    sections.push(
+      '<div class="text-warning text-weight-bold q-mb-xs">Avertissements</div><ul class="q-mb-md">' +
+        analysis.warnings.map(w => `<li>${escapeHtml(w)}</li>`).join('') +
+        '</ul>'
+    )
+  }
+  if (analysis.undeclared_domains?.length) {
+    sections.push(
+      '<div class="text-weight-bold q-mb-xs">Domaines non déclarés</div><div class="q-mb-md">' +
+        escapeHtml(analysis.undeclared_domains.join(', ')) +
+        '</div>'
+    )
+  }
+
+  const message =
+    `<div class="q-mb-md">${escapeHtml(data.message || 'Le package ne respecte pas les exigences de publication PWA Store.')}</div>` +
+    sections.join('')
+
+  $q.dialog({
+    title: 'Package rejeté',
+    message,
+    html: true,
+    ok: { label: 'Compris', color: 'primary' }
+  })
+}
+
+function escapeHtml(str) {
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+}
+
+function confirmDeleteApp(app) {
+  $q.dialog({
+    title: 'Supprimer l’application',
+    message: `Supprimer définitivement "${app.name}" et tous ses builds ? Cette action est irréversible.`,
+    cancel: { label: 'Annuler', flat: true },
+    ok: { label: 'Supprimer', color: 'negative' },
+    persistent: true
+  }).onOk(() => deleteApp(app))
+}
+
+async function deleteApp(app) {
+  try {
+    await api.delete(`/apps/${app.id}`)
+    $q.notify({ type: 'positive', message: 'Application supprimée.' })
+    await fetchMyApps()
+  } catch (err) {
+    $q.notify({
+      type: 'negative',
+      message: err.response?.data?.message || 'Erreur lors de la suppression'
+    })
   }
 }
 
@@ -462,6 +439,29 @@ function getStatusColor(status) {
     default:
       return 'orange-7'
   }
+}
+
+function getVersionStatus(status) {
+  const normalizedStatus = String(status || 'unknown').toLowerCase()
+  const statuses = {
+    approved: { label: 'APPROUVÉE', color: 'green-7' },
+    published: { label: 'PUBLIÉE', color: 'green-7' },
+    active: { label: 'ACTIVE', color: 'green-7' },
+    pending: { label: 'EN ATTENTE', color: 'orange-7' },
+    processing: { label: 'EN TRAITEMENT', color: 'blue-7' },
+    draft: { label: 'BROUILLON', color: 'blue-grey-7' },
+    rejected: { label: 'REJETÉE', color: 'red-7' },
+    quarantined: { label: 'EN QUARANTAINE', color: 'red-7' },
+    inactive: { label: 'INACTIVE', color: 'blue-grey-7' },
+    unknown: { label: 'NON RENSEIGNÉ', color: 'blue-grey-7' }
+  }
+
+  return (
+    statuses[normalizedStatus] || {
+      label: normalizedStatus.replaceAll('_', ' ').toUpperCase(),
+      color: 'blue-grey-7'
+    }
+  )
 }
 
 onMounted(() => {
@@ -488,7 +488,7 @@ onMounted(() => {
   align-items: center;
   gap: 5px;
   margin-bottom: 8px;
-  color: var(--primary);
+  color: var(--pwa-link);
   font-size: 9px;
   font-weight: 850;
   letter-spacing: 0.12em;
@@ -521,9 +521,11 @@ onMounted(() => {
   box-shadow: var(--ui-shadow-md);
   transform: translateY(-2px);
 }
-.console-page :deep(.text-white),
-.dialog-card :deep(.text-white) {
+.console-page :deep(.text-white) {
   color: var(--text) !important;
+}
+.dialog-card :deep(.text-white) {
+  color: var(--pwa-text) !important;
 }
 .console-page :deep(.text-blue-grey-200),
 .console-page :deep(.text-blue-grey-300),
@@ -536,7 +538,7 @@ onMounted(() => {
 .create-btn {
   min-height: 40px;
   padding: 0 16px;
-  color: #fff;
+  color: var(--pwa-on-primary);
   background: var(--primary);
   font-weight: 700;
   border-radius: 11px;
@@ -545,10 +547,16 @@ onMounted(() => {
 }
 .upload-btn {
   background: var(--surface-highest);
-  color: var(--primary);
+  color: var(--pwa-link);
   font-weight: 700;
   border-radius: 10px;
   font-size: 11px;
+}
+.delete-btn {
+  color: var(--muted);
+}
+.delete-btn:hover {
+  color: var(--q-negative);
 }
 .version-list {
   background: var(--surface-low);
@@ -556,10 +564,10 @@ onMounted(() => {
   border-radius: 12px;
 }
 .dialog-card {
-  background: var(--surface);
-  border: 1px solid var(--outline);
+  color: var(--pwa-text);
+  background: var(--pwa-surface);
+  border: 1px solid rgba(24, 24, 27, 0.12);
   border-radius: 18px;
-  color: var(--text);
 }
 .console-hero.q-mb-lg {
   margin-bottom: 16px;
@@ -580,5 +588,10 @@ onMounted(() => {
     flex-direction: column;
     gap: 14px;
   }
+}
+
+.app-title-clickable:hover .app-name-hover {
+  color: var(--primary) !important;
+  text-decoration: underline;
 }
 </style>

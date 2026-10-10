@@ -11,15 +11,12 @@
           <h1 id="hero-title"
             >Une seule installation.<br />Toutes les plateformes.</h1
           >
-          <p
-            >OneInstall est la passerelle universelle entre vos applications et
-            tous les utilisateurs. Développez une fois. Exécutez partout.</p
-          >
+          <p>Découvrez, testez et utilisez des applications Web modernes.</p>
           <div class="hero-actions">
             <q-btn
               unelevated
               no-caps
-              label="Découvrir OneInstall"
+              label="Découvrir PWA Store"
               href="#popular"
               class="primary-cta"
             />
@@ -40,8 +37,14 @@
           <span class="platform-badge windows"><q-icon name="window" /></span>
           <div class="phone-card">
             <span class="phone-speaker" />
-            <div class="install-logo"><q-icon name="download" /></div>
-            <strong>OneInstall</strong>
+            <img
+              class="hero-brand-icon"
+              src="/brand/pwa-store-icon.png"
+              width="180"
+              height="180"
+              alt=""
+            />
+            <strong>PWA Store</strong>
             <small>Installer partout.<br />Ouvrir instantanément.</small>
           </div>
         </div>
@@ -158,7 +161,11 @@
                 @click="router.push(app.to)"
               >
                 <div class="app-icon" :style="{ background: app.color }">
-                  <q-icon :name="app.icon" />
+                  <AppIcon
+                    :src="app.iconUrl"
+                    :fallback-icon="app.icon"
+                    :alt="`Icône de ${app.name}`"
+                  />
                 </div>
                 <h3>{{ app.name }}</h3>
                 <p>{{ app.category }}</p>
@@ -202,7 +209,11 @@
                   />
                   <div class="featured-card-content row no-wrap items-center">
                     <div class="featured-card-icon">
-                      <q-icon :name="app.icon" />
+                      <AppIcon
+                        :src="app.iconUrl"
+                        :fallback-icon="app.icon"
+                        :alt="`Icône de ${app.name}`"
+                      />
                     </div>
                     <div class="featured-card-text col q-ml-md">
                       <h3>{{ app.name }}</h3>
@@ -246,7 +257,11 @@
                   @click="router.push(app.to)"
                 >
                   <div class="app-icon" :style="{ background: app.color }">
-                    <q-icon :name="app.icon" />
+                    <AppIcon
+                      :src="app.iconUrl"
+                      :fallback-icon="app.icon"
+                      :alt="`Icône de ${app.name}`"
+                    />
                   </div>
                   <h3>{{ app.name }}</h3>
                   <p>{{ app.category }}</p>
@@ -279,7 +294,11 @@
                   @click="router.push(app.to)"
                 >
                   <div class="app-icon" :style="{ background: app.color }">
-                    <q-icon :name="app.icon" />
+                    <AppIcon
+                      :src="app.iconUrl"
+                      :fallback-icon="app.icon"
+                      :alt="`Icône de ${app.name}`"
+                    />
                   </div>
                   <h3>{{ app.name }}</h3>
                   <p>{{ app.category }}</p>
@@ -313,7 +332,11 @@
                   @click="router.push(app.to)"
                 >
                   <div class="app-icon" :style="{ background: app.color }">
-                    <q-icon :name="app.icon" />
+                    <AppIcon
+                      :src="app.iconUrl"
+                      :fallback-icon="app.icon"
+                      :alt="`Icône de ${app.name}`"
+                    />
                   </div>
                   <h3>{{ app.name }}</h3>
                   <p>{{ app.category }}</p>
@@ -336,7 +359,7 @@
           <section
             id="features"
             class="feature-grid"
-            aria-label="Avantages OneInstall"
+            aria-label="Avantages PWA Store"
           >
             <article
               v-for="feature in features"
@@ -382,7 +405,7 @@
             <q-icon name="developer_mode" class="developer-watermark" />
             <h2>Développeur ?</h2>
             <p
-              >Publiez votre application sur OneInstall et touchez des millions
+              >Publiez votre application sur PWA Store et touchez des millions
               d’utilisateurs avec notre runtime universel.</p
             >
             <q-btn unelevated no-caps label="Commencer" to="/developer" />
@@ -401,7 +424,11 @@
             >
               <b>{{ index + 1 }}</b>
               <div class="trend-icon" :style="{ background: app.color }">
-                <q-icon :name="app.icon" />
+                <AppIcon
+                  :src="app.iconUrl"
+                  :fallback-icon="app.icon"
+                  :alt="`Icône de ${app.name}`"
+                />
               </div>
               <div>
                 <h3>{{ app.name }}</h3>
@@ -415,7 +442,10 @@
     </main>
 
     <footer class="home-footer">
-      <p>© {{ currentYear }} OneInstall. Tous droits réservés.</p>
+      <router-link to="/" aria-label="PWA Store, accueil"
+        ><BrandLogo
+      /></router-link>
+      <p>© {{ currentYear }} PWA Store. Tous droits réservés.</p>
       <nav
         ><a href="#business">À propos</a><a href="#">Confidentialité</a
         ><a href="#">Conditions</a><a href="#">Support</a></nav
@@ -425,9 +455,11 @@
 </template>
 
 <script setup>
+import BrandLogo from '@/components/BrandLogo.vue'
 import { ref, computed, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { api } from '@/boot/axios'
+import AppIcon from '@/components/AppIcon.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -467,15 +499,20 @@ const sortOptions = [
 const getCategoryColor = category => {
   switch (category) {
     case 'Jeux':
-      return '#ea580c'
+      return 'var(--pwa-accent)'
     case 'Productivité':
-      return '#2563eb'
+      return 'var(--pwa-primary)'
     case 'Social':
-      return '#db2777'
+      return 'var(--pwa-secondary)'
     default:
-      return '#059669'
+      return 'var(--pwa-primary)'
   }
 }
+
+const getCategoryName = category =>
+  typeof category === 'object'
+    ? category?.name || 'Autres'
+    : category || 'Autres'
 
 const getIcon = category => {
   switch (category) {
@@ -513,12 +550,14 @@ const popularApps = computed(() => {
   return rawApps.value.map(app => ({
     id: app.id,
     name: app.name,
-    category: app.category,
+    category: getCategoryName(app.category),
     price: Number(app.price),
     rating: app.average_rating || '5.0',
     initials: app.name.substring(0, 3).toUpperCase(),
-    color: getCategoryColor(app.category),
-    icon: getIcon(app.category),
+    iconUrl: app.icon_url || '',
+    color:
+      app.category?.color || getCategoryColor(getCategoryName(app.category)),
+    icon: app.category?.icon || getIcon(getCategoryName(app.category)),
     to: '/apps/' + app.id
   }))
 })
@@ -533,12 +572,14 @@ const featuredApps = computed(() => {
     .map(app => ({
       id: app.id,
       name: app.name,
-      category: app.category,
+      category: getCategoryName(app.category),
       price: Number(app.price),
       rating: app.average_rating || '5.0',
       downloads: app.downloads_count || 0,
-      color: getCategoryColor(app.category),
-      icon: getIcon(app.category),
+      iconUrl: app.icon_url || '',
+      color:
+        app.category?.color || getCategoryColor(getCategoryName(app.category)),
+      icon: app.category?.icon || getIcon(getCategoryName(app.category)),
       to: '/apps/' + app.id
     }))
 })
@@ -577,7 +618,7 @@ const featuredGame = computed(() => {
     rating: '4.8',
     size: '12 Mo',
     to: '/apps/1',
-    color: '#ea580c'
+    color: 'var(--pwa-accent)'
   }
 })
 
@@ -614,33 +655,33 @@ const features = [
     icon: 'devices',
     title: 'Installation universelle',
     text: 'Une seule app pour Android, iOS et le Web.',
-    color: '#2563eb'
+    color: 'var(--pwa-primary)'
   },
   {
     icon: 'sync',
     title: 'Mises à jour auto',
     text: 'Vos applications sont toujours à jour.',
-    color: '#059669'
+    color: 'var(--pwa-primary)'
   },
   {
     icon: 'security',
     title: 'Sécurisé et fiable',
-    text: 'Contrôlé et certifié par OneInstall.',
-    color: '#52525b'
+    text: 'Contrôlé et certifié par PWA Store.',
+    color: 'var(--pwa-muted)'
   },
   {
     icon: 'public',
     title: 'Fait en Afrique',
     text: 'Une solution pensée pour le monde.',
-    color: '#d97706'
+    color: 'var(--q-warning)'
   }
 ]
 
 const categories = [
-  { label: 'Jeux', icon: 'sports_esports', color: '#ea580c' },
-  { label: 'Productivité', icon: 'task_alt', color: '#2563eb' },
-  { label: 'Social', icon: 'forum', color: '#db2777' },
-  { label: 'Utilitaires', icon: 'widgets', color: '#059669' }
+  { label: 'Jeux', icon: 'sports_esports', color: 'var(--pwa-accent)' },
+  { label: 'Productivité', icon: 'task_alt', color: 'var(--pwa-primary)' },
+  { label: 'Social', icon: 'forum', color: 'var(--pwa-secondary)' },
+  { label: 'Utilitaires', icon: 'widgets', color: 'var(--pwa-primary)' }
 ]
 </script>
 
@@ -684,7 +725,7 @@ const categories = [
 }
 .eyebrow,
 .section-kicker {
-  color: var(--primary);
+  color: var(--pwa-link);
   font-size: 10px;
   font-weight: 800;
   letter-spacing: 0.08em;
@@ -725,8 +766,8 @@ const categories = [
   font-weight: 700;
 }
 .primary-cta {
-  color: var(--surface-low);
-  background: var(--text);
+  color: var(--pwa-on-primary);
+  background: var(--pwa-primary);
 }
 .secondary-cta {
   color: var(--text);
@@ -790,7 +831,7 @@ const categories = [
   display: grid;
   place-items: center;
   margin-bottom: 12px;
-  color: #fff;
+  color: var(--pwa-on-primary);
   background: var(--primary);
   border-radius: 14px;
   box-shadow: 0 0 25px color-mix(in srgb, var(--primary) 35%, transparent);
@@ -827,7 +868,7 @@ const categories = [
 .platform-badge.android {
   top: 24px;
   left: 12px;
-  color: #3ddc84;
+  color: var(--pwa-platform-android);
 }
 .platform-badge.web {
   bottom: 40px;
@@ -838,13 +879,13 @@ const categories = [
 .platform-badge.apps {
   top: 40px;
   right: 4px;
-  color: var(--primary);
+  color: var(--pwa-link);
   animation-delay: -2.2s;
 }
 .platform-badge.windows {
   right: 12px;
   bottom: 40px;
-  color: #00a4ef;
+  color: var(--pwa-platform-windows);
   animation-delay: -0.7s;
 }
 @keyframes float {
@@ -901,7 +942,7 @@ const categories = [
   display: inline-flex;
   align-items: center;
   gap: 3px;
-  color: var(--primary);
+  color: var(--pwa-link);
   text-decoration: none;
   font-size: 11px;
   font-weight: 700;
@@ -933,7 +974,7 @@ const categories = [
   display: grid;
   place-items: center;
   margin-bottom: 8px;
-  color: #fff;
+  color: var(--pwa-on-primary);
   border-radius: 12px;
   box-shadow: 0 8px 18px rgba(2, 5, 20, 0.18);
 }
@@ -969,14 +1010,14 @@ const categories = [
 .meta .q-icon,
 .compact-copy span .q-icon,
 .trend-row > span .q-icon {
-  color: #4cd7f6;
+  color: var(--pwa-secondary);
   font-size: 12px;
 }
 .app-card .q-btn {
   width: 100%;
   min-height: 28px;
   margin-top: auto;
-  color: var(--primary);
+  color: var(--pwa-link);
   background: var(--surface-highest);
   border-radius: 6px;
   font-size: 10px;
@@ -1009,7 +1050,7 @@ const categories = [
   position: relative;
   min-height: 180px;
   overflow: hidden;
-  background: #18181b;
+  background: var(--pwa-dark);
   border: 1px solid var(--outline);
   border-radius: 12px;
 }
@@ -1017,7 +1058,7 @@ const categories = [
   content: '';
   position: absolute;
   inset: 45% 0 0;
-  background: #065f46;
+  background: var(--pwa-primary-soft);
   transform: perspective(350px) rotateX(28deg) scale(1.2);
   transform-origin: bottom;
 }
@@ -1043,7 +1084,7 @@ const categories = [
   align-items: flex-end;
   justify-content: space-between;
   padding: 40px 14px 12px;
-  color: #fff;
+  color: var(--pwa-on-primary);
   background: rgba(4, 9, 28, 0.65);
 }
 .featured-overlay h3 {
@@ -1052,11 +1093,11 @@ const categories = [
 }
 .featured-overlay p {
   margin: 0 0 4px;
-  color: #c4cbdf;
+  color: var(--pwa-dark-muted);
   font-size: 10px;
 }
 .feature-tag {
-  color: #6ee7b7;
+  color: var(--pwa-secondary);
   font-size: 8px;
   font-weight: 800;
   letter-spacing: 0.06em;
@@ -1068,12 +1109,12 @@ const categories = [
 }
 .meta small {
   margin-left: 6px;
-  color: #b8c0d3;
+  color: var(--pwa-dark-muted);
   font-weight: 400;
 }
 .featured-overlay .q-btn {
-  color: #18181b;
-  background: #fff;
+  color: var(--pwa-text);
+  background: var(--pwa-surface);
   border-radius: 6px;
   font-size: 10px;
   font-weight: 800;
@@ -1098,7 +1139,7 @@ const categories = [
   height: 44px;
   display: grid;
   place-items: center;
-  color: #fff;
+  color: var(--pwa-on-primary);
   border-radius: 10px;
   box-shadow: 0 6px 14px rgba(4, 7, 20, 0.15);
 }
@@ -1126,7 +1167,7 @@ const categories = [
   font-size: 10px;
 }
 .compact-card > .q-btn {
-  color: var(--primary);
+  color: var(--pwa-link);
   background: var(--surface-highest);
   border-radius: 6px;
   font-size: 10px;
@@ -1227,7 +1268,7 @@ const categories = [
 }
 .developer-card .q-btn {
   position: relative;
-  color: var(--primary-text);
+  color: var(--pwa-on-primary);
   background: var(--primary);
   border-radius: 6px;
   font-size: 10px;
@@ -1239,7 +1280,7 @@ const categories = [
   position: absolute;
   right: -10px;
   bottom: -15px;
-  color: var(--primary);
+  color: var(--pwa-link);
   font-size: 80px;
   opacity: 0.1;
 }
@@ -1262,7 +1303,7 @@ const categories = [
   height: 32px;
   display: grid;
   place-items: center;
-  color: #fff;
+  color: var(--pwa-on-primary);
   border-radius: 8px;
 }
 .trend-icon .q-icon {
@@ -1309,7 +1350,7 @@ const categories = [
   text-decoration: none;
 }
 .home-footer a:hover {
-  color: var(--primary);
+  color: var(--pwa-link);
 }
 
 @media (max-width: 1350px) {
@@ -1398,7 +1439,7 @@ const categories = [
   .device-scene {
     top: auto;
     right: 50%;
-    bottom: -110px;
+    bottom: -140px;
     transform: translateX(50%) scale(0.58);
   }
   .content-grid,
@@ -1413,6 +1454,11 @@ const categories = [
   }
   .aside-column {
     display: flex;
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .developer-card {
+    min-height: auto;
   }
   .compact-card {
     grid-template-columns: auto 1fr;
@@ -1430,7 +1476,7 @@ const categories = [
 }
 @media (max-width: 420px) {
   .hero-panel {
-    min-height: 314px;
+    min-height: 360px;
     padding: 16px 12px;
   }
   .hero-copy h1 {
@@ -1492,7 +1538,7 @@ const categories = [
 
 .price-text {
   font-size: 14px;
-  color: var(--primary);
+  color: var(--pwa-link);
 }
 
 .featured-scroll-container {
@@ -1546,7 +1592,7 @@ const categories = [
   position: relative;
   z-index: 2;
   width: 100%;
-  color: #ffffff;
+  color: var(--pwa-on-primary);
 }
 
 .featured-card-icon {
@@ -1561,7 +1607,7 @@ const categories = [
 
   .q-icon {
     font-size: 32px;
-    color: #ffffff;
+    color: var(--pwa-on-primary);
   }
 }
 
@@ -1571,13 +1617,13 @@ const categories = [
     font-size: 16px;
     font-weight: 700;
     line-height: 1.2;
-    color: #ffffff;
+    color: var(--pwa-on-primary);
   }
   p {
     margin: 2px 0 6px;
     font-size: 11px;
     opacity: 0.8;
-    color: #ffffff;
+    color: var(--pwa-on-primary);
   }
 }
 
@@ -1589,7 +1635,7 @@ const categories = [
   display: inline-flex;
   align-items: center;
   gap: 2px;
-  color: #ffffff;
+  color: var(--pwa-on-primary);
   background: rgba(255, 255, 255, 0.2);
   border: 1px solid rgba(255, 255, 255, 0.1);
 }

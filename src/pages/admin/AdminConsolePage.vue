@@ -5,10 +5,10 @@
         <span class="admin-eyebrow"
           ><q-icon name="shield" /> Centre de contrôle</span
         >
-        <h1 class="admin-title">Administration OneInstall</h1>
+        <h1 class="admin-title">Administration PWA Store</h1>
         <div class="admin-subtitle">
-          Modération des applications (OneStore), Surveillance de sécurité
-          (OneShield) et Analytics (OneAnalytics)
+          Modération des applications (PWA Store), Surveillance de sécurité (PWA
+          Store Security) et Analytics (PWA Store Analytics)
         </div>
       </div>
       <div class="system-status"
@@ -25,20 +25,19 @@
       <div class="col-12 col-lg-7">
         <q-card class="glass-panel admin-card">
           <div class="text-subtitle1 text-white text-weight-bold q-mb-md"
-            >Modération OneStore</div
+            >Modération PWA Store</div
           >
-          <q-list dark separator>
+          <q-list separator>
             <q-item v-for="app in apps" :key="app.id" class="q-py-sm">
               <q-item-section avatar>
                 <q-avatar
                   size="36px"
                   class="bg-blue-grey-900 border-blue-grey-sm rounded-borders"
                 >
-                  <q-img
-                    :src="
-                      app.icon_url ||
-                      'https://cdn-icons-png.flaticon.com/512/8422/8422116.png'
-                    "
+                  <AppIcon
+                    :src="app.icon_url"
+                    :alt="`Icône de ${app.name}`"
+                    fallback-icon="apps"
                   />
                 </q-avatar>
               </q-item-section>
@@ -80,7 +79,9 @@
                     size="sm"
                     @click="updateAppStatus(app, 'quarantined')"
                   >
-                    <q-tooltip>Mettre en quarantaine (OneShield)</q-tooltip>
+                    <q-tooltip
+                      >Mettre en quarantaine (PWA Store Security)</q-tooltip
+                    >
                   </q-btn>
                   <q-btn
                     color="primary"
@@ -90,7 +91,9 @@
                     size="sm"
                     @click="selectAppForAnalytics(app)"
                   >
-                    <q-tooltip>Voir les statistiques (OneAnalytics)</q-tooltip>
+                    <q-tooltip
+                      >Voir les statistiques (PWA Store Analytics)</q-tooltip
+                    >
                   </q-btn>
                 </div>
               </q-item-section>
@@ -99,7 +102,7 @@
         </q-card>
       </div>
 
-      <!-- Live Analytics Sidebar (OneAnalytics) -->
+      <!-- Live Analytics Sidebar (PWA Store Analytics) -->
       <div class="col-12 col-lg-5">
         <q-card v-if="selectedApp" class="glass-panel admin-card">
           <div class="row items-center q-gutter-sm q-mb-md">
@@ -107,11 +110,10 @@
               size="32px"
               class="bg-blue-grey-900 border-blue-grey-sm rounded-borders"
             >
-              <q-img
-                :src="
-                  selectedApp.icon_url ||
-                  'https://cdn-icons-png.flaticon.com/512/8422/8422116.png'
-                "
+              <AppIcon
+                :src="selectedApp.icon_url"
+                :alt="`Icône de ${selectedApp.name}`"
+                fallback-icon="apps"
               />
             </q-avatar>
             <div>
@@ -166,7 +168,7 @@
               <div class="text-subtitle2 text-blue-grey-300 q-mb-xs"
                 >Répartition par plateforme</div
               >
-              <q-list dark separator class="sidebar-list overflow-hidden">
+              <q-list separator class="sidebar-list overflow-hidden">
                 <q-item
                   v-for="item in stats.installations_by_platform"
                   :key="item.platform"
@@ -192,7 +194,7 @@
               <div class="text-subtitle2 text-blue-grey-300 q-mb-xs"
                 >Appareils les plus utilisés</div
               >
-              <q-list dark separator class="sidebar-list overflow-hidden">
+              <q-list separator class="sidebar-list overflow-hidden">
                 <q-item
                   v-for="device in stats.top_devices"
                   :key="device.device_model"
@@ -210,7 +212,7 @@
             <!-- Security controls -->
             <div class="q-mt-md">
               <div class="text-subtitle2 text-blue-grey-300 q-mb-xs"
-                >Contrôles de Confiance (OneShield)</div
+                >Contrôles de Confiance (PWA Store Security)</div
               >
               <div class="row items-center q-col-gutter-sm">
                 <div class="col-8">
@@ -220,7 +222,6 @@
                     :max="100"
                     label
                     color="green"
-                    dark
                   />
                 </div>
                 <div class="col-4">
@@ -261,6 +262,7 @@
 import { ref, onMounted } from 'vue'
 import { api } from '@/boot/axios'
 import { useQuasar } from 'quasar'
+import AppIcon from '@/components/AppIcon.vue'
 
 const $q = useQuasar()
 const apps = ref([])
@@ -392,7 +394,7 @@ onMounted(() => {
   align-items: center;
   gap: 5px;
   margin-bottom: 8px;
-  color: var(--primary);
+  color: var(--pwa-link);
   font-size: 9px;
   font-weight: 850;
   letter-spacing: 0.12em;
@@ -458,7 +460,7 @@ onMounted(() => {
 .system-status span {
   width: 7px;
   height: 7px;
-  background: #34c98a;
+  background: var(--q-positive);
   border-radius: 50%;
   box-shadow: 0 0 0 4px rgba(52, 201, 138, 0.12);
 }

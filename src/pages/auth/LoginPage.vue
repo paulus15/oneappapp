@@ -3,7 +3,7 @@
     <q-card flat class="auth-card">
       <q-card-section class="card-header">
         <span class="auth-eyebrow">Ravi de vous revoir</span>
-        <h1 class="auth-title">Connectez-vous à votre espace</h1>
+        <h1 class="auth-title">Connectez-vous à PWA Store</h1>
         <p class="auth-subtitle"
           >Retrouvez vos applications, vos préférences et votre activité.</p
         >
@@ -141,7 +141,7 @@ async function onSubmit() {
 .auth-eyebrow {
   display: inline-flex;
   margin-bottom: 10px;
-  color: var(--primary);
+  color: var(--pwa-link);
   font-size: 10px;
   font-weight: 800;
   letter-spacing: 0.11em;
@@ -181,7 +181,7 @@ async function onSubmit() {
 }
 .text-action {
   padding: 4px 0;
-  color: var(--primary);
+  color: var(--pwa-link);
   background: none;
   border: 0;
   cursor: pointer;
@@ -190,7 +190,7 @@ async function onSubmit() {
 }
 .form-error {
   padding: 10px 12px;
-  color: #ff6978;
+  color: var(--q-negative);
   background: rgba(239, 91, 103, 0.1);
   border: 1px solid rgba(239, 91, 103, 0.2);
   border-radius: 10px;
@@ -199,7 +199,7 @@ async function onSubmit() {
 }
 .submit-btn {
   min-height: 44px;
-  color: #fff;
+  color: var(--pwa-on-primary);
   background: var(--primary);
   font-weight: 800;
   border-radius: 12px;
@@ -215,7 +215,7 @@ async function onSubmit() {
   font-size: 10px;
 }
 .register-link {
-  color: var(--primary);
+  color: var(--pwa-link);
   font-weight: 700;
   text-decoration: none;
 }

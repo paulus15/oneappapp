@@ -3,7 +3,7 @@
     <q-card flat class="auth-card">
       <q-card-section class="card-header">
         <span class="auth-eyebrow">Rejoindre la communauté</span>
-        <h1 class="auth-title">Créez votre espace OneInstall</h1>
+        <h1 class="auth-title">Créez votre espace PWA Store</h1>
         <p class="auth-subtitle"
           >Un compte unique pour explorer ou publier sur toutes les
           plateformes.</p
@@ -176,7 +176,7 @@ async function onSubmit() {
 .auth-eyebrow {
   display: inline-flex;
   margin-bottom: 8px;
-  color: var(--primary);
+  color: var(--pwa-link);
   font-size: 9px;
   font-weight: 800;
   letter-spacing: 0.11em;
@@ -213,7 +213,7 @@ async function onSubmit() {
 }
 .submit-btn {
   min-height: 44px;
-  color: #fff;
+  color: var(--pwa-on-primary);
   background: var(--primary);
   font-weight: 800;
   border-radius: 12px;
@@ -222,7 +222,7 @@ async function onSubmit() {
 }
 .form-error {
   padding: 10px 12px;
-  color: #ff6978;
+  color: var(--q-negative);
   background: rgba(239, 91, 103, 0.1);
   border: 1px solid rgba(239, 91, 103, 0.2);
   border-radius: 10px;
@@ -241,7 +241,7 @@ async function onSubmit() {
   font-size: 11px;
 }
 .login-link {
-  color: var(--primary);
+  color: var(--pwa-link);
   font-weight: 700;
   text-decoration: none;
 }

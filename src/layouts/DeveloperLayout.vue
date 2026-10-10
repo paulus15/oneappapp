@@ -16,7 +16,13 @@
           @click="leftDrawerOpen = !leftDrawerOpen"
         />
 
-        <div class="toolbar-heading">
+        <router-link
+          to="/"
+          class="console-brand"
+          aria-label="PWA Store, accueil"
+          ><BrandLogo responsive
+        /></router-link>
+        <div class="toolbar-heading gt-xs">
           <span class="toolbar-eyebrow">Espace développeur</span>
           <strong>Console</strong>
         </div>
@@ -78,11 +84,7 @@
     >
       <div class="drawer-shell">
         <router-link to="/developer" class="developer-brand">
-          <span class="developer-logo"><q-icon name="terminal" /></span>
-          <span>
-            <strong>OneInstall</strong>
-            <small>Developer Center</small>
-          </span>
+          <BrandLogo />
         </router-link>
 
         <p class="nav-label">Workspace</p>
@@ -147,16 +149,16 @@
 </template>
 
 <script setup>
-import { computed, onMounted, ref } from 'vue'
-import { useQuasar } from 'quasar'
+import BrandLogo from '@/components/BrandLogo.vue'
+import { useTheme } from '@/composables/useTheme'
+import { computed, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 
-const $q = useQuasar()
 const router = useRouter()
 const authStore = useAuthStore()
 const leftDrawerOpen = ref(false)
-const isDark = ref(true)
+const { isDark, toggleTheme } = useTheme()
 
 const userInitial = computed(
   () => authStore.userName?.charAt(0).toUpperCase() || 'D'
@@ -165,10 +167,10 @@ const userInitial = computed(
 const workspaceNavigation = [
   { label: 'Vue d’ensemble', icon: 'space_dashboard', to: '/developer' },
   { label: 'Mes applications', icon: 'apps', disabled: true },
-  { label: 'Builds & versions', icon: 'deployed_code', disabled: true },
+  { label: 'Builds & versions', icon: 'inventory_2', disabled: true },
   {
     label: 'Statistiques',
-    icon: 'monitoring',
+    icon: 'insights',
     disabled: true,
     badge: 'Bientôt'
   },
@@ -181,19 +183,6 @@ const resourceNavigation = [
   { label: 'Paramètres', icon: 'settings', disabled: true }
 ]
 
-onMounted(() => {
-  const savedTheme = localStorage.getItem('oneinstall-theme')
-  const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
-  isDark.value = savedTheme ? savedTheme === 'dark' : prefersDark
-  $q.dark.set(isDark.value)
-})
-
-function toggleTheme() {
-  isDark.value = !isDark.value
-  $q.dark.set(isDark.value)
-  localStorage.setItem('oneinstall-theme', isDark.value ? 'dark' : 'light')
-}
-
 async function handleLogout() {
   await authStore.logout()
   router.push('/')
@@ -202,33 +191,8 @@ async function handleLogout() {
 
 <style lang="scss">
 .developer-layout {
-  --page: #fafafa;
-  --surface-low: #ffffff;
-  --surface: #f4f4f5;
-  --surface-high: #e4e4e7;
-  --surface-highest: #d4d4d8;
-  --text: #18181b;
-  --muted: #71717a;
-  --outline: rgba(24, 24, 27, 0.12);
-  --glass: rgba(255, 255, 255, 0.86);
-  --primary: #059669;
-  --primary-soft: #d1fae5;
   color: var(--text);
   background: var(--page);
-}
-
-.developer-layout.theme-dark {
-  --page: #09090b;
-  --surface-low: #18181b;
-  --surface: #202023;
-  --surface-high: #27272a;
-  --surface-highest: #3f3f46;
-  --text: #fafafa;
-  --muted: #a1a1aa;
-  --outline: rgba(255, 255, 255, 0.09);
-  --glass: rgba(9, 9, 11, 0.84);
-  --primary: #34d399;
-  --primary-soft: #065f46;
 }
 
 .developer-header {
@@ -280,7 +244,7 @@ async function handleLogout() {
 }
 
 .developer-profile .q-avatar {
-  color: #fff;
+  color: var(--pwa-on-primary);
   background: var(--primary);
   font-weight: 800;
 }
@@ -335,7 +299,7 @@ async function handleLogout() {
   display: grid;
   flex: 0 0 auto;
   place-items: center;
-  color: #fff;
+  color: var(--pwa-on-primary);
   background: var(--primary);
   border-radius: 11px;
   box-shadow: 0 8px 25px color-mix(in srgb, var(--primary) 28%, transparent);
@@ -344,7 +308,7 @@ async function handleLogout() {
 .developer-logo .q-icon {
   font-size: 23px;
 }
-.developer-brand > span:last-child {
+.developer-brand > span:last-child:not(.pwa-brand) {
   display: flex;
   flex-direction: column;
 }
@@ -393,11 +357,11 @@ async function handleLogout() {
   opacity: 0.58 !important;
 }
 .developer-nav .developer-nav-active {
-  color: var(--primary);
+  color: var(--pwa-link);
   background: var(--primary-soft);
 }
 .developer-nav .q-badge {
-  color: var(--primary);
+  color: var(--pwa-link);
   background: var(--primary-soft);
   font-size: 8px;
 }
@@ -412,7 +376,7 @@ async function handleLogout() {
   border-radius: 12px;
 }
 .developer-help > .q-icon {
-  color: var(--primary);
+  color: var(--pwa-link);
   font-size: 21px;
 }
 .developer-help strong {
@@ -426,7 +390,7 @@ async function handleLogout() {
 }
 .developer-help button {
   padding: 0;
-  color: var(--primary);
+  color: var(--pwa-link);
   background: none;
   border: 0;
   cursor: pointer;
@@ -444,7 +408,7 @@ async function handleLogout() {
 .status-dot {
   width: 8px;
   height: 8px;
-  background: #36c68b;
+  background: var(--q-positive);
   border-radius: 50%;
   box-shadow: 0 0 0 4px rgba(54, 198, 139, 0.12);
 }

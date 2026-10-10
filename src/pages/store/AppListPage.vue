@@ -48,8 +48,11 @@
               @click="router.push('/apps/' + app.id)"
             >
               <div class="app-icon" :style="{ background: app.color }">
-                <q-icon v-if="app.icon" :name="app.icon" />
-                <strong v-else>{{ app.initials }}</strong>
+                <AppIcon
+                  :src="app.iconUrl"
+                  :fallback-icon="app.icon"
+                  :alt="`Icône de ${app.name}`"
+                />
               </div>
               <h3>{{ app.name }}</h3>
               <p>{{ app.category }}</p>
@@ -93,7 +96,7 @@
               :style="{
                 background:
                   selectedCategory === category.label
-                    ? 'rgba(99, 102, 241, 0.2)'
+                    ? 'rgba(var(--pwa-primary-rgb), 0.2)'
                     : '',
                 borderColor:
                   selectedCategory === category.label ? 'var(--primary)' : ''
@@ -120,6 +123,7 @@
 import { ref, computed, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { api } from '@/boot/axios'
+import AppIcon from '@/components/AppIcon.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -153,7 +157,7 @@ const title = computed(() => {
 const subtitle = computed(() => {
   switch (filterType.value) {
     case 'recommended':
-      return 'Sélection OneInstall'
+      return 'Sélection PWA Store'
     case 'trending':
       return 'En hausse en ce moment'
     case 'popular':
@@ -170,7 +174,7 @@ const description = computed(() => {
     case 'trending':
       return 'Les applications qui connaissent la plus forte croissance de téléchargement ces derniers jours.'
     case 'popular':
-      return 'Les applications les plus téléchargées et les mieux notées par la communauté OneInstall.'
+      return 'Les applications les plus téléchargées et les mieux notées par la communauté PWA Store.'
     default:
       return 'Parcourez la liste des applications.'
   }
@@ -179,15 +183,20 @@ const description = computed(() => {
 const getCategoryColor = category => {
   switch (category) {
     case 'Jeux':
-      return '#ea580c'
+      return 'var(--pwa-accent)'
     case 'Productivité':
-      return '#2563eb'
+      return 'var(--pwa-primary)'
     case 'Social':
-      return '#db2777'
+      return 'var(--pwa-secondary)'
     default:
-      return '#059669'
+      return 'var(--pwa-primary)'
   }
 }
+
+const getCategoryName = category =>
+  typeof category === 'object'
+    ? category?.name || 'Autres'
+    : category || 'Autres'
 
 const getIcon = category => {
   switch (category) {
@@ -217,11 +226,13 @@ async function fetchApps() {
     apps.value = data.map(app => ({
       id: app.id,
       name: app.name,
-      category: app.category,
+      category: getCategoryName(app.category),
       rating: app.average_rating || '5.0',
       initials: app.name.substring(0, 3).toUpperCase(),
-      color: getCategoryColor(app.category),
-      icon: getIcon(app.category)
+      iconUrl: app.icon_url || '',
+      color:
+        app.category?.color || getCategoryColor(getCategoryName(app.category)),
+      icon: app.category?.icon || getIcon(getCategoryName(app.category))
     }))
   } catch (err) {
     console.error('Error fetching applications list', err)
@@ -256,16 +267,31 @@ watch(
   }
 )
 
+const categories = ref([])
+
+async function fetchCategories() {
+  try {
+    const response = await api.get('/categories')
+    categories.value = response.data.map(cat => ({
+      id: cat.id,
+      label: cat.name,
+      icon: cat.icon || 'widgets',
+      color: cat.color || 'var(--pwa-primary)'
+    }))
+  } catch (err) {
+    categories.value = [
+      { label: 'Jeux', icon: 'sports_esports', color: 'var(--pwa-accent)' },
+      { label: 'Productivité', icon: 'task_alt', color: 'var(--pwa-primary)' },
+      { label: 'Social', icon: 'forum', color: 'var(--pwa-secondary)' },
+      { label: 'Utilitaires', icon: 'widgets', color: 'var(--pwa-primary)' }
+    ]
+  }
+}
+
 onMounted(() => {
+  fetchCategories()
   fetchApps()
 })
-
-const categories = [
-  { label: 'Jeux', icon: 'sports_esports', color: '#ea580c' },
-  { label: 'Productivité', icon: 'task_alt', color: '#2563eb' },
-  { label: 'Social', icon: 'forum', color: '#db2777' },
-  { label: 'Utilitaires', icon: 'widgets', color: '#059669' }
-]
 </script>
 
 <style scoped lang="scss">
@@ -278,7 +304,7 @@ const categories = [
   padding: 18px var(--ui-page-gutter) 28px;
 }
 .back-btn {
-  color: var(--primary);
+  color: var(--pwa-link);
 }
 .list-header {
   max-width: 800px;
@@ -289,7 +315,7 @@ const categories = [
   box-shadow: var(--ui-shadow-sm);
 }
 .eyebrow {
-  color: var(--primary);
+  color: var(--pwa-link);
   font-size: 10px;
   font-weight: 800;
   letter-spacing: 0.08em;
@@ -361,7 +387,7 @@ const categories = [
     box-shadow 0.2s;
 }
 .list-search input:focus {
-  border-color: var(--primary);
+  border-color: var(--pwa-link);
   box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 16%, transparent);
 }
 .app-grid {
@@ -393,7 +419,7 @@ const categories = [
   display: grid;
   place-items: center;
   margin-bottom: 10px;
-  color: #fff;
+  color: var(--pwa-on-primary);
   border-radius: 14px;
   box-shadow: 0 8px 18px rgba(2, 5, 20, 0.18);
 }
@@ -426,14 +452,14 @@ const categories = [
   font-size: 11px;
 }
 .rating .q-icon {
-  color: #4cd7f6;
+  color: var(--pwa-secondary);
   font-size: 13px;
 }
 .app-card .q-btn {
   width: 100%;
   min-height: 30px;
   margin-top: auto;
-  color: var(--primary);
+  color: var(--pwa-link);
   background: var(--surface-highest);
   border-radius: 6px;
   font-size: 11px;
@@ -477,7 +503,7 @@ const categories = [
   color: var(--text);
 }
 .side-card header a {
-  color: var(--primary);
+  color: var(--pwa-link);
   font-size: 11px;
   text-decoration: none;
   font-weight: 700;

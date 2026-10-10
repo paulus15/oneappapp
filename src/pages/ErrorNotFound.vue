@@ -1,8 +1,8 @@
 <template>
   <main class="not-found-page">
-    <router-link to="/" class="not-found-brand"
-      ><q-icon name="apps" /> OneInstall</router-link
-    >
+    <router-link to="/" class="not-found-brand" aria-label="PWA Store, accueil"
+      ><BrandLogo
+    /></router-link>
     <div class="not-found-orb orb-one" aria-hidden="true" />
     <div class="not-found-orb orb-two" aria-hidden="true" />
 
@@ -39,15 +39,21 @@
   </main>
 </template>
 
+<script setup>
+import BrandLogo from '@/components/BrandLogo.vue'
+</script>
+
 <style scoped lang="scss">
 .not-found-page {
+  position: relative;
+  width: 100%;
   min-height: 100vh;
   display: grid;
   place-items: center;
   overflow: hidden;
   padding: 80px 20px 30px;
-  color: #fafafa;
-  background: #18181b;
+  color: var(--pwa-text);
+  background: var(--pwa-background);
 }
 .not-found-brand {
   position: absolute;
@@ -56,7 +62,7 @@
   display: inline-flex;
   align-items: center;
   gap: 9px;
-  color: #fff;
+  color: var(--pwa-on-primary);
   text-decoration: none;
   font-size: 15px;
   font-weight: 800;
@@ -66,7 +72,7 @@
   height: 34px;
   display: grid;
   place-items: center;
-  background: #059669;
+  background: var(--pwa-primary);
   border-radius: 10px;
 }
 .not-found-card {
@@ -80,7 +86,7 @@
   align-items: center;
   justify-content: center;
   gap: clamp(10px, 4vw, 28px);
-  color: #52525b;
+  color: var(--pwa-muted);
   font-size: clamp(92px, 19vw, 160px);
   font-weight: 900;
   line-height: 1;
@@ -91,18 +97,18 @@
   height: clamp(78px, 13vw, 112px);
   display: grid;
   place-items: center;
-  color: #fff;
-  background: #059669;
+  color: var(--pwa-on-primary);
+  background: var(--pwa-primary);
   border: 1px solid rgba(255, 255, 255, 0.18);
   border-radius: 28%;
-  box-shadow: 0 24px 60px rgba(5, 150, 105, 0.35);
+  box-shadow: 0 24px 60px rgba(var(--pwa-primary-rgb), 0.35);
   animation: lost-float 4s ease-in-out infinite;
 }
 .lost-app .q-icon {
   font-size: 43%;
 }
 .error-kicker {
-  color: #6ee7b7;
+  color: var(--pwa-secondary);
   font-size: 10px;
   font-weight: 800;
   letter-spacing: 0.15em;
@@ -117,7 +123,7 @@
 .not-found-card p {
   max-width: 520px;
   margin: 0 auto 26px;
-  color: #a1a1aa;
+  color: var(--pwa-muted);
   font-size: 13px;
   line-height: 1.7;
 }
@@ -130,12 +136,12 @@
 .error-actions .q-btn {
   min-height: 46px;
   padding: 0 18px;
-  color: #e4e4e7;
+  color: var(--pwa-text);
 }
 .error-actions .home-action {
-  color: #fff;
-  background: #059669;
-  box-shadow: 0 12px 30px rgba(5, 150, 105, 0.28);
+  color: var(--pwa-on-primary);
+  background: var(--pwa-primary);
+  box-shadow: 0 12px 30px rgba(var(--pwa-primary-rgb), 0.28);
 }
 .not-found-orb {
   position: absolute;
@@ -148,14 +154,14 @@
   right: 5%;
   width: 360px;
   height: 360px;
-  background: #059669;
+  background: var(--pwa-primary);
 }
 .orb-two {
   bottom: -15%;
   left: 5%;
   width: 420px;
   height: 420px;
-  background: #3f3f46;
+  background: var(--surface-highest);
 }
 @keyframes lost-float {
   0%,

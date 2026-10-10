@@ -1,0 +1,52 @@
+// Theme tokens live on body so teleported menus and dialogs inherit them too.
+:root {
+  --pwa-platform-android: #3ddc84;
+  --pwa-platform-windows: #00a4ef;
+  --pwa-primary: #075bff;
+  --pwa-primary-rgb: 7, 91, 255;
+  --pwa-secondary: #08c8f8;
+  --pwa-accent: #ff9416;
+  --pwa-dark: #08132d;
+  --pwa-dark-surface: #142343;
+  --pwa-dark-muted: #aabbd7;
+  --pwa-on-primary: #ffffff;
+}
+body {
+  --pwa-background: #f6f9ff;
+  --pwa-surface: #ffffff;
+  --pwa-text: #08132d;
+  --pwa-muted: #64748b;
+  --pwa-border: #dde5f2;
+  --pwa-link: #075bff;
+  --pwa-primary-soft: #e8efff;
+  --pwa-surface-high: #edf2fb;
+  --pwa-surface-highest: #e0e9f8;
+  --page: var(--pwa-background);
+  --surface-low: var(--pwa-surface);
+  --surface: color-mix(in srgb, var(--pwa-surface) 70%, var(--pwa-background));
+  --surface-high: var(--pwa-surface-high);
+  --surface-highest: var(--pwa-surface-highest);
+  --text: var(--pwa-text);
+  --muted: var(--pwa-muted);
+  --outline: var(--pwa-border);
+  --glass: color-mix(in srgb, var(--pwa-surface) 94%, transparent);
+  --primary: var(--pwa-primary);
+  --primary-soft: var(--pwa-primary-soft);
+  --primary-text: var(--pwa-link);
+  --secondary: var(--pwa-secondary);
+  color: var(--pwa-text);
+  background: var(--pwa-background);
+  color-scheme: light;
+}
+body.body--dark {
+  --pwa-background: #08132d;
+  --pwa-surface: #142343;
+  --pwa-text: #f8faff;
+  --pwa-muted: #aabbd7;
+  --pwa-border: #2d4163;
+  --pwa-link: #87b5ff;
+  --pwa-primary-soft: #18366b;
+  --pwa-surface-high: #1c3053;
+  --pwa-surface-highest: #273d60;
+  color-scheme: dark;
+}

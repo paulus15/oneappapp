@@ -1,4 +1,6 @@
 @import '@fontsource-variable/inter';
+@import '@fontsource-variable/inter-tight';
+@import './theme.scss';
 
 :root {
   --ui-radius-xs: 6px;
@@ -40,7 +42,7 @@ h3,
 h4,
 h5,
 h6 {
-  font-family: 'Inter Variable', Inter, sans-serif;
+  font-family: 'Inter Tight Variable', 'Inter Variable', Inter, sans-serif;
   letter-spacing: -0.015em;
 }
 
@@ -79,12 +81,11 @@ button,
 
 ::selection {
   color: #fff;
-  background: rgba(5, 150, 105, 0.72);
+  background: rgba(var(--pwa-primary-rgb), 0.72);
 }
 
 :focus-visible {
-  outline: 3px solid
-    color-mix(in srgb, var(--primary, #059669) 38%, transparent);
+  outline: 3px solid color-mix(in srgb, var(--pwa-primary) 38%, transparent);
   outline-offset: 3px;
 }
 
@@ -117,15 +118,15 @@ button,
 
 .glass-panel {
   background: var(--glass, rgba(255, 255, 255, 0.78));
-  border: 1px solid var(--outline, rgba(24, 24, 27, 0.12));
+  border: 1px solid var(--pwa-border);
   box-shadow: var(--ui-shadow-sm);
   backdrop-filter: blur(18px) saturate(125%);
 }
 
 .q-field--filled .q-field__control {
   min-height: 46px;
-  background: color-mix(in srgb, var(--surface-high, #e4e4e7) 70%, transparent);
-  border: 1px solid transparent;
+  background: color-mix(in srgb, var(--surface-high) 70%, transparent);
+  border: 1px solid var(--pwa-border);
   border-radius: var(--ui-radius-sm) !important;
   transition:
     border-color 0.2s ease,
@@ -139,18 +140,35 @@ button,
 }
 
 .q-field--focused .q-field__control {
-  background: var(--surface-low, #fff);
-  border-color: color-mix(in srgb, var(--primary, #059669) 58%, transparent);
-  box-shadow: 0 0 0 4px
-    color-mix(in srgb, var(--primary, #059669) 12%, transparent);
+  background: var(--pwa-surface);
+  border-color: color-mix(in srgb, var(--pwa-primary) 58%, transparent);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--pwa-primary) 12%, transparent);
 }
 
 .q-dialog__inner > .q-card {
+  color: var(--pwa-text);
+  background: var(--pwa-surface);
+  border: 1px solid var(--pwa-border);
   box-shadow: var(--ui-shadow-lg);
+}
+.q-dialog__backdrop {
+  background: color-mix(in srgb, var(--pwa-dark) 65%, transparent);
+  backdrop-filter: blur(3px);
+}
+
+.q-checkbox__inner,
+.q-checkbox--dark .q-checkbox__inner {
+  color: var(--muted, rgba(24, 24, 27, 0.45)) !important;
+}
+.q-checkbox__inner--truthy,
+.q-checkbox__inner--indet,
+.q-checkbox--dark .q-checkbox__inner--truthy,
+.q-checkbox--dark .q-checkbox__inner--indet {
+  color: var(--pwa-primary) !important;
 }
 
 .q-menu {
-  border: 1px solid var(--outline, rgba(24, 24, 27, 0.12));
+  border: 1px solid var(--pwa-border);
   border-radius: var(--ui-radius-sm);
   box-shadow: var(--ui-shadow-md);
   backdrop-filter: blur(20px);
@@ -191,4 +209,131 @@ button,
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
   }
+}
+
+.q-card,
+.q-menu,
+.q-table__container,
+.q-stepper,
+.q-banner,
+.q-drawer {
+  color: var(--pwa-text);
+  background-color: var(--pwa-surface);
+}
+.q-field__native,
+.q-field__input,
+.q-field__prefix,
+.q-field__suffix,
+.q-table,
+.q-table__bottom,
+.q-table__top,
+.q-stepper__title {
+  color: var(--pwa-text);
+}
+.q-field__label,
+.q-field__marginal,
+.q-field__bottom,
+.q-tab {
+  color: var(--pwa-muted);
+}
+.q-tab--active {
+  color: var(--pwa-link);
+}
+.q-field--error .q-field__bottom {
+  color: var(--q-negative);
+}
+.q-tooltip {
+  color: var(--pwa-on-primary);
+  background: var(--pwa-dark);
+}
+.q-skeleton {
+  background: var(--surface-high);
+}
+.q-separator {
+  background: var(--pwa-border);
+}
+.q-table th,
+.q-table td {
+  border-color: var(--pwa-border);
+}
+.q-notification:not([class*='bg-']) {
+  background: var(--pwa-surface);
+  color: var(--pwa-text);
+}
+.q-notification[class*='bg-'] {
+  color: var(--pwa-on-primary);
+}
+.q-btn.bg-primary,
+.q-btn.bg-negative,
+.q-btn.bg-positive {
+  color: var(--pwa-on-primary) !important;
+}
+.q-btn.disabled {
+  opacity: 0.5 !important;
+}
+.q-dialog__inner > div {
+  max-width: calc(100vw - 32px);
+}
+.q-table__middle {
+  overflow-x: auto;
+}
+.desktop-brand {
+  display: inline-flex;
+  margin-right: 12px;
+}
+.console-brand {
+  margin-right: 16px;
+}
+.hero-brand-icon {
+  width: 160px;
+  height: 160px;
+  object-fit: contain;
+}
+.home-footer {
+  flex-wrap: wrap;
+  gap: 16px;
+}
+body .text-blue-grey-100,
+body .text-blue-grey-200,
+body .text-blue-grey-300,
+body .text-blue-grey-400,
+body .text-grey-4 {
+  color: var(--pwa-muted) !important;
+}
+@media (max-width: 599px) {
+  .q-btn {
+    min-height: 44px;
+  }
+  .q-page,
+  .q-card,
+  .q-toolbar,
+  .q-field {
+    min-width: 0;
+  }
+  .auth-title {
+    overflow-wrap: anywhere;
+  }
+  .q-stepper__tab {
+    padding: 12px 6px;
+  }
+  .q-stepper__step-inner {
+    padding: 16px;
+  }
+  .hero-brand-icon {
+    width: 120px;
+    height: 120px;
+  }
+}
+.pwa-surface {
+  background: var(--pwa-surface) !important;
+}
+body.body--dark .text-primary {
+  color: var(--pwa-link) !important;
+}
+body.body--dark .q-btn.bg-primary {
+  color: var(--pwa-on-primary) !important;
+}
+
+body .q-layout .q-btn.bg-primary {
+  color: var(--pwa-on-primary) !important;
 }
