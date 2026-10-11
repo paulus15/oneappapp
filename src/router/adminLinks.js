@@ -50,6 +50,12 @@ export const adminLinks = [
     permission: 'audit.view'
   },
   {
+    to: '/admin/settings',
+    label: 'Paramètres',
+    icon: 'tune',
+    permission: 'settings.manage'
+  },
+  {
     to: '/admin/audit',
     label: 'Journal',
     icon: 'history',

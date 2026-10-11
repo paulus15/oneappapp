@@ -97,9 +97,9 @@ Auth : `—` public · `U` compte connecté · `D` profil développeur · `A` ad
 | POST         | `/reviews/{review}/reply`       | D    | E      | Développeur propriétaire, une réponse                          |
 | DELETE       | `/reviews/{review}/reply`       | D    | E      | Retirer sa réponse                                             |
 | POST         | `/reports`                      | U    | E      | `target_type: application\|review, target_id, reason, details` |
-| GET          | `/notifications`                | U    | N (10) | Paginé                                                         |
-| POST         | `/notifications/read`           | U    | N (10) | `ids[]` ou toutes                                              |
-| GET          | `/notifications/unread-count`   | U    | N (10) |                                                                |
+| GET          | `/notifications`                | U    | E      | Paginé                                                         |
+| POST         | `/notifications/read`           | U    | E      | `ids[]` ou toutes                                              |
+| GET          | `/notifications/unread-count`   | U    | E      |                                                                |
 
 ## 5. Publication (développeur)
 
@@ -152,7 +152,7 @@ Performance et accessibilité nécessitent un navigateur headless (Lighthouse). 
 | POST                | `/admin/reviews/{review}/moderate`          | `reviews.moderate` | E      | `status: visible\|hidden, reason`                                       |
 | GET                 | `/admin/audit-logs`                         | `audit.view`       | E      | Filtres acteur, action, période                                         |
 | GET                 | `/admin/countries/summary`                  | `audit.view`       | E      |                                                                         |
-| GET / PUT           | `/admin/settings`                           | `settings.manage`  | N (10) | Quotas, devise, montant de contribution (paiements toujours désactivés) |
+| GET / PUT           | `/admin/settings`                           | `settings.manage`  | E      | Quotas, devise, montant de contribution (paiements toujours désactivés) |
 | DELETE              | `/apps/{id}`                                | —                  | E\*    | Suppression définitive : remplacée par l'archivage (D10)                |
 
 ## 8. Compatibilité

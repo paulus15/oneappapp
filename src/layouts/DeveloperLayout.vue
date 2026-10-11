@@ -46,8 +46,7 @@
           "
           @click="toggleTheme"
         />
-        <q-btn flat round icon="notifications_none" aria-label="Notifications">
-        </q-btn>
+        <NotificationBell />
 
         <q-btn flat no-caps class="developer-profile">
           <q-avatar size="36px">{{ userInitial }}</q-avatar>
@@ -148,6 +147,7 @@
 </template>
 
 <script setup>
+import NotificationBell from '@/components/NotificationBell.vue'
 import BrandLogo from '@/components/BrandLogo.vue'
 import { useTheme } from '@/composables/useTheme'
 import { computed, ref } from 'vue'

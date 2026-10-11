@@ -149,7 +149,8 @@ Cible, sans paquet externe :
 - Préférences par type et par canal ; les notifications de sécurité (OTP, changement d'e-mail, mot de passe) ne sont pas désactivables.
 - Regroupement : les avis reçus sont résumés au plus une fois par jour par e-mail.
 - Événements : inscription, activation développeur, demande / décision de vérification, soumission, décision d'application ou de version, avis reçu, réponse à un avis, signalement traité, suspension, indisponibilité détectée, quota atteint.
-- Frontend : cloche dans le layout, page « Notifications », compteur non lu.
+- Frontend : cloche dans le layout, page « Notifications », compteur non lu interrogé toutes les 60 s quand l’onglet est visible (pas de serveur WebSocket).
+- Exploitation : les e-mails partent par la file `database` ; un worker `php artisan queue:work` doit tourner en production, sinon ils restent en attente (les notifications in-app, elles, sont immédiates).
 
 ## 8. Publication
 

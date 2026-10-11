@@ -149,14 +149,7 @@
           >
             <q-icon :name="isDark ? 'light_mode' : 'dark_mode'" />
           </button>
-          <button
-            class="icon-action notification-action gt-xs"
-            type="button"
-            aria-label="Notifications"
-          >
-            <q-icon name="notifications_none" />
-            <span class="notification-dot" />
-          </button>
+          <NotificationBell class="gt-xs" />
 
           <template v-if="authStore.isAuthenticated">
             <q-btn flat no-caps class="profile-button">
@@ -336,6 +329,7 @@
 </template>
 
 <script setup>
+import NotificationBell from '@/components/NotificationBell.vue'
 import { useWorkspaceAccess } from '@/composables/useWorkspaceAccess'
 const { isMobile } = useWorkspaceAccess()
 import BrandLogo from '@/components/BrandLogo.vue'

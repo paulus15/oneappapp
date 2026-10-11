@@ -156,6 +156,20 @@ const routes = [
         }
       },
       {
+        path: 'admin/settings',
+        component: () => import('@/pages/admin/AdminSettingsPage.vue'),
+        meta: {
+          requiresAuth: true,
+          adminOnly: true,
+          permission: 'settings.manage'
+        }
+      },
+      {
+        path: 'notifications',
+        component: () => import('@/pages/account/NotificationsPage.vue'),
+        meta: { requiresAuth: true }
+      },
+      {
         path: 'admin/audit',
         component: () => import('@/pages/admin/AdminAuditPage.vue'),
         meta: { requiresAuth: true, adminOnly: true, permission: 'audit.view' }
