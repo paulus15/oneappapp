@@ -51,4 +51,19 @@ describe('resolveAccess', () => {
       )
     ).toBe('/account')
   })
+
+  it('checks the granular permission of admin pages', () => {
+    const page = route('/admin/users', {
+      requiresAuth: true,
+      adminOnly: true,
+      permission: 'users.manage'
+    })
+    const moderator = {
+      ...admin,
+      user: { admin_permissions: ['apps.moderate'] }
+    }
+    const manager = { ...admin, user: { admin_permissions: ['users.manage'] } }
+    expect(resolveAccess(page, moderator)).toBe('/admin')
+    expect(resolveAccess(page, manager)).toBe(true)
+  })
 })

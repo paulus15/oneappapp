@@ -16,12 +16,16 @@ const routes = [
       {
         path: 'admin/countries',
         component: () => import('@/pages/admin/CountryOverviewPage.vue'),
-        meta: { requiresAuth: true, adminOnly: true }
+        meta: { requiresAuth: true, adminOnly: true, permission: 'audit.view' }
       },
       {
         path: 'admin/developers',
         component: () => import('@/pages/admin/DeveloperReviewPage.vue'),
-        meta: { requiresAuth: true, adminOnly: true }
+        meta: {
+          requiresAuth: true,
+          adminOnly: true,
+          permission: 'developers.review'
+        }
       },
       {
         path: '',
@@ -45,8 +49,40 @@ const routes = [
       },
       {
         path: 'admin',
-        component: () => import('@/pages/admin/AdminConsolePage.vue'),
+        component: () => import('@/pages/admin/AdminDashboardPage.vue'),
         meta: { requiresAuth: true, adminOnly: true }
+      },
+      {
+        path: 'admin/apps',
+        component: () => import('@/pages/admin/AdminConsolePage.vue'),
+        meta: {
+          requiresAuth: true,
+          adminOnly: true,
+          permission: 'apps.moderate'
+        }
+      },
+      {
+        path: 'admin/users',
+        component: () => import('@/pages/admin/AdminUsersPage.vue'),
+        meta: {
+          requiresAuth: true,
+          adminOnly: true,
+          permission: 'users.manage'
+        }
+      },
+      {
+        path: 'admin/categories',
+        component: () => import('@/pages/admin/AdminCategoriesPage.vue'),
+        meta: {
+          requiresAuth: true,
+          adminOnly: true,
+          permission: 'catalog.manage'
+        }
+      },
+      {
+        path: 'admin/audit',
+        component: () => import('@/pages/admin/AdminAuditPage.vue'),
+        meta: { requiresAuth: true, adminOnly: true, permission: 'audit.view' }
       }
     ]
   },

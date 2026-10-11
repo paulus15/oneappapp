@@ -282,7 +282,7 @@
           />
 
           <q-btn
-            v-if="app.status === 'approved'"
+            v-if="app.status === 'published'"
             color="green-6"
             icon="add_to_home_screen"
             label="Ouvrir pour installer"
@@ -295,7 +295,7 @@
 
           <q-btn
             v-if="
-              app.status === 'approved' &&
+              app.status === 'published' &&
               (app.source_type === 'url' || latestVersion?.status === 'active')
             "
             flat
@@ -591,7 +591,7 @@ async function downloadVersion(id) {
     if (
       authStore.isAuthenticated &&
       device &&
-      app.value.status === 'approved'
+      app.value.status === 'published'
     ) {
       try {
         await api.post('/installations', {

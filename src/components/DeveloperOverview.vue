@@ -40,12 +40,9 @@
         <q-card flat bordered class="workspace-card"
           ><h2>{{ summary.total_applications }} application(s)</h2
           ><p
-            >{{ summary.by_status.draft || 0 }} brouillon(s) ·
-            {{ summary.by_status.pending || 0 }} en revue ·
-            {{ summary.by_status.approved || 0 }} approuvée(s)</p
-          ><p
-            >{{ summary.by_status.rejected || 0 }} refusée(s) ·
-            {{ summary.by_status.quarantined || 0 }} en quarantaine</p
+            ><span v-for="(total, status) in summary.by_status" :key="status"
+              >{{ total }} {{ statusLabel(status).toLowerCase() }} ·
+            </span></p
           ></q-card
         >
         <q-card flat bordered class="workspace-card"
@@ -95,7 +92,7 @@
               ><q-item-section
                 ><q-item-label>{{ app.name }}</q-item-label
                 ><q-item-label caption
-                  >{{ appLabels[app.status] || app.status }} ·
+                  >{{ statusLabel(app.status) }} ·
                   {{
                     new Date(app.updated_at).toLocaleDateString('fr-FR')
                   }}</q-item-label
@@ -112,6 +109,7 @@
 import { onMounted, ref } from 'vue'
 import { api } from '@/boot/axios'
 import { apiMessage } from '@/services/account'
+import { statusLabel } from '@/utils/appStatus'
 const loading = ref(true),
   error = ref(''),
   summary = ref(null)
@@ -121,13 +119,6 @@ const profileLabels = {
   verified: 'Développeur vérifié',
   rejected: 'Profil à corriger',
   suspended: 'Publication suspendue'
-}
-const appLabels = {
-  draft: 'Brouillon',
-  pending: 'En revue',
-  approved: 'Approuvée',
-  rejected: 'Refusée',
-  quarantined: 'En quarantaine'
 }
 async function load() {
   loading.value = true

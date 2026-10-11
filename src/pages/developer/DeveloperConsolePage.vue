@@ -100,10 +100,10 @@
                 INACTIVE
               </q-badge>
               <q-badge
-                :color="getStatusColor(app.status)"
+                :color="statusColor(app.status)"
                 class="q-py-xs q-px-sm text-weight-bold"
               >
-                {{ app.status.toUpperCase() }}
+                {{ statusLabel(app.status) }}
               </q-badge>
             </div>
 
@@ -144,9 +144,9 @@
                 flat
                 round
                 dense
-                icon="delete_outline"
+                icon="inventory_2"
                 class="delete-btn"
-                aria-label="Supprimer l'application"
+                aria-label="Archiver l'application"
                 @click="confirmDeleteApp(app)"
               />
             </div>
@@ -235,6 +235,7 @@ import { api } from '@/boot/axios'
 import AppIcon from '@/components/AppIcon.vue'
 import { useQuasar } from 'quasar'
 import { useAuthStore } from '@/stores/auth'
+import { statusColor, statusLabel } from '@/utils/appStatus'
 
 const $q = useQuasar()
 const authStore = useAuthStore()
@@ -409,10 +410,10 @@ function escapeHtml(str) {
 
 function confirmDeleteApp(app) {
   $q.dialog({
-    title: 'Supprimer l’application',
-    message: `Supprimer définitivement "${app.name}" et tous ses builds ? Cette action est irréversible.`,
+    title: 'Archiver l’application',
+    message: `Archiver "${app.name}" ? Elle sera retirée du Store ; ses builds et son historique sont conservés.`,
     cancel: { label: 'Annuler', flat: true },
-    ok: { label: 'Supprimer', color: 'negative' },
+    ok: { label: 'Archiver', color: 'negative' },
     persistent: true
   }).onOk(() => deleteApp(app))
 }
@@ -420,24 +421,13 @@ function confirmDeleteApp(app) {
 async function deleteApp(app) {
   try {
     await api.delete(`/apps/${app.id}`)
-    $q.notify({ type: 'positive', message: 'Application supprimée.' })
+    $q.notify({ type: 'positive', message: 'Application archivée.' })
     await fetchMyApps()
   } catch (err) {
     $q.notify({
       type: 'negative',
       message: err.response?.data?.message || 'Erreur lors de la suppression'
     })
-  }
-}
-
-function getStatusColor(status) {
-  switch (status) {
-    case 'approved':
-      return 'green-7'
-    case 'quarantined':
-      return 'red-7'
-    default:
-      return 'orange-7'
   }
 }
 

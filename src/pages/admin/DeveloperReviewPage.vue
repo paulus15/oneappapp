@@ -6,8 +6,9 @@
       ><p
         >La vérification de l’éditeur ne publie aucune application
         automatiquement.</p
-      ><q-btn flat no-caps to="/admin" label="Modération des applications"
-    /></header>
+      ></header
+    >
+    <AdminNav />
     <q-banner v-if="error" class="workspace-alert" role="alert"
       >{{ error
       }}<template #action
@@ -68,6 +69,7 @@
   </q-page>
 </template>
 <script setup>
+import AdminNav from '@/components/AdminNav.vue'
 import DeveloperDocuments from '@/components/DeveloperDocuments.vue'
 import { identityLabels } from '@/utils/identity'
 import { onMounted, ref } from 'vue'

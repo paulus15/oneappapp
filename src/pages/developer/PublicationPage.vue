@@ -17,9 +17,9 @@
     <template v-if="application">
       <div class="workspace-actions"
         ><q-chip
-          color="primary"
+          :color="statusColor(application.status)"
           text-color="white"
-          :label="labels[application.status] || application.status" /><q-btn
+          :label="statusLabel(application.status)" /><q-btn
           flat
           no-caps
           :to="`/developer/apps/${application.id}/edit`"
@@ -92,14 +92,46 @@
             >Un profil vérifié permet de soumettre une application. Chaque
             application et chaque build sont ensuite examinés séparément.</p
           >
-          <q-btn
-            v-if="['draft', 'rejected'].includes(application.status)"
-            no-caps
-            color="primary"
-            label="Soumettre à publication"
-            :disable="!auth.canSubmit || busy"
-            @click="submit"
-          />
+          <div class="workspace-actions">
+            <q-btn
+              v-if="editable"
+              no-caps
+              color="primary"
+              label="Soumettre à la revue"
+              :disable="!auth.canSubmit || busy"
+              @click="submit"
+            />
+            <q-btn
+              v-if="application.status === 'approved'"
+              no-caps
+              color="positive"
+              label="Publier dans le Store"
+              :disable="!auth.canSubmit || busy"
+              @click="publish"
+            />
+            <q-btn
+              v-if="application.status === 'archived'"
+              no-caps
+              outline
+              color="primary"
+              label="Réactiver en brouillon"
+              :disable="busy"
+              @click="restore"
+            />
+            <q-btn
+              v-else-if="isOwner"
+              no-caps
+              flat
+              color="negative"
+              label="Archiver"
+              :disable="busy"
+              @click="archive"
+            />
+          </div>
+          <p v-if="application.status === 'approved'" class="text-muted"
+            >L’application est approuvée mais pas encore visible : publiez-la
+            quand vous êtes prêt.</p
+          >
           <div v-if="!auth.canSubmit" class="text-muted"
             ><p
               v-for="reason in auth.user?.publication_blockers || []"
@@ -109,25 +141,38 @@
               >Compléter mon profil développeur</router-link
             ></div
           >
-          <div v-if="auth.isAdmin" class="workspace-actions"
+          <div v-if="canModerate && !isOwner" class="workspace-actions"
             ><q-btn
+              v-for="decision in adminDecisions(application.status)"
+              :key="decision.to"
               outline
               no-caps
-              label="Approuver la fiche"
-              @click="reviewApp('approved')"
-              :disable="busy" /><q-btn
-              outline
-              no-caps
-              label="Refuser"
-              @click="reviewApp('rejected')"
-              :disable="busy" /><q-btn
-              outline
-              no-caps
-              label="Mettre en quarantaine"
-              @click="reviewApp('quarantined')"
+              :icon="decision.icon"
+              :label="decision.label"
               :disable="busy"
+              @click="reviewApp(decision)"
           /></div>
         </q-card>
+        <q-card flat bordered class="workspace-card"
+          ><h2>Historique de publication</h2
+          ><p v-if="!events.length" class="text-muted"
+            >Aucun changement d’état enregistré.</p
+          ><q-list separator dense
+            ><q-item v-for="event in events" :key="event.id"
+              ><q-item-section
+                ><q-item-label>{{ eventLabel(event.action) }}</q-item-label
+                ><q-item-label caption
+                  >{{ new Date(event.created_at).toLocaleString('fr-FR') }} ·
+                  {{
+                    event.actor?.name || 'Contrôle automatique'
+                  }}</q-item-label
+                ><q-item-label v-if="event.reason" caption>{{
+                  event.reason
+                }}</q-item-label></q-item-section
+              ></q-item
+            ></q-list
+          ></q-card
+        >
       </div>
       <section class="workspace-section"
         ><h2>Versions</h2
@@ -143,7 +188,7 @@
             ><p>Analyse : {{ scanLabels[v.scan_status] || v.scan_status }}</p
             ><p
               >Revue :
-              {{ labels[v.moderation_status] || v.moderation_status }}</p
+              {{ versionLabels[v.moderation_status] || v.moderation_status }}</p
             ><q-chip
               v-if="v.status === 'active'"
               color="positive"
@@ -152,7 +197,7 @@
               v.moderation_reason
             }}</p
             ><div class="workspace-actions"
-              ><template v-if="auth.isAdmin"
+              ><template v-if="canModerate && !isOwner"
                 ><q-btn
                   outline
                   no-caps
@@ -172,7 +217,9 @@
                   v.status === 'active' ? 'Redéployer' : 'Publier cette version'
                 "
                 :disable="
-                  busy || application.status !== 'approved' || !auth.canSubmit
+                  busy ||
+                  !['approved', 'published'].includes(application.status) ||
+                  !auth.canSubmit
                 "
                 @click="deploy(v)" /></div></q-card></div
       ></section>
@@ -203,6 +250,12 @@ import { useQuasar } from 'quasar'
 import { api } from '@/boot/axios'
 import { accountApi, apiMessage } from '@/services/account'
 import { useAuthStore } from '@/stores/auth'
+import {
+  adminDecisions,
+  EDITABLE_STATUSES,
+  statusColor,
+  statusLabel
+} from '@/utils/appStatus'
 const route = useRoute(),
   q = useQuasar(),
   auth = useAuthStore()
@@ -212,14 +265,22 @@ const application = ref(null),
   busy = ref(false),
   error = ref('')
 const source = reactive({ source_type: 'build', external_url: '' })
-const labels = {
-  draft: 'Brouillon',
+const events = ref([])
+const versionLabels = {
   pending: 'En attente de revue',
   approved: 'Approuvée',
-  rejected: 'Refusée',
-  quarantined: 'En quarantaine',
-  suspended: 'Suspendue'
+  rejected: 'Refusée'
 }
+const isOwner = computed(
+  () => application.value?.developer_id === auth.user?.id
+)
+const canModerate = computed(() =>
+  auth.user?.admin_permissions?.includes('apps.moderate')
+)
+const eventLabel = action =>
+  action.startsWith('version_')
+    ? `Version ${versionLabels[action.slice(8)]?.toLowerCase() || action}`
+    : statusLabel(action)
 const scanLabels = {
   passed: 'Analyse réussie',
   pending: 'À analyser',
@@ -227,7 +288,7 @@ const scanLabels = {
   quarantined: 'À examiner'
 }
 const editable = computed(() =>
-  ['draft', 'rejected'].includes(application.value?.status)
+  EDITABLE_STATUSES.includes(application.value?.status)
 )
 async function load() {
   loading.value = true
@@ -238,6 +299,7 @@ async function load() {
       source_type: application.value.source_type,
       external_url: application.value.external_url || ''
     })
+    events.value = (await accountApi.appEvents(route.params.id)).data.data
     stats.value = (await accountApi.analytics(route.params.id)).data
   } catch (e) {
     error.value = apiMessage(e)
@@ -276,6 +338,37 @@ function submit() {
     'Application soumise à revue.'
   )
 }
+function publish() {
+  q.dialog({
+    title: 'Publier dans le Store ?',
+    message: 'L’application sera visible par tous les visiteurs.',
+    cancel: true
+  }).onOk(() =>
+    run(
+      () => accountApi.publishApp(application.value.id),
+      'Application publiée.'
+    )
+  )
+}
+function archive() {
+  q.dialog({
+    title: 'Archiver cette application ?',
+    message:
+      'Elle sera retirée du Store. Ses fichiers et son historique sont conservés et vous pourrez la réactiver en brouillon.',
+    cancel: true
+  }).onOk(() =>
+    run(
+      () => accountApi.archiveApp(application.value.id),
+      'Application archivée.'
+    )
+  )
+}
+function restore() {
+  return run(
+    () => accountApi.restoreApp(application.value.id),
+    'Application réactivée en brouillon.'
+  )
+}
 function withReason(action) {
   q.dialog({
     title: 'Décision de modération',
@@ -285,9 +378,14 @@ function withReason(action) {
     persistent: true
   }).onOk(reason => run(() => action(reason), 'Décision enregistrée.'))
 }
-function reviewApp(status) {
+function reviewApp(decision) {
+  if (!decision.reason)
+    return run(
+      () => accountApi.reviewApp(application.value.id, { status: decision.to }),
+      'Décision enregistrée.'
+    )
   withReason(reason =>
-    accountApi.reviewApp(application.value.id, { status, reason })
+    accountApi.reviewApp(application.value.id, { status: decision.to, reason })
   )
 }
 function reviewVersion(v, status) {

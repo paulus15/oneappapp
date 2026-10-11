@@ -82,7 +82,7 @@
             color="negative"
             no-caps
             icon="delete_outline"
-            label="Supprimer (Admin)"
+            label="Archiver (Admin)"
             class="delete-app-btn"
             @click="confirmDeleteApp"
           />
@@ -1222,10 +1222,10 @@ function escapeHtml(str) {
 
 function confirmDeleteApp() {
   $q.dialog({
-    title: 'Supprimer l’application',
-    message: `Êtes-vous sûr de vouloir supprimer définitivement "${currentAppName.value}" ? Seul un administrateur peut effectuer cette action.`,
+    title: 'Archiver l’application',
+    message: `Archiver "${currentAppName.value}" ? Elle sera retirée du Store ; ses builds et son historique sont conservés.`,
     cancel: { label: 'Annuler', flat: true },
-    ok: { label: 'Supprimer', color: 'negative' },
+    ok: { label: 'Archiver', color: 'negative' },
     persistent: true
   }).onOk(deleteApp)
 }
@@ -1235,7 +1235,7 @@ async function deleteApp() {
     await api.delete(`/apps/${appId}`)
     $q.notify({
       type: 'positive',
-      message: 'Application supprimée avec succès.'
+      message: 'Application archivée.'
     })
     router.push('/developer')
   } catch (err) {
@@ -1243,7 +1243,7 @@ async function deleteApp() {
       type: 'negative',
       message:
         err.response?.data?.message ||
-        'Seul un administrateur peut supprimer une application.'
+        'Seul un administrateur peut archiver depuis cet écran.'
     })
   }
 }

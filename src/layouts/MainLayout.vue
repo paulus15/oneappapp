@@ -235,6 +235,20 @@
           </q-item>
         </q-list>
 
+        <template v-if="authStore.isAdmin">
+          <p class="drawer-label">Administration</p>
+          <router-link to="/admin" class="developer-entry">
+            <span class="developer-entry-icon"
+              ><q-icon name="admin_panel_settings"
+            /></span>
+            <span class="developer-entry-copy">
+              <strong>Back-office</strong>
+              <small>Modération, comptes et journal</small>
+            </span>
+            <q-icon name="arrow_forward" class="developer-entry-arrow" />
+          </router-link>
+        </template>
+
         <p v-if="!isMobile" class="drawer-label">Espace développeur</p>
         <router-link
           v-if="!isMobile"

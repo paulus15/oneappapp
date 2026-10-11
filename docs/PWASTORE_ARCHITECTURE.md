@@ -95,7 +95,8 @@ stateDiagram-v2
     approved --> published : publication (éditeur ou admin)
     published --> suspended : suspension (admin ou contrôle automatique)
     suspended --> in_review : réexamen
-    published --> in_review : fiche modifiée / contenu distant changé
+    published --> submitted : fiche modifiée par l'éditeur
+    published --> suspended : contenu distant changé (contrôle automatique)
     draft --> archived
     published --> archived : retrait par l'éditeur
     archived --> draft : réactivation
@@ -123,7 +124,7 @@ Cible, sans paquet externe :
 
 - `users.role` reste la source : `user`, `admin`. Le rôle `developer` devient historique : l'accès développeur dépend de l'existence du profil.
 - Les administrateurs reçoivent des **permissions granulaires** stockées dans `users.admin_permissions` (JSON) : `developers.review`, `apps.moderate`, `reviews.moderate`, `reports.handle`, `catalog.manage`, `users.manage`, `settings.manage`, `audit.view`. Un admin sans liste explicite garde toutes les permissions (rétrocompatibilité).
-- Les règles sont centralisées dans des **Policies** Laravel (`ApplicationPolicy`, `DeveloperProfilePolicy`, `ReviewPolicy`, `CategoryPolicy`, `UserPolicy`) qui remplacent progressivement les `abort_unless($r->user()->role === 'admin')` dispersés.
+- Implémentation (Lot 6) : `User::hasAdminPermission()` remplace les contrôles `role === 'admin'` des actions d'administration. Des Policies Laravel pourront regrouper ces règles plus tard ; le contrôle reste côté serveur dans tous les cas.
 - Règles invariantes conservées : un admin ne revoit ni son propre profil, ni sa propre application, ni sa propre version.
 - Les actions sensibles (suspension, refus, suppression de document, changement de permission) exigent un motif et écrivent `audit_logs`.
 

@@ -1,52 +1,71 @@
 <template>
   <q-page class="admin-page">
-    <q-btn
-      flat
-      no-caps
-      color="primary"
-      to="/admin/countries"
-      label="Répartition par pays"
-      class="q-mb-md"
-    />
-    <q-btn
-      flat
-      no-caps
-      color="primary"
-      to="/admin/developers"
-      label="Vérifier les développeurs"
-      class="q-mb-md"
-    />
     <div class="admin-hero q-mb-lg">
       <div>
         <span class="admin-eyebrow"
-          ><q-icon name="shield" /> Centre de contrôle</span
+          ><q-icon name="shield" /> Administration</span
         >
-        <h1 class="admin-title">Administration PWA Store</h1>
+        <h1 class="admin-title">Modération des applications</h1>
         <div class="admin-subtitle">
-          Modération des applications (PWA Store), Surveillance de sécurité (PWA
-          Store Security) et Analytics (PWA Store Analytics)
+          Chaque décision exige un motif et rejoint l’historique de
+          l’application et le journal d’audit. Une application approuvée n’est
+          visible qu’après sa publication par l’éditeur.
         </div>
       </div>
     </div>
+    <AdminNav />
+
+    <div class="filters row q-col-gutter-sm q-mb-md">
+      <div class="col-12 col-sm-6 col-md-4">
+        <q-select
+          v-model="filters.status"
+          :options="statusOptions"
+          emit-value
+          map-options
+          clearable
+          outlined
+          dense
+          label="Statut"
+          @update:model-value="reload"
+        />
+      </div>
+      <div class="col-12 col-sm-6 col-md-4">
+        <q-input
+          v-model="filters.search"
+          outlined
+          dense
+          clearable
+          debounce="400"
+          label="Nom ou identifiant"
+          @update:model-value="reload"
+        >
+          <template #prepend><q-icon name="search" /></template>
+        </q-input>
+      </div>
+    </div>
+
+    <q-banner v-if="error" class="workspace-alert q-mb-md" role="alert">{{
+      error
+    }}</q-banner>
 
     <div v-if="loading" class="row justify-center q-my-xl">
       <q-spinner-orbit color="primary" size="48px" />
     </div>
 
     <div v-else class="row q-col-gutter-md">
-      <!-- Applications List -->
       <div class="col-12 col-lg-7">
         <q-card class="glass-panel admin-card">
-          <div class="text-subtitle1 text-white text-weight-bold q-mb-md"
-            >Modération PWA Store</div
-          >
           <q-list separator>
-            <q-item v-for="app in apps" :key="app.id" class="q-py-sm">
+            <q-item
+              v-for="app in apps"
+              :key="app.id"
+              clickable
+              :active="selectedApp?.id === app.id"
+              class="q-py-sm"
+              @click="select(app)"
+            >
               <q-item-section avatar>
-                <q-avatar
-                  size="36px"
-                  class="bg-blue-grey-900 border-blue-grey-sm rounded-borders"
-                >
+                <q-avatar size="36px" class="rounded-borders">
                   <AppIcon
                     :src="app.icon_url"
                     :alt="`Icône de ${app.name}`"
@@ -54,66 +73,33 @@
                   />
                 </q-avatar>
               </q-item-section>
-
               <q-item-section>
                 <div class="row items-center q-gutter-xs">
-                  <span class="text-weight-bold text-white text-subtitle2">{{
+                  <span class="text-weight-bold text-subtitle2">{{
                     app.name
                   }}</span>
-                  <q-badge :color="getStatusColor(app.status)" dense>{{
-                    app.status
+                  <q-badge :color="statusColor(app.status)">{{
+                    statusLabel(app.status)
                   }}</q-badge>
+                  <q-badge v-if="app.is_featured" color="amber-8"
+                    >À la une</q-badge
+                  >
                 </div>
-                <div class="text-caption text-blue-grey-300">
-                  Développeur : {{ app.developer?.name }} | ID:
+                <div class="text-caption text-muted">
+                  {{ app.developer?.name }} ·
+                  {{
+                    app.developer?.developer_profile?.status === 'verified'
+                      ? 'éditeur vérifié'
+                      : 'éditeur non vérifié'
+                  }}
+                  · {{ app.source_type === 'url' ? 'URL' : 'Build' }} ·
                   {{ app.identifier }}
-                </div>
-              </q-item-section>
-
-              <q-item-section side class="q-gutter-xs row no-wrap">
-                <div class="row q-gutter-xs">
-                  <q-btn
-                    v-if="app.status !== 'approved'"
-                    color="green-6"
-                    icon="check"
-                    dense
-                    round
-                    size="sm"
-                    @click="updateAppStatus(app, 'approved')"
-                  >
-                    <q-tooltip>Approuver l'application</q-tooltip>
-                  </q-btn>
-                  <q-btn
-                    v-if="app.status !== 'quarantined'"
-                    color="red-7"
-                    icon="security"
-                    dense
-                    round
-                    size="sm"
-                    @click="updateAppStatus(app, 'quarantined')"
-                  >
-                    <q-tooltip
-                      >Mettre en quarantaine (PWA Store Security)</q-tooltip
-                    >
-                  </q-btn>
-                  <q-btn
-                    color="primary"
-                    icon="analytics"
-                    dense
-                    round
-                    size="sm"
-                    @click="selectAppForAnalytics(app)"
-                  >
-                    <q-tooltip
-                      >Voir les statistiques (PWA Store Analytics)</q-tooltip
-                    >
-                  </q-btn>
                 </div>
               </q-item-section>
             </q-item>
           </q-list>
-          <p v-if="!apps.length" class="text-white q-mt-md"
-            >Aucune application à modérer.</p
+          <p v-if="!apps.length" class="q-mt-md"
+            >Aucune application pour ce filtre.</p
           >
           <q-pagination
             v-if="lastPage > 1"
@@ -125,155 +111,135 @@
         </q-card>
       </div>
 
-      <!-- Live Analytics Sidebar (PWA Store Analytics) -->
       <div class="col-12 col-lg-5">
         <q-card v-if="selectedApp" class="glass-panel admin-card">
           <div class="row items-center q-gutter-sm q-mb-md">
-            <q-avatar
-              size="32px"
-              class="bg-blue-grey-900 border-blue-grey-sm rounded-borders"
-            >
-              <AppIcon
-                :src="selectedApp.icon_url"
-                :alt="`Icône de ${selectedApp.name}`"
-                fallback-icon="apps"
-              />
-            </q-avatar>
-            <div>
-              <div class="text-subtitle1 text-white text-weight-bold">{{
+            <div class="col">
+              <div class="text-subtitle1 text-weight-bold">{{
                 selectedApp.name
               }}</div>
-              <div class="text-caption text-blue-grey-400"
-                >Statistiques de fonctionnement</div
-              >
+              <q-badge :color="statusColor(selectedApp.status)">{{
+                statusLabel(selectedApp.status)
+              }}</q-badge>
+            </div>
+            <q-btn
+              flat
+              dense
+              no-caps
+              icon="open_in_new"
+              label="Fiche détaillée"
+              :to="`/developer/apps/${selectedApp.id}/publication`"
+            />
+          </div>
+          <p v-if="selectedApp.moderation_reason" class="text-caption"
+            >Dernier motif : {{ selectedApp.moderation_reason }}</p
+          >
+
+          <div class="workspace-actions q-mb-md">
+            <q-btn
+              v-for="decision in adminDecisions(selectedApp.status)"
+              :key="decision.to"
+              outline
+              no-caps
+              dense
+              :icon="decision.icon"
+              :label="decision.label"
+              :disable="busy"
+              @click="decide(decision)"
+            />
+            <q-btn
+              v-if="selectedApp.status !== 'archived'"
+              flat
+              no-caps
+              dense
+              color="negative"
+              icon="inventory_2"
+              label="Archiver"
+              :disable="busy"
+              @click="archive"
+            />
+          </div>
+
+          <template v-if="canManageCatalog">
+            <q-toggle
+              :model-value="!!selectedApp.is_featured"
+              label="Mettre à la une"
+              :disable="busy"
+              @update:model-value="setFeatured"
+            />
+            <div class="text-subtitle2 q-mt-md q-mb-xs"
+              >Score de confiance (indicateur interne)</div
+            >
+            <div class="row items-center q-col-gutter-sm">
+              <div class="col-8">
+                <q-slider
+                  v-model="trustScoreSlider"
+                  :min="0"
+                  :max="100"
+                  label
+                />
+              </div>
+              <div class="col-4">
+                <q-btn
+                  label="Enregistrer"
+                  color="primary"
+                  size="sm"
+                  unelevated
+                  no-caps
+                  class="full-width"
+                  :disable="busy"
+                  @click="updateTrustScore"
+                />
+              </div>
+            </div>
+          </template>
+
+          <div v-if="stats" class="row q-col-gutter-xs q-mt-md">
+            <div class="col-6">
+              <div class="stats-box">
+                <div class="stats-value">{{ stats.total_installations }}</div>
+                <div class="stats-label">Installations déclarées</div>
+              </div>
+            </div>
+            <div class="col-6">
+              <div class="stats-box">
+                <div class="stats-value">{{ stats.total_launches }}</div>
+                <div class="stats-label">Ouvertures</div>
+              </div>
             </div>
           </div>
 
-          <div v-if="loadingStats" class="row justify-center q-my-xl">
-            <q-spinner-dots color="primary" size="48px" />
-          </div>
-
-          <div v-else-if="stats" class="q-gutter-md">
-            <!-- Stats cards -->
-            <div class="row q-col-gutter-xs">
-              <div class="col-6">
-                <div class="stats-box">
-                  <div class="stats-value">{{ stats.total_installations }}</div>
-                  <div class="stats-label">Installations</div>
-                </div>
-              </div>
-              <div class="col-6">
-                <div class="stats-box">
-                  <div class="stats-value">{{ stats.total_launches }}</div>
-                  <div class="stats-label">Lancements</div>
-                </div>
-              </div>
-              <div class="col-6">
-                <div class="stats-box">
-                  <div class="stats-value text-red-400">{{
-                    stats.total_crashes
-                  }}</div>
-                  <div class="stats-label">Crashs</div>
-                </div>
-              </div>
-              <div class="col-6">
-                <div class="stats-box">
-                  <div class="stats-value text-orange-400">{{
-                    stats.crashes_ratio
-                  }}</div>
-                  <div class="stats-label">Ratio de crash</div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Platform breakdown -->
-            <div class="q-mt-md">
-              <div class="text-subtitle2 text-blue-grey-300 q-mb-xs"
-                >Répartition par plateforme</div
-              >
-              <q-list separator class="sidebar-list overflow-hidden">
-                <q-item
-                  v-for="item in stats.installations_by_platform"
-                  :key="item.platform"
+          <div class="text-subtitle2 q-mt-md q-mb-xs">Historique</div>
+          <q-list separator dense class="sidebar-list">
+            <q-item v-for="event in events" :key="event.id">
+              <q-item-section>
+                <q-item-label>{{ statusLabel(event.action) }}</q-item-label>
+                <q-item-label caption
+                  >{{ new Date(event.created_at).toLocaleString('fr-FR') }} ·
+                  {{
+                    event.actor?.name || 'Contrôle automatique'
+                  }}</q-item-label
                 >
-                  <q-item-section avatar>
-                    <q-icon
-                      :name="getPlatformIcon(item.platform)"
-                      color="blue-grey-300"
-                    />
-                  </q-item-section>
-                  <q-item-section class="text-capitalize">{{
-                    item.platform
-                  }}</q-item-section>
-                  <q-item-section side class="text-white text-weight-bold">{{
-                    item.total
-                  }}</q-item-section>
-                </q-item>
-              </q-list>
-            </div>
-
-            <!-- Top devices -->
-            <div class="q-mt-md">
-              <div class="text-subtitle2 text-blue-grey-300 q-mb-xs"
-                >Appareils les plus utilisés</div
-              >
-              <q-list separator class="sidebar-list overflow-hidden">
-                <q-item
-                  v-for="device in stats.top_devices"
-                  :key="device.device_model"
-                >
-                  <q-item-section>{{
-                    device.device_model || 'Inconnu'
-                  }}</q-item-section>
-                  <q-item-section side class="text-blue-grey-300 font-mono"
-                    >{{ device.count }} ouvertures</q-item-section
-                  >
-                </q-item>
-              </q-list>
-            </div>
-
-            <!-- Security controls -->
-            <div class="q-mt-md">
-              <div class="text-subtitle2 text-blue-grey-300 q-mb-xs"
-                >Contrôles de Confiance (PWA Store Security)</div
-              >
-              <div class="row items-center q-col-gutter-sm">
-                <div class="col-8">
-                  <q-slider
-                    v-model="trustScoreSlider"
-                    :min="0"
-                    :max="100"
-                    label
-                    color="green"
-                  />
-                </div>
-                <div class="col-4">
-                  <q-btn
-                    label="Mettre à jour"
-                    color="green"
-                    size="sm"
-                    unelevated
-                    no-caps
-                    class="full-width text-white text-weight-bold"
-                    @click="updateTrustScore"
-                  />
-                </div>
-              </div>
-            </div>
-          </div>
+                <q-item-label v-if="event.reason" caption>{{
+                  event.reason
+                }}</q-item-label>
+              </q-item-section>
+            </q-item>
+            <q-item v-if="!events.length"
+              ><q-item-section caption
+                >Aucun événement enregistré.</q-item-section
+              ></q-item
+            >
+          </q-list>
         </q-card>
-
         <q-card
           v-else
           class="glass-panel admin-card text-center flex flex-center"
           style="height: 300px"
         >
-          <div class="text-blue-grey-400">
-            <q-icon name="query_stats" size="48px" class="q-mb-md" />
-            <div
-              >Sélectionnez une application pour charger les rapports
-              analytiques et contrôler la sécurité.</div
-            >
+          <div class="text-muted">
+            <q-icon name="rule" size="48px" class="q-mb-md" />
+            <div>Sélectionnez une application pour la modérer.</div>
           </div>
         </q-card>
       </div>
@@ -282,140 +248,147 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
-import { api } from '@/boot/axios'
+import { computed, onMounted, reactive, ref } from 'vue'
 import { useQuasar } from 'quasar'
 import AppIcon from '@/components/AppIcon.vue'
+import AdminNav from '@/components/AdminNav.vue'
+import { adminApi } from '@/services/admin'
+import { accountApi, apiMessage } from '@/services/account'
+import { useAuthStore } from '@/stores/auth'
+import {
+  adminDecisions,
+  APP_STATUS,
+  statusColor,
+  statusLabel
+} from '@/utils/appStatus'
 
-const $q = useQuasar()
-const apps = ref([])
-const page = ref(1)
-const lastPage = ref(1)
-const loading = ref(true)
-
-const selectedApp = ref(null)
-const stats = ref(null)
-const loadingStats = ref(false)
-const trustScoreSlider = ref(100)
+const $q = useQuasar(),
+  auth = useAuthStore()
+const apps = ref([]),
+  page = ref(1),
+  lastPage = ref(1),
+  loading = ref(true),
+  busy = ref(false),
+  error = ref(''),
+  selectedApp = ref(null),
+  stats = ref(null),
+  events = ref([]),
+  trustScoreSlider = ref(100)
+const filters = reactive({ status: 'submitted', search: '' })
+const statusOptions = Object.entries(APP_STATUS).map(([value, s]) => ({
+  value,
+  label: s.label
+}))
+const canManageCatalog = computed(() =>
+  auth.user?.admin_permissions?.includes('catalog.manage')
+)
 
 async function fetchApps() {
   loading.value = true
+  error.value = ''
   try {
-    const { data } = await api.get('/admin/apps', {
-      params: { page: page.value }
+    const { data } = await adminApi.apps({
+      page: page.value,
+      status: filters.status || undefined,
+      search: filters.search || undefined
     })
     apps.value = data.data
     lastPage.value = data.last_page
-  } catch (err) {
-    console.error('Error fetching admin apps', err)
+  } catch (e) {
+    error.value = apiMessage(e)
   } finally {
     loading.value = false
   }
 }
-
-async function updateAppStatus(app, newStatus) {
-  try {
-    const reason = await new Promise(resolve =>
-      $q
-        .dialog({
-          title: 'Motif de décision',
-          prompt: {
-            model: '',
-            type: 'textarea',
-            isValid: value => value.trim().length >= 3
-          },
-          cancel: true
-        })
-        .onOk(resolve)
-        .onCancel(() => resolve(null))
-    )
-    if (!reason) return
-    await api.post(`/admin/apps/${app.id}/review`, {
-      status: newStatus,
-      reason
-    })
-    $q.notify({
-      type: 'positive',
-      message: `Statut mis à jour : ${newStatus}`
-    })
-    await fetchApps()
-    if (selectedApp.value && selectedApp.value.id === app.id) {
-      selectedApp.value.status = newStatus
-    }
-  } catch (err) {
-    console.error('Error updating status', err)
-    $q.notify({
-      type: 'negative',
-      message: 'Erreur lors de la mise à jour'
-    })
-  }
+function reload() {
+  page.value = 1
+  selectedApp.value = null
+  return fetchApps()
 }
-
-async function selectAppForAnalytics(app) {
+async function select(app) {
   selectedApp.value = app
-  loadingStats.value = true
-  trustScoreSlider.value = app.trust_score
+  trustScoreSlider.value = app.trust_score ?? 100
+  stats.value = null
+  events.value = []
   try {
-    const response = await api.get(`/analytics/summary/${app.id}`)
-    stats.value = response.data
-  } catch (err) {
-    console.error('Error fetching analytics', err)
-  } finally {
-    loadingStats.value = false
+    const [summary, history] = await Promise.all([
+      accountApi.analytics(app.id),
+      accountApi.appEvents(app.id)
+    ])
+    stats.value = summary.data
+    events.value = history.data.data
+  } catch (e) {
+    error.value = apiMessage(e)
   }
 }
-
-async function updateTrustScore() {
-  if (!selectedApp.value) return
+async function run(action, message) {
+  busy.value = true
+  error.value = ''
   try {
-    await api.put(`/apps/${selectedApp.value.id}`, {
-      trust_score: trustScoreSlider.value
-    })
-    $q.notify({
-      type: 'positive',
-      message: 'Score de confiance mis à jour avec succès.'
-    })
-    selectedApp.value.trust_score = trustScoreSlider.value
+    const { data } = await action()
+    $q.notify({ type: 'positive', message })
+    const id = selectedApp.value?.id
     await fetchApps()
-  } catch (err) {
-    console.error('Error updating trust score', err)
-    $q.notify({
-      type: 'negative',
-      message: 'Erreur lors de la mise à jour du score de confiance'
-    })
+    const fresh = apps.value.find(a => a.id === id)
+    if (fresh) await select(fresh)
+    else if (data?.id) selectedApp.value = { ...selectedApp.value, ...data }
+  } catch (e) {
+    error.value = apiMessage(e)
+  } finally {
+    busy.value = false
   }
 }
-
-function getStatusColor(status) {
-  switch (status) {
-    case 'approved':
-      return 'green-7'
-    case 'quarantined':
-      return 'red-7'
-    default:
-      return 'orange-7'
-  }
+function askReason(title, required = true) {
+  return new Promise(resolve =>
+    $q
+      .dialog({
+        title,
+        message: 'Ce motif est visible par l’éditeur et conservé.',
+        prompt: {
+          model: '',
+          type: 'textarea',
+          isValid: v => !required || v.trim().length >= 3
+        },
+        cancel: true,
+        persistent: true
+      })
+      .onOk(resolve)
+      .onCancel(() => resolve(null))
+  )
 }
-
-function getPlatformIcon(platform) {
-  switch (platform.toLowerCase()) {
-    case 'android':
-      return 'phone_android'
-    case 'iphone':
-    case 'ios':
-      return 'phone_iphone'
-    case 'mac':
-      return 'desktop_mac'
-    case 'windows':
-      return 'desktop_windows'
-    default:
-      return 'language'
-  }
+async function decide(decision) {
+  const reason = decision.reason ? await askReason(decision.label) : undefined
+  if (decision.reason && !reason) return
+  return run(
+    () =>
+      adminApi.review(selectedApp.value.id, { status: decision.to, reason }),
+    `Décision enregistrée : ${statusLabel(decision.to)}.`
+  )
 }
-
-onMounted(() => {
-  fetchApps()
-})
+async function archive() {
+  const reason = await askReason('Archiver l’application', false)
+  if (reason === null) return
+  return run(
+    () => adminApi.archive(selectedApp.value.id, reason || undefined),
+    'Application archivée.'
+  )
+}
+function setFeatured(value) {
+  return run(
+    () => adminApi.catalog(selectedApp.value.id, { is_featured: value }),
+    value ? 'Application mise à la une.' : 'Application retirée de la une.'
+  )
+}
+function updateTrustScore() {
+  return run(
+    () =>
+      adminApi.catalog(selectedApp.value.id, {
+        trust_score: trustScoreSlider.value
+      }),
+    'Score de confiance enregistré.'
+  )
+}
+onMounted(fetchApps)
 </script>
 
 <style scoped lang="scss">
@@ -490,26 +463,6 @@ onMounted(() => {
 .admin-card :deep(.q-item:hover) {
   background: var(--surface-high);
 }
-.system-status {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  flex: 0 0 auto;
-  padding: 8px 11px;
-  color: var(--muted);
-  background: var(--surface-low);
-  border: 1px solid var(--outline);
-  border-radius: 999px;
-  font-size: 9px;
-  font-weight: 700;
-}
-.system-status span {
-  width: 7px;
-  height: 7px;
-  background: var(--q-positive);
-  border-radius: 50%;
-  box-shadow: 0 0 0 4px rgba(52, 201, 138, 0.12);
-}
 .stats-box {
   background: var(--surface-low);
   border: 1px solid var(--outline);
@@ -539,9 +492,6 @@ onMounted(() => {
     align-items: flex-start;
     flex-direction: column;
     padding: 15px;
-  }
-  .system-status {
-    white-space: normal;
   }
   .admin-card {
     padding: 14px;

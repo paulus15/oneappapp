@@ -76,7 +76,11 @@ export default defineRouter((/* { store, ssrContext } */) => {
       '/developer/activate': 'Devenir développeur',
       '/developer/profile': 'Profil développeur et quotas',
       '/admin/developers': 'Vérification des développeurs',
-      '/admin/countries': 'Répartition par pays'
+      '/admin/countries': 'Répartition par pays',
+      '/admin/apps': 'Modération des applications',
+      '/admin/users': 'Utilisateurs',
+      '/admin/categories': 'Catégories',
+      '/admin/audit': 'Journal d’audit'
     }
     const title =
       titles[to.path] ||

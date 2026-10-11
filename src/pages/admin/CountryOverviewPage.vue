@@ -6,8 +6,9 @@
         >Pays de résidence déclarés par les utilisateurs et pays légaux des
         profils développeurs. Ces données ne représentent pas leur position
         actuelle.</p
-      ><q-btn flat no-caps to="/admin" label="Retour à l’administration"
-    /></header>
+      ></header
+    >
+    <AdminNav />
     <q-linear-progress v-if="loading" indeterminate />
     <q-banner v-if="error" class="workspace-alert" role="alert"
       >{{ error
@@ -32,6 +33,7 @@
   </q-page>
 </template>
 <script setup>
+import AdminNav from '@/components/AdminNav.vue'
 import { onMounted, ref } from 'vue'
 import { api } from '@/boot/axios'
 import { apiMessage } from '@/services/account'

@@ -106,9 +106,9 @@ Auth : `—` public · `U` compte connecté · `D` profil développeur · `A` ad
 | GET     | `/apps/{application}/url-checks` | D    | N (4)  | Historique des contrôles                                    |
 | POST    | `/versions`                      | D    | E      | Upload ZIP + analyse                                        |
 | POST    | `/apps/{application}/submit`     | D    | E      |                                                             |
-| POST    | `/apps/{application}/publish`    | D    | N (6)  | `approved → published`                                      |
-| POST    | `/apps/{application}/archive`    | D    | N (6)  | Retrait volontaire                                          |
-| GET     | `/apps/{application}/events`     | D    | N (6)  | Historique de publication                                   |
+| POST    | `/apps/{application}/publish`    | D    | E      | `approved → published`                                      |
+| POST    | `/apps/{application}/archive`    | D    | E      | Retrait volontaire                                          |
+| GET     | `/apps/{application}/events`     | D    | E      | Historique de publication                                   |
 | POST    | `/versions/{version}/extract`    | D    | E      | Déploiement isolé d'une version approuvée (rollback inclus) |
 | GET     | `/analytics/summary/{app_id}`    | D/A  | E      |                                                             |
 | POST    | `/analytics/events`              | U    | E\*    | Restreindre aux apps publiées + throttle (D2)               |
@@ -128,21 +128,21 @@ Performance et accessibilité nécessitent un navigateur headless (Lighthouse). 
 
 | Méthode             | Route                                       | Permission         | Statut | Notes                                                                   |
 | ------------------- | ------------------------------------------- | ------------------ | ------ | ----------------------------------------------------------------------- |
-| GET                 | `/admin/stats`                              | `audit.view`       | N (6)  | Compteurs réels                                                         |
-| GET                 | `/admin/users`                              | `users.manage`     | N (6)  | Recherche, filtre statut/rôle/pays, pagination                          |
-| GET                 | `/admin/users/{user}`                       | `users.manage`     | N (6)  |                                                                         |
-| POST                | `/admin/users/{user}/status`                | `users.manage`     | N (6)  | `status, reason` ; suspension révoque les jetons                        |
-| PUT                 | `/admin/users/{user}/permissions`           | `settings.manage`  | N (6)  |                                                                         |
+| GET                 | `/admin/stats`                              | `audit.view`       | E      | Compteurs réels                                                         |
+| GET                 | `/admin/users`                              | `users.manage`     | E      | Recherche, filtre statut/rôle/pays, pagination                          |
+| GET                 | `/admin/users/{user}`                       | `users.manage`     | E      |                                                                         |
+| POST                | `/admin/users/{user}/status`                | `users.manage`     | E      | `status, reason` ; suspension révoque les jetons                        |
+| PUT                 | `/admin/users/{user}/permissions`           | `settings.manage`  | E      |                                                                         |
 | GET                 | `/admin/apps`                               | `apps.moderate`    | E\*    | Pagination + filtres (D8)                                               |
 | POST                | `/admin/apps/{application}/review`          | `apps.moderate`    | E\*    | Étendre aux statuts cibles, dont `changes_requested`, `suspended`       |
 | POST                | `/admin/versions/{version}/review`          | `apps.moderate`    | E      |                                                                         |
 | PUT                 | `/apps/{id}` (`trust_score`, `is_featured`) | `catalog.manage`   | E\*    | `is_featured` à rendre modifiable                                       |
 | POST / PUT / DELETE | `/categories`, `/categories/{id}`           | `catalog.manage`   | E\*    | Refuser la suppression d'une catégorie utilisée (D7)                    |
-| CRUD                | `/admin/collections`                        | `catalog.manage`   | N (6)  |                                                                         |
+| CRUD                | `/admin/collections`                        | `catalog.manage`   | N (3)  |                                                                         |
 | GET                 | `/admin/reports`                            | `reports.handle`   | N (7)  |                                                                         |
 | POST                | `/admin/reports/{report}/resolve`           | `reports.handle`   | N (7)  | `decision, reason`                                                      |
 | POST                | `/admin/reviews/{review}/moderate`          | `reviews.moderate` | N (7)  | `status: visible\|hidden, reason`                                       |
-| GET                 | `/admin/audit-logs`                         | `audit.view`       | N (6)  | Filtres acteur, action, période                                         |
+| GET                 | `/admin/audit-logs`                         | `audit.view`       | E      | Filtres acteur, action, période                                         |
 | GET                 | `/admin/countries/summary`                  | `audit.view`       | E      |                                                                         |
 | GET / PUT           | `/admin/settings`                           | `settings.manage`  | N (10) | Quotas, devise, montant de contribution (paiements toujours désactivés) |
 | DELETE              | `/apps/{id}`                                | —                  | E\*    | Suppression définitive : remplacée par l'archivage (D10)                |
