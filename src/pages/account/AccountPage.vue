@@ -51,11 +51,15 @@
           label="Mes applications personnelles"
         />
         <q-tab name="favorites" label="Favoris" />
+        <q-tab name="reviews" label="Mes avis" />
         <q-tab name="profile" label="Profil et sécurité" />
+        <q-tab name="preferences" label="Préférences et données" />
       </q-tabs>
       <div class="q-mt-lg">
         <DeveloperOverview v-if="tab === 'activity' && developerView" />
         <PersonalLibrary v-else-if="tab === 'activity' || tab === 'library'" />
+        <MyReviews v-else-if="tab === 'reviews'" />
+        <AccountPreferences v-else-if="tab === 'preferences'" />
         <section v-else-if="tab === 'favorites'">
           <p v-if="!favorites.length && !error"
             >Vous n’avez pas encore de favoris.</p
@@ -163,6 +167,8 @@ import { useAuthStore } from '@/stores/auth'
 import { useWorkspaceAccess } from '@/composables/useWorkspaceAccess'
 import CountrySelect from '@/components/CountrySelect.vue'
 import AccountSecurity from '@/components/AccountSecurity.vue'
+import AccountPreferences from '@/components/AccountPreferences.vue'
+import MyReviews from '@/components/MyReviews.vue'
 import DeveloperOverview from '@/components/DeveloperOverview.vue'
 import PersonalLibrary from '@/components/PersonalLibrary.vue'
 const auth = useAuthStore(),

@@ -138,6 +138,24 @@ const routes = [
         }
       },
       {
+        path: 'admin/reports',
+        component: () => import('@/pages/admin/AdminReportsPage.vue'),
+        meta: {
+          requiresAuth: true,
+          adminOnly: true,
+          permission: 'reports.handle'
+        }
+      },
+      {
+        path: 'admin/reviews',
+        component: () => import('@/pages/admin/AdminReviewsPage.vue'),
+        meta: {
+          requiresAuth: true,
+          adminOnly: true,
+          permission: 'reviews.moderate'
+        }
+      },
+      {
         path: 'admin/audit',
         component: () => import('@/pages/admin/AdminAuditPage.vue'),
         meta: { requiresAuth: true, adminOnly: true, permission: 'audit.view' }

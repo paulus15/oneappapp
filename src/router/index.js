@@ -89,7 +89,9 @@ export default defineRouter((/* { store, ssrContext } */) => {
       '/admin/users': 'Utilisateurs',
       '/admin/categories': 'Catégories',
       '/admin/audit': 'Journal d’audit',
-      '/admin/collections': 'Sélections éditoriales'
+      '/admin/collections': 'Sélections éditoriales',
+      '/admin/reports': 'Signalements',
+      '/admin/reviews': 'Modération des avis'
     }
     const title =
       titles[to.path] ||

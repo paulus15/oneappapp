@@ -93,6 +93,11 @@
               label="Partager"
               @click="share"
             />
+            <ReportButton
+              v-if="app.status === 'published' && !isOwnerOrAdmin"
+              target-type="application"
+              :target-id="app.id"
+            />
           </div>
           <div class="section-title q-mb-xs">Description</div>
           <p class="description-text q-mb-lg">
@@ -157,121 +162,7 @@
 
           <q-separator class="q-my-md opacity-35" />
 
-          <!-- Ratings & Reviews overview -->
-          <div class="row items-center q-gutter-md q-mb-md">
-            <div class="text-center rating-box q-pa-sm">
-              <div class="rating-value">{{ app.average_rating }}</div>
-              <q-rating
-                :model-value="app.average_rating"
-                max="5"
-                size="12px"
-                color="orange-500"
-                icon="star"
-                icon-half="star_half"
-                readonly
-              />
-              <div class="text-caption text-blue-grey-400 q-mt-xs">
-                {{ app.reviews_count }} avis
-              </div>
-            </div>
-            <div class="col">
-              <div class="text-weight-bold text-white">Notes et Avis</div>
-              <div class="text-caption text-blue-grey-300">
-                Ce que disent les utilisateurs de l'écosystème PWA Store.
-              </div>
-            </div>
-          </div>
-
-          <!-- Post Review Form (Only for logged-in users) -->
-          <div
-            v-if="authStore.isAuthenticated"
-            class="q-my-md review-box q-pa-md"
-          >
-            <div class="text-subtitle2 text-weight-bold text-white q-mb-xs">
-              Laisser une note
-            </div>
-            <q-form @submit="submitReview">
-              <div class="row items-center q-gutter-sm q-mb-sm">
-                <span class="text-caption text-blue-grey-300"
-                  >Votre note :</span
-                >
-                <q-rating
-                  v-model="myRating"
-                  max="5"
-                  size="20px"
-                  color="orange-500"
-                  icon="star"
-                />
-              </div>
-              <q-input
-                v-model="myComment"
-                type="textarea"
-                placeholder="Rédigez votre avis sur l'application..."
-                filled
-                color="blue-grey-500"
-                rows="2"
-                class="q-mb-sm"
-              />
-              <q-btn
-                label="Envoyer mon avis"
-                type="submit"
-                unelevated
-                no-caps
-                class="download-btn"
-                :loading="submittingReview"
-              />
-            </q-form>
-          </div>
-
-          <!-- Existing Reviews List -->
-          <div class="q-mt-lg">
-            <div class="text-subtitle2 text-weight-bold text-white q-mb-sm">
-              Commentaires
-            </div>
-            <div
-              v-if="app.reviews?.length === 0"
-              class="text-blue-grey-400 text-caption italic"
-            >
-              Aucun commentaire pour le moment. Soyez le premier à donner votre
-              avis !
-            </div>
-            <q-list v-else separator class="text-blue-grey-100">
-              <q-item
-                v-for="review in app.reviews"
-                :key="review.id"
-                class="q-py-sm q-px-none"
-              >
-                <q-item-section avatar>
-                  <q-avatar
-                    size="32px"
-                    color="blue-grey-700"
-                    text-color="white"
-                    class="text-weight-bold"
-                  >
-                    {{ review.user?.name.charAt(0).toUpperCase() }}
-                  </q-avatar>
-                </q-item-section>
-                <q-item-section>
-                  <div class="row justify-between items-center">
-                    <span class="text-weight-bold text-blue-grey-200">{{
-                      review.user?.name
-                    }}</span>
-                    <q-rating
-                      :model-value="review.rating"
-                      max="5"
-                      size="10px"
-                      color="orange-500"
-                      readonly
-                    />
-                  </div>
-                  <p
-                    class="text-caption text-blue-grey-300 q-mt-xs q-mb-none"
-                    >{{ review.comment }}</p
-                  >
-                </q-item-section>
-              </q-item>
-            </q-list>
-          </div>
+          <AppReviews :app="app" @changed="refreshRating" />
         </q-card>
       </div>
 
@@ -491,6 +382,9 @@ import { useQuasar } from 'quasar'
 import AppIcon from '@/components/AppIcon.vue'
 import AppGrid from '@/components/AppGrid.vue'
 import { catalogApi } from '@/services/catalog'
+import { communityApi } from '@/services/community'
+import AppReviews from '@/components/AppReviews.vue'
+import ReportButton from '@/components/ReportButton.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -503,10 +397,6 @@ const error = ref('')
 
 const extracting = ref(false)
 const similar = ref([])
-
-const myRating = ref(5)
-const myComment = ref('')
-const submittingReview = ref(false)
 
 const latestVersion = computed(() => {
   if (!app.value?.versions || app.value.versions.length === 0) return null
@@ -530,11 +420,13 @@ async function fetchAppDetails() {
     const response = await api.get('/apps/' + route.params.id)
     app.value = response.data
     similar.value = []
-    if (app.value.status === 'published')
+    if (app.value.status === 'published') {
+      communityApi.recordView(app.value.id).catch(() => {})
       catalogApi
         .similar(app.value.id)
         .then(({ data }) => (similar.value = data))
         .catch(() => {})
+    }
   } catch (err) {
     error.value =
       err.response?.data?.message ||
@@ -544,25 +436,13 @@ async function fetchAppDetails() {
   }
 }
 
-async function submitReview() {
-  submittingReview.value = true
+async function refreshRating() {
   try {
-    await api.post('/reviews', {
-      application_id: app.value.id,
-      rating: myRating.value,
-      comment: myComment.value
-    })
-    myComment.value = ''
-    myRating.value = 5
-    await fetchAppDetails()
-  } catch (err) {
-    $q.notify({
-      type: 'negative',
-      message:
-        err.response?.data?.message || 'Impossible d’enregistrer votre avis.'
-    })
-  } finally {
-    submittingReview.value = false
+    const { data } = await api.get('/apps/' + route.params.id)
+    app.value.average_rating = data.average_rating
+    app.value.reviews_count = data.reviews_count
+  } catch {
+    // The reviews list already shows the change; the header refreshes next visit.
   }
 }
 

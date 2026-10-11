@@ -94,6 +94,11 @@ const queues = computed(() => [
     to: '/admin/apps'
   },
   {
+    label: 'signalement(s) à traiter',
+    value: stats.value.queues.reports_open,
+    to: '/admin/reports'
+  },
+  {
     label: 'version(s) analysée(s) en attente de revue',
     value: stats.value.queues.versions_to_review,
     to: '/admin/apps'

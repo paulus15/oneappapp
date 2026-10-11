@@ -20,6 +20,18 @@ export const adminLinks = [
     permission: 'users.manage'
   },
   {
+    to: '/admin/reports',
+    label: 'Signalements',
+    icon: 'flag',
+    permission: 'reports.handle'
+  },
+  {
+    to: '/admin/reviews',
+    label: 'Avis',
+    icon: 'reviews',
+    permission: 'reviews.moderate'
+  },
+  {
     to: '/admin/categories',
     label: 'Catégories',
     icon: 'category',

@@ -18,7 +18,7 @@ Un lot n'est ✅ que si ses critères d'acceptation sont vérifiés côté Larav
 | 4   | Soumission par URL                       | P1       | 2                 | ✅                           |
 | 5   | Builds et hébergement isolé              | P1       | 2, décision infra | ⏸                            |
 | 6   | Administration, modération, statuts      | P0       | 1, 2              | ✅                           |
-| 7   | Espace utilisateur, avis, signalements   | P1       | 3, 6              | ⬜                           |
+| 7   | Espace utilisateur, avis, signalements   | P1       | 3, 6              | ✅                           |
 | 8   | Portail développeur et statistiques      | P2       | 6, 7              | ⬜                           |
 | 9   | PWA Lab et surveillance                  | P2       | 4                 | ⬜                           |
 | 10  | Notifications, quotas, facturation       | P2       | 6                 | ⬜                           |
@@ -146,14 +146,14 @@ Déjà livré : upload, analyse ZIP, versions, modération, déploiement, rollba
 
 ## Lot 7 — Espace utilisateur, avis et signalements (P1)
 
-| Fonctionnalité                                               | Statut |
-| ------------------------------------------------------------ | ------ |
-| Tableau de bord personnel (existant à enrichir)              | 🟦     |
-| Avis paginés, modification, suppression, réponse développeur | ⬜     |
-| Signalement d'une application ou d'un avis, traitement admin | ⬜     |
-| « Mes avis »                                                 | ⬜     |
-| Préférences, « vus récemment » avec consentement             | ⬜     |
-| Export des données personnelles                              | ⬜     |
+| Fonctionnalité                                                                                   | Statut |
+| ------------------------------------------------------------------------------------------------ | ------ |
+| Espace personnel : onglets Mes avis, Préférences et données (en plus de bibliothèque et favoris) | ✅     |
+| Avis paginés, modification, suppression, réponse développeur                                     | ✅     |
+| Signalement d'une application ou d'un avis, traitement admin                                     | ✅     |
+| « Mes avis »                                                                                     | ✅     |
+| Préférences, « vus récemment » avec consentement                                                 | ✅     |
+| Export des données personnelles                                                                  | ✅     |
 
 **Critères d'acceptation** : un avis exige un compte vérifié et respecte les limites ; un avis masqué disparaît de la fiche et de la moyenne ; le signalement est traçable jusqu'à sa résolution.
 
@@ -242,3 +242,4 @@ Aucun déploiement public sans validation explicite.
 | 2026-10-12 | 2    | Page `/developers` (étapes, deux modes de publication, vérification, gratuité), lien depuis l’accueil et la barre de navigation, redirection conservée après inscription, filtres et recherche dans la revue des profils                                                                                                                                                                                                                                                                                                               | `php artisan test` 84/84 ; `npm run test:unit` 15/15 ; oxlint/oxfmt propres ; build PWA OK                                                                                                                                                                |
 | 2026-10-12 | 3    | `/home` (à la une, populaires, nouveautés, récemment mises à jour, sélections, catégories), sélections éditoriales administrables, apps similaires, page éditeur public, formulaire de contact, pages À propos / Aide / CGU / Confidentialité / Règles de publication (brouillons juridiques signalés), pages Catégories, Catégorie et Sélection, pied de page complet, carte d’application partagée. Données inventées retirées de l’accueil (note 5.0 par défaut, tailles fictives, application fictive, « certifié par PWA Store ») | `php artisan test` 88/88 ; `npm run test:unit` 17/17 ; oxlint/oxfmt propres ; build PWA OK ; `GET /home` → 200 sur `oneapp.test` après correction d’un bug visible uniquement sous MySQL (les tests tournent sous SQLite)                                 |
 | 2026-10-12 | 4    | Historique `url_checks` (manuel et automatique, réussites et échecs), contrôle automatique toutes les 6 h avec suspension après deux échecs consécutifs ou sur changement de contenu, exigences de soumission explicites (catégorie, description ≥ 30 caractères, icône, source vérifiée) via `readiness`, parcours de publication et aperçu de la fiche                                                                                                                                                                               | `php artisan test` 91/91 ; `npm run test:unit` 17/17 ; oxlint/oxfmt propres ; build PWA OK ; `GET /apps/{id}/readiness` et `/url-checks` → 200 sur `oneapp.test`                                                                                          |
+| 2026-10-12 | 7    | Avis paginés avec répartition des notes, tri, modification et suppression ; réponse de l’éditeur ; un avis par compte (contrainte unique) ; avis masqués exclus des notes ; signalements d’applications et d’avis (dédupliqués) avec traitement admin ; modération des avis ; préférences (consultations récentes à consentement, notifications) ; export JSON des données ; pages admin Signalements et Avis                                                                                                                          | `php artisan test` 96/96 ; `npm run test:unit` 17/17 ; oxlint/oxfmt propres ; build PWA OK ; 6 routes du lot → 200 sur `oneapp.test` (MySQL)                                                                                                              |
