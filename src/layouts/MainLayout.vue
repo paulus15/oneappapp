@@ -233,7 +233,8 @@
           </q-item>
         </q-list>
 
-        <template v-if="!$q.screen.lt.md">\n        <p class="drawer-label">Espace développeur</p>
+        <template v-if="!$q.screen.lt.md">
+        <p class="drawer-label">Espace développeur</p>
         <router-link to="/developer/activate" class="developer-entry">
           <span class="developer-entry-icon"><q-icon name="terminal" /></span>
           <span class="developer-entry-copy">
