@@ -49,7 +49,7 @@ Auth : `—` public · `U` compte connecté · `D` profil développeur · `A` ad
 | POST                | `/developer/profile/submit`               | D                     | E      | Profil complet + pièce valide + e-mail vérifié        |
 | GET                 | `/developer/dashboard`                    | D                     | E\*    | À enrichir : vues, avis, signalements (Lot 8)         |
 | GET                 | `/developer/quotas`                       | U                     | E      |                                                       |
-| GET                 | `/developers/{id}`                        | —                     | N (3)  | Profil public : nom public, pays, site, apps publiées |
+| GET                 | `/publishers/{id}`                        | —                     | E      | Profil public : nom public, pays, site, apps publiées |
 | GET                 | `/developer-profiles/{profile}/documents` | U/A                   | E      | Propriétaire ou admin                                 |
 | POST                | `/developer-profiles/{profile}/documents` | A `developers.review` | E      | Demande motivée                                       |
 | POST / GET / DELETE | `/developer-documents/{document}`         | U/A                   | E      | Dépôt, téléchargement journalisé, suppression         |
@@ -64,13 +64,14 @@ Auth : `—` public · `U` compte connecté · `D` profil développeur · `A` ad
 | GET        | `/apps/suggestions`                            | —    | E      |                                                                                                              |
 | GET        | `/apps/{id}`                                   | —    | E\*    | À ajouter : éditeur public, langues, apps similaires ; avis retirés de la réponse (paginés à part)           |
 | GET        | `/apps/{id}/reviews`                           | —    | N (7)  | Avis visibles paginés + réponse développeur                                                                  |
-| GET        | `/apps/{id}/similar`                           | —    | N (3)  | Même catégorie, publiées                                                                                     |
+| GET        | `/apps/{id}/similar`                           | —    | E      | Même catégorie, publiées                                                                                     |
 | GET        | `/apps/{application}/launch`                   | —    | E      | URL d'ouverture                                                                                              |
 | POST       | `/apps/{id}/views`                             | —    | N (8)  | Vue de fiche, dédupliquée par appareil et par heure                                                          |
-| GET        | `/home`                                        | —    | N (3)  | Sections d'accueil : mises en avant, nouveautés, populaires, récemment mises à jour, collections, catégories |
+| GET        | `/home`                                        | —    | E      | Sections d'accueil : mises en avant, nouveautés, populaires, récemment mises à jour, collections, catégories |
 | GET        | `/categories`                                  | —    | E      | `?all=1` pour l'admin                                                                                        |
 | GET        | `/categories/{id\|slug}`                       | —    | E      |                                                                                                              |
-| GET        | `/collections/{slug}`                          | —    | N (3)  | Sélection éditoriale                                                                                         |
+| GET        | `/collections/{slug}`                          | —    | E      | Sélection éditoriale                                                                                         |
+| POST       | `/contact`                                     | —    | E      | `name, email, subject, message` ; envoi au support, champ piège anti-robot, 3 envois / 10 min                |
 | GET        | `/media/screenshots/{file}`                    | —    | E      |                                                                                                              |
 | GET        | `/versions/{id}/download`                      | —/D  | E      | Réservé aux versions publiées, ou propriétaire/admin                                                         |
 | POST / GET | `/install-intents`, `/install-intents/{token}` | —    | E      |                                                                                                              |
@@ -138,7 +139,7 @@ Performance et accessibilité nécessitent un navigateur headless (Lighthouse). 
 | POST                | `/admin/versions/{version}/review`          | `apps.moderate`    | E      |                                                                         |
 | PUT                 | `/apps/{id}` (`trust_score`, `is_featured`) | `catalog.manage`   | E\*    | `is_featured` à rendre modifiable                                       |
 | POST / PUT / DELETE | `/categories`, `/categories/{id}`           | `catalog.manage`   | E\*    | Refuser la suppression d'une catégorie utilisée (D7)                    |
-| CRUD                | `/admin/collections`                        | `catalog.manage`   | N (3)  |                                                                         |
+| CRUD                | `/admin/collections`                        | `catalog.manage`   | E      |                                                                         |
 | GET                 | `/admin/reports`                            | `reports.handle`   | N (7)  |                                                                         |
 | POST                | `/admin/reports/{report}/resolve`           | `reports.handle`   | N (7)  | `decision, reason`                                                      |
 | POST                | `/admin/reviews/{review}/moderate`          | `reviews.moderate` | N (7)  | `status: visible\|hidden, reason`                                       |

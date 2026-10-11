@@ -75,13 +75,21 @@ export default defineRouter((/* { store, ssrContext } */) => {
       '/account': 'Mon compte',
       '/developer/activate': 'Devenir développeur',
       '/developers': 'Portail développeur',
+      '/categories': 'Catégories',
+      '/contact': 'Contact',
+      '/about': 'À propos',
+      '/help': 'Centre d’aide',
+      '/terms': 'Conditions d’utilisation',
+      '/privacy': 'Politique de confidentialité',
+      '/publishing-rules': 'Règles de publication',
       '/developer/profile': 'Profil développeur et quotas',
       '/admin/developers': 'Vérification des développeurs',
       '/admin/countries': 'Répartition par pays',
       '/admin/apps': 'Modération des applications',
       '/admin/users': 'Utilisateurs',
       '/admin/categories': 'Catégories',
-      '/admin/audit': 'Journal d’audit'
+      '/admin/audit': 'Journal d’audit',
+      '/admin/collections': 'Sélections éditoriales'
     }
     const title =
       titles[to.path] ||
@@ -89,7 +97,11 @@ export default defineRouter((/* { store, ssrContext } */) => {
         ? 'Modifier une application'
         : to.path.startsWith('/apps/')
           ? 'Fiche application'
-          : 'Page introuvable')
+          : {
+              categories: 'Catégorie',
+              collections: 'Sélection',
+              publishers: 'Éditeur'
+            }[to.path.split('/')[1]] || 'Page introuvable')
     document.title = `${title} · PWA Store`
     document
       .querySelector('meta[property="og:title"]')

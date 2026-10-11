@@ -48,6 +48,51 @@ const routes = [
         component: () => import('@/pages/store/DevelopersPortalPage.vue')
       },
       {
+        path: 'categories',
+        component: () => import('@/pages/store/CategoriesPage.vue')
+      },
+      {
+        path: 'categories/:slug',
+        component: () => import('@/pages/store/AppCollectionPage.vue')
+      },
+      {
+        path: 'collections/:slug',
+        component: () => import('@/pages/store/AppCollectionPage.vue')
+      },
+      {
+        path: 'publishers/:id(\\d+)',
+        component: () => import('@/pages/store/PublisherPage.vue')
+      },
+      {
+        path: 'contact',
+        component: () => import('@/pages/static/ContactPage.vue')
+      },
+      {
+        path: 'about',
+        component: () => import('@/pages/static/StaticPage.vue'),
+        meta: { page: 'about' }
+      },
+      {
+        path: 'help',
+        component: () => import('@/pages/static/StaticPage.vue'),
+        meta: { page: 'help' }
+      },
+      {
+        path: 'terms',
+        component: () => import('@/pages/static/StaticPage.vue'),
+        meta: { page: 'terms' }
+      },
+      {
+        path: 'privacy',
+        component: () => import('@/pages/static/StaticPage.vue'),
+        meta: { page: 'privacy' }
+      },
+      {
+        path: 'publishing-rules',
+        component: () => import('@/pages/static/StaticPage.vue'),
+        meta: { page: 'publishing-rules' }
+      },
+      {
         path: 'apps/:id',
         component: () => import('@/pages/store/AppDetailsPage.vue')
       },
@@ -77,6 +122,15 @@ const routes = [
       {
         path: 'admin/categories',
         component: () => import('@/pages/admin/AdminCategoriesPage.vue'),
+        meta: {
+          requiresAuth: true,
+          adminOnly: true,
+          permission: 'catalog.manage'
+        }
+      },
+      {
+        path: 'admin/collections',
+        component: () => import('@/pages/admin/AdminCollectionsPage.vue'),
         meta: {
           requiresAuth: true,
           adminOnly: true,

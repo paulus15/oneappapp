@@ -36,15 +36,30 @@
             </q-avatar>
             <div class="col">
               <h1 class="app-title">{{ app.name }}</h1>
-              <div class="dev-name"
-                >Développé par {{ app.developer?.name }}</div
-              >
+              <div class="dev-name">
+                Publié par
+                <router-link
+                  v-if="
+                    app.developer?.developer_profile?.status === 'verified' &&
+                    app.developer.developer_profile.public_name
+                  "
+                  :to="`/publishers/${app.developer.developer_profile.id}`"
+                  >{{
+                    app.developer.developer_profile.public_name
+                  }}</router-link
+                >
+                <span v-else>{{ app.developer?.name }}</span>
+              </div>
               <div class="row items-center q-gutter-xs q-mt-xs">
                 <q-badge color="blue-grey-9" class="q-py-xs q-px-sm">
                   {{ app.category }}
                 </q-badge>
-                <q-badge color="green-9" class="q-py-xs q-px-sm">
-                  Sécurité: {{ app.trust_score }}/100
+                <q-badge
+                  v-if="app.languages?.length"
+                  color="blue-grey-7"
+                  class="q-py-xs q-px-sm"
+                >
+                  {{ app.languages.join(', ') }}
                 </q-badge>
                 <q-btn
                   v-if="isOwnerOrAdmin"
@@ -61,15 +76,24 @@
             </div>
           </div>
 
-          <q-btn
-            flat
-            no-caps
-            color="primary"
-            icon="favorite_border"
-            label="Ajouter aux favoris"
-            @click="addFavorite"
-            class="q-mb-md"
-          />
+          <div class="row q-gutter-sm q-mb-md">
+            <q-btn
+              flat
+              no-caps
+              color="primary"
+              icon="favorite_border"
+              label="Ajouter aux favoris"
+              @click="addFavorite"
+            />
+            <q-btn
+              flat
+              no-caps
+              color="primary"
+              icon="share"
+              label="Partager"
+              @click="share"
+            />
+          </div>
           <div class="section-title q-mb-xs">Description</div>
           <p class="description-text q-mb-lg">
             {{ app.description }}
@@ -428,6 +452,11 @@
       </div>
     </div>
 
+    <section v-if="similar.length" class="similar-section">
+      <h2 class="section-title">Applications similaires</h2>
+      <AppGrid :apps="similar" />
+    </section>
+
     <!-- Extraction Dialog -->
     <q-dialog v-model="extracting" persistent>
       <q-card
@@ -454,12 +483,14 @@
 import { deviceIdentity, devicePlatform } from '@/utils/device'
 import { useWorkspaceAccess } from '@/composables/useWorkspaceAccess'
 const { isMobile } = useWorkspaceAccess()
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { api } from '@/boot/axios'
 import { useAuthStore } from '@/stores/auth'
 import { useQuasar } from 'quasar'
 import AppIcon from '@/components/AppIcon.vue'
+import AppGrid from '@/components/AppGrid.vue'
+import { catalogApi } from '@/services/catalog'
 
 const route = useRoute()
 const router = useRouter()
@@ -471,6 +502,7 @@ const loading = ref(true)
 const error = ref('')
 
 const extracting = ref(false)
+const similar = ref([])
 
 const myRating = ref(5)
 const myComment = ref('')
@@ -497,6 +529,12 @@ async function fetchAppDetails() {
   try {
     const response = await api.get('/apps/' + route.params.id)
     app.value = response.data
+    similar.value = []
+    if (app.value.status === 'published')
+      catalogApi
+        .similar(app.value.id)
+        .then(({ data }) => (similar.value = data))
+        .catch(() => {})
   } catch (err) {
     error.value =
       err.response?.data?.message ||
@@ -659,12 +697,44 @@ async function addFavorite() {
   }
 }
 
+async function share() {
+  const data = {
+    title: app.value.name,
+    text: app.value.short_description || `${app.value.name} sur PWA Store`,
+    url: window.location.href
+  }
+  try {
+    if (navigator.share) {
+      await navigator.share(data)
+      return
+    }
+    await navigator.clipboard.writeText(data.url)
+    $q.notify({ type: 'positive', message: 'Lien copié.' })
+  } catch (e) {
+    // Closing the share sheet is not an error worth reporting.
+    if (e?.name !== 'AbortError')
+      $q.notify({
+        type: 'negative',
+        message: 'Impossible de partager ce lien.'
+      })
+  }
+}
+
 onMounted(() => {
   fetchAppDetails()
 })
+watch(
+  () => route.params.id,
+  (id, previous) => {
+    if (id && id !== previous) fetchAppDetails()
+  }
+)
 </script>
 
 <style scoped lang="scss">
+.similar-section {
+  margin-top: 24px;
+}
 .details-page {
   background: var(--page);
   color: var(--text);

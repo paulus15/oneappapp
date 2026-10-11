@@ -15,7 +15,11 @@ export const adminApi = {
   categories: () => api.get('/categories', { params: { all: 1 } }),
   createCategory: data => api.post('/categories', data),
   updateCategory: (id, data) => api.put(`/categories/${id}`, data),
-  deleteCategory: id => api.delete(`/categories/${id}`)
+  deleteCategory: id => api.delete(`/categories/${id}`),
+  collections: () => api.get('/admin/collections'),
+  createCollection: data => api.post('/admin/collections', data),
+  updateCollection: (id, data) => api.put(`/admin/collections/${id}`, data),
+  deleteCollection: id => api.delete(`/admin/collections/${id}`)
 }
 
 export const PERMISSION_LABELS = {

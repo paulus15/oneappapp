@@ -32,9 +32,9 @@
         </div>
 
         <div class="device-scene" aria-hidden="true">
-          <div class="floating-apps" v-if="rawApps.length">
+          <div class="floating-apps" v-if="home?.latest?.length">
             <div
-              v-for="entry in rawApps.slice(0, 3)"
+              v-for="entry in home.latest.slice(0, 3)"
               :key="entry.id"
               class="floating-app"
             >
@@ -88,7 +88,6 @@
             emit-value
             map-options
             class="filter-select"
-            @update:model-value="fetchApps"
           >
             <template v-slot:prepend>
               <q-icon name="devices" size="xs" />
@@ -105,7 +104,6 @@
             emit-value
             map-options
             class="filter-select"
-            @update:model-value="fetchApps"
           >
             <template v-slot:prepend>
               <q-icon name="payments" size="xs" />
@@ -122,7 +120,6 @@
             emit-value
             map-options
             class="filter-select"
-            @update:model-value="fetchApps"
           >
             <template v-slot:prepend>
               <q-icon name="sort" size="xs" />
@@ -144,62 +141,24 @@
 
       <div class="content-grid">
         <div class="main-column">
-          <!-- If activeSearch or filters are set, show search results grid -->
-          <section
-            v-if="
-              activeSearch ||
-              selectedPlatform ||
-              selectedPriceType ||
-              sortBy !== 'latest'
-            "
-            class="home-section"
-          >
+          <!-- Search, filters or a category: catalogue results -->
+          <section v-if="filtering" class="home-section">
             <header class="section-heading">
               <div>
                 <span class="section-kicker">Catalogue</span>
-                <h2
-                  >Applications correspondantes ({{ filteredApps.length }})</h2
-                >
+                <h2>Applications correspondantes ({{ total }})</h2>
               </div>
             </header>
-
-            <div v-if="filteredApps.length" class="app-grid">
-              <article
-                v-for="app in filteredApps"
-                :key="app.id"
-                class="glass-panel app-card cursor-pointer"
-                @click="router.push(app.to)"
-              >
-                <div class="app-icon" :style="{ background: app.color }">
-                  <AppIcon
-                    :src="app.iconUrl"
-                    :fallback-icon="app.icon"
-                    :alt="`Icône de ${app.name}`"
-                  />
-                </div>
-                <h3>{{ app.name }}</h3>
-                <p>{{ app.category }}</p>
-                <div class="row items-center justify-between q-mt-sm">
-                  <span class="price-text text-weight-bold">{{
-                    app.price > 0 ? app.price + ' FCFA' : 'Gratuit'
-                  }}</span>
-                  <div class="rating">
-                    <q-icon name="star" /><span>{{ app.rating }}</span>
-                  </div>
-                </div>
-              </article>
-            </div>
-            <div v-else class="empty-state glass-panel">
-              <q-icon name="search_off" />
-              <h3>Aucune application trouvée</h3>
-              <p>Essayez avec d'autres filtres ou mots-clés.</p>
-            </div>
+            <AppGrid
+              :apps="rawApps"
+              :loading="loading"
+              empty="Aucune application ne correspond. Essayez d’autres filtres ou mots-clés."
+              empty-icon="search_off"
+            />
           </section>
 
-          <!-- Standard homepage sections -->
           <div v-else>
-            <!-- Selection de l'équipe (Featured Apps) -->
-            <section v-if="featuredApps.length > 0" class="home-section">
+            <section v-if="featuredApps.length" class="home-section">
               <header class="section-heading">
                 <div>
                   <span class="section-kicker">Sélection de l'équipe</span>
@@ -207,11 +166,11 @@
                 </div>
               </header>
               <div class="featured-scroll-container">
-                <div
+                <router-link
                   v-for="app in featuredApps"
                   :key="app.id"
-                  class="glass-panel featured-app-card cursor-pointer"
-                  @click="router.push(app.to)"
+                  :to="app.to"
+                  class="glass-panel featured-app-card"
                 >
                   <div
                     class="featured-card-bg"
@@ -227,27 +186,22 @@
                     </div>
                     <div class="featured-card-text col q-ml-md">
                       <h3>{{ app.name }}</h3>
-                      <p>{{ app.category }}</p>
+                      <p>{{ app.publisher || app.category }}</p>
                       <div class="row items-center q-gutter-x-sm q-mt-xs">
                         <span class="badge-custom price-badge">{{
                           app.price > 0 ? app.price + ' FCFA' : 'Gratuit'
                         }}</span>
                         <span class="badge-custom rating-badge"
                           ><q-icon name="star" size="xs" />
-                          {{ app.rating }}</span
-                        >
-                        <span class="badge-custom download-badge"
-                          ><q-icon name="download" size="xs" />
-                          {{ app.downloads }}</span
+                          {{ app.rating || 'Nouveau' }}</span
                         >
                       </div>
                     </div>
                   </div>
-                </div>
+                </router-link>
               </div>
             </section>
 
-            <!-- Section Populaires -->
             <section id="popular" class="home-section">
               <header class="section-heading">
                 <div>
@@ -258,111 +212,55 @@
                   >Voir tout <q-icon name="arrow_forward"
                 /></router-link>
               </header>
-
-              <div v-if="popularApps.length" class="app-grid">
-                <article
-                  v-for="app in popularApps.slice(0, 6)"
-                  :key="app.id"
-                  class="glass-panel app-card cursor-pointer"
-                  @click="router.push(app.to)"
-                >
-                  <div class="app-icon" :style="{ background: app.color }">
-                    <AppIcon
-                      :src="app.iconUrl"
-                      :fallback-icon="app.icon"
-                      :alt="`Icône de ${app.name}`"
-                    />
-                  </div>
-                  <h3>{{ app.name }}</h3>
-                  <p>{{ app.category }}</p>
-                  <div class="row items-center justify-between q-mt-sm">
-                    <span class="price-text text-weight-bold">{{
-                      app.price > 0 ? app.price + ' FCFA' : 'Gratuit'
-                    }}</span>
-                    <div class="rating">
-                      <q-icon name="star" /><span>{{ app.rating }}</span>
-                    </div>
-                  </div>
-                </article>
-              </div>
+              <AppGrid
+                :apps="home?.popular || []"
+                :loading="!home && loading"
+                empty="Les premières applications publiées apparaîtront ici."
+              />
             </section>
 
-            <!-- Section Gratuites -->
             <section data-reveal class="home-section">
               <header class="section-heading">
                 <div>
-                  <span class="section-kicker">Gratuites</span>
-                  <h2>Nouveautés gratuites</h2>
+                  <span class="section-kicker">Fraîchement publiées</span>
+                  <h2>Nouveautés</h2>
                 </div>
               </header>
-
-              <div v-if="freeApps.length" class="app-grid">
-                <article
-                  v-for="app in freeApps"
-                  :key="app.id"
-                  class="glass-panel app-card cursor-pointer"
-                  @click="router.push(app.to)"
-                >
-                  <div class="app-icon" :style="{ background: app.color }">
-                    <AppIcon
-                      :src="app.iconUrl"
-                      :fallback-icon="app.icon"
-                      :alt="`Icône de ${app.name}`"
-                    />
-                  </div>
-                  <h3>{{ app.name }}</h3>
-                  <p>{{ app.category }}</p>
-                  <div class="row items-center justify-between q-mt-sm">
-                    <span class="price-text text-weight-bold">Gratuit</span>
-                    <div class="rating">
-                      <q-icon name="star" /><span>{{ app.rating }}</span>
-                    </div>
-                  </div>
-                </article>
-              </div>
-              <div v-else class="empty-state glass-panel">
-                <p>Aucune application gratuite disponible.</p>
-              </div>
+              <AppGrid :apps="home?.latest || []" :loading="!home && loading" />
             </section>
 
-            <!-- Section Premium -->
+            <section
+              v-for="collection in home?.collections || []"
+              :key="collection.id"
+              data-reveal
+              class="home-section"
+            >
+              <header class="section-heading">
+                <div>
+                  <span class="section-kicker">Sélection</span>
+                  <h2>{{ collection.title }}</h2>
+                  <p v-if="collection.description" class="section-lead">{{
+                    collection.description
+                  }}</p>
+                </div>
+                <router-link :to="`/collections/${collection.slug}`"
+                  >Voir tout <q-icon name="arrow_forward"
+                /></router-link>
+              </header>
+              <AppGrid :apps="collection.applications.slice(0, 8)" />
+            </section>
+
             <section data-reveal class="home-section">
               <header class="section-heading">
                 <div>
-                  <span class="section-kicker">Payantes</span>
-                  <h2>Applications Premium</h2>
+                  <span class="section-kicker">Mises à jour</span>
+                  <h2>Récemment mises à jour</h2>
                 </div>
               </header>
-
-              <div v-if="premiumApps.length" class="app-grid">
-                <article
-                  v-for="app in premiumApps"
-                  :key="app.id"
-                  class="glass-panel app-card cursor-pointer"
-                  @click="router.push(app.to)"
-                >
-                  <div class="app-icon" :style="{ background: app.color }">
-                    <AppIcon
-                      :src="app.iconUrl"
-                      :fallback-icon="app.icon"
-                      :alt="`Icône de ${app.name}`"
-                    />
-                  </div>
-                  <h3>{{ app.name }}</h3>
-                  <p>{{ app.category }}</p>
-                  <div class="row items-center justify-between q-mt-sm">
-                    <span class="price-text text-primary text-weight-bold"
-                      >{{ app.price }} FCFA</span
-                    >
-                    <div class="rating">
-                      <q-icon name="star" /><span>{{ app.rating }}</span>
-                    </div>
-                  </div>
-                </article>
-              </div>
-              <div v-else class="empty-state glass-panel">
-                <p>Aucune application premium disponible.</p>
-              </div>
+              <AppGrid
+                :apps="home?.recently_updated || []"
+                :loading="!home && loading"
+              />
             </section>
           </div>
 
@@ -385,30 +283,24 @@
 
         <aside class="aside-column">
           <section id="categories" class="glass-panel side-card">
-            <header><h2>Catégories</h2><a href="#popular">Voir tout</a></header>
-            <a
-              v-for="category in categories"
-              :key="category.label"
-              href="#popular"
+            <header
+              ><h2>Catégories</h2
+              ><router-link to="/categories">Voir tout</router-link></header
+            >
+            <router-link
+              v-for="category in (home?.categories || []).slice(0, 8)"
+              :key="category.id"
+              :to="`/categories/${category.slug}`"
               class="category-row"
-              :style="{
-                background:
-                  selectedCategory === category.label
-                    ? 'color-mix(in srgb, var(--primary) 16%, transparent)'
-                    : '',
-                borderColor:
-                  selectedCategory === category.label ? 'var(--primary)' : ''
-              }"
-              @click="selectCategory(category.label)"
             >
               <span>
                 <q-icon
-                  :name="category.icon"
-                  :style="{ color: category.color }"
-                />{{ category.label }}
+                  :name="category.icon || 'category'"
+                  :style="{ color: category.color || 'var(--pwa-primary)' }"
+                />{{ category.name }}
               </span>
-              <q-icon name="chevron_right" />
-            </a>
+              <small>{{ category.applications_count }}</small>
+            </router-link>
           </section>
 
           <section v-if="!isMobile" id="business" class="developer-card">
@@ -433,11 +325,11 @@
               ><h2>Top tendances</h2
               ><router-link to="/trending">Voir tout</router-link></header
             >
-            <article
+            <router-link
               v-for="(app, index) in trendingApps"
-              :key="app.name"
-              class="trend-row cursor-pointer"
-              @click="router.push(app.to)"
+              :key="app.id"
+              :to="app.to"
+              class="trend-row"
             >
               <b>{{ index + 1 }}</b>
               <div class="trend-icon" :style="{ background: app.color }">
@@ -451,50 +343,52 @@
                 <h3>{{ app.name }}</h3>
                 <p>{{ app.category }}</p>
               </div>
-              <span><q-icon name="star" /> {{ app.rating }}</span>
-            </article>
+              <span v-if="app.rating"
+                ><q-icon name="star" /> {{ app.rating }}</span
+              >
+            </router-link>
           </section>
         </aside>
       </div>
     </main>
 
-    <footer class="home-footer">
-      <router-link to="/" aria-label="PWA Store, accueil"
-        ><BrandLogo
-      /></router-link>
-      <p>© {{ currentYear }} PWA Store. Tous droits réservés.</p>
-      <nav
-        ><a href="#business">À propos</a><a href="#">Confidentialité</a
-        ><a href="#">Conditions</a><a href="#">Support</a></nav
-      >
-    </footer>
+    <AppFooter />
   </q-page>
 </template>
 
 <script setup>
 import { useWorkspaceAccess } from '@/composables/useWorkspaceAccess'
 const { isMobile } = useWorkspaceAccess()
-import BrandLogo from '@/components/BrandLogo.vue'
 import { ref, computed, onMounted, watch } from 'vue'
 import { usePageMotion } from '@/composables/usePageMotion'
 const motionRoot = ref(null)
 usePageMotion(motionRoot)
 import { useRoute, useRouter } from 'vue-router'
-import { api } from '@/boot/axios'
 import AppIcon from '@/components/AppIcon.vue'
+import AppFooter from '@/components/AppFooter.vue'
+import AppGrid from '@/components/AppGrid.vue'
+import { catalogApi } from '@/services/catalog'
+import { toCard } from '@/utils/appCard'
 
 const route = useRoute()
 const router = useRouter()
-const currentYear = new Date().getFullYear()
 const activeSearch = computed(() => String(route.query.search || '').trim())
 
 const rawApps = ref([])
+const total = ref(0)
+const home = ref(null)
 const loading = ref(false)
-const selectedCategory = ref('')
 
 const selectedPriceType = ref('')
 const selectedPlatform = ref('')
 const sortBy = ref('latest')
+const filtering = computed(
+  () =>
+    !!activeSearch.value ||
+    !!selectedPlatform.value ||
+    !!selectedPriceType.value ||
+    sortBy.value !== 'latest'
+)
 
 const platformOptions = [
   { label: 'Toutes plateformes', value: '' },
@@ -518,49 +412,17 @@ const sortOptions = [
   { label: 'Prix décroissant', value: 'price_desc' }
 ]
 
-const getCategoryColor = category => {
-  switch (category) {
-    case 'Jeux':
-      return 'var(--pwa-accent)'
-    case 'Productivité':
-      return 'var(--pwa-primary)'
-    case 'Social':
-      return 'var(--pwa-secondary)'
-    default:
-      return 'var(--pwa-primary)'
-  }
-}
-
-const getCategoryName = category =>
-  typeof category === 'object'
-    ? category?.name || 'Autres'
-    : category || 'Autres'
-
-const getIcon = category => {
-  switch (category) {
-    case 'Jeux':
-      return 'sports_esports'
-    case 'Productivité':
-      return 'task_alt'
-    case 'Social':
-      return 'forum'
-    default:
-      return 'widgets'
-  }
-}
-
 async function fetchApps() {
+  if (!filtering.value) return
   loading.value = true
   try {
-    const params = {}
+    const params = { sort_by: sortBy.value }
     if (activeSearch.value) params.search = activeSearch.value
-    if (selectedCategory.value) params.category = selectedCategory.value
     if (selectedPriceType.value) params.price_type = selectedPriceType.value
     if (selectedPlatform.value) params.platform = selectedPlatform.value
-    if (sortBy.value) params.sort_by = sortBy.value
-
-    const response = await api.get('/apps', { params })
-    rawApps.value = response.data.data || response.data || []
+    const { data } = await catalogApi.apps(params)
+    rawApps.value = data.data
+    total.value = data.total
   } catch (err) {
     console.error('Error fetching applications', err)
   } finally {
@@ -568,90 +430,29 @@ async function fetchApps() {
   }
 }
 
-const popularApps = computed(() => {
-  return rawApps.value.map(app => ({
-    id: app.id,
-    name: app.name,
-    category: getCategoryName(app.category),
-    price: Number(app.price),
-    rating: app.average_rating || '5.0',
-    initials: app.name.substring(0, 3).toUpperCase(),
-    iconUrl: app.icon_url || '',
-    color:
-      app.category?.color || getCategoryColor(getCategoryName(app.category)),
-    icon: app.category?.icon || getIcon(getCategoryName(app.category)),
-    to: '/apps/' + app.id
-  }))
-})
-
-const filteredApps = computed(() => {
-  return popularApps.value
-})
-
-const featuredApps = computed(() => {
-  return rawApps.value
-    .filter(app => app.is_featured)
-    .map(app => ({
-      id: app.id,
-      name: app.name,
-      category: getCategoryName(app.category),
-      price: Number(app.price),
-      rating: app.average_rating || '5.0',
-      downloads: app.downloads_count || 0,
-      iconUrl: app.icon_url || '',
-      color:
-        app.category?.color || getCategoryColor(getCategoryName(app.category)),
-      icon: app.category?.icon || getIcon(getCategoryName(app.category)),
-      to: '/apps/' + app.id
-    }))
-})
-
-const freeApps = computed(() => {
-  return popularApps.value.filter(app => app.price <= 0).slice(0, 6)
-})
-
-const premiumApps = computed(() => {
-  return popularApps.value.filter(app => app.price > 0).slice(0, 6)
-})
-
-const recommendedApps = computed(() => {
-  return popularApps.value.slice(0, 2).map(app => ({
-    ...app,
-    size: '12 Mo'
-  }))
-})
-
-const trendingApps = computed(() => {
-  return popularApps.value.slice(0, 3)
-})
-
-const featuredGame = computed(() => {
-  const game = popularApps.value.find(app => app.category === 'Jeux')
-  if (game) {
-    return {
-      ...game,
-      size: '125 Mo'
+async function loadHome() {
+  loading.value = true
+  try {
+    home.value = (await catalogApi.home()).data
+  } catch (err) {
+    console.error('Error fetching home sections', err)
+    home.value = {
+      featured: [],
+      popular: [],
+      latest: [],
+      recently_updated: [],
+      collections: [],
+      categories: []
     }
+  } finally {
+    loading.value = false
   }
-  return {
-    id: 1,
-    name: 'Retro Games Hub',
-    category: 'Jeux',
-    rating: '4.8',
-    size: '12 Mo',
-    to: '/apps/1',
-    color: 'var(--pwa-accent)'
-  }
-})
-
-function selectCategory(categoryName) {
-  if (selectedCategory.value === categoryName) {
-    selectedCategory.value = ''
-  } else {
-    selectedCategory.value = categoryName
-  }
-  fetchApps()
 }
+
+const featuredApps = computed(() => (home.value?.featured || []).map(toCard))
+const trendingApps = computed(() =>
+  (home.value?.popular || []).slice(0, 3).map(toCard)
+)
 
 function clearSearch() {
   router.push({ path: '/' })
@@ -661,40 +462,38 @@ function resetFilters() {
   selectedPriceType.value = ''
   selectedPlatform.value = ''
   sortBy.value = 'latest'
-  fetchApps()
 }
 
-watch(activeSearch, () => {
-  fetchApps()
-})
+watch([activeSearch, selectedPlatform, selectedPriceType, sortBy], fetchApps)
 
 onMounted(() => {
+  loadHome()
   fetchApps()
 })
 
 const features = [
   {
     icon: 'devices',
-    title: 'Installation universelle',
-    text: 'Une seule app pour Android, iOS et le Web.',
+    title: 'Applications Web modernes',
+    text: 'Ouvrez-les dans le navigateur, et installez-les quand votre appareil le permet.',
     color: 'var(--pwa-primary)'
   },
   {
-    icon: 'sync',
-    title: 'Mises à jour auto',
-    text: 'Vos applications sont toujours à jour.',
+    icon: 'fact_check',
+    title: 'Éditeurs vérifiés',
+    text: 'Chaque éditeur et chaque application sont examinés avant publication.',
     color: 'var(--pwa-primary)'
   },
   {
-    icon: 'security',
-    title: 'Sécurisé et fiable',
-    text: 'Contrôlé et certifié par PWA Store.',
+    icon: 'reviews',
+    title: 'Avis de vrais comptes',
+    text: 'Les notes viennent d’utilisateurs inscrits ; aucune note n’est inventée.',
     color: 'var(--pwa-muted)'
   },
   {
     icon: 'public',
     title: 'Fait en Afrique',
-    text: 'Une solution pensée pour le monde.',
+    text: 'Une plateforme pensée pour le monde.',
     color: 'var(--q-warning)'
   }
 ]
@@ -708,6 +507,11 @@ const categories = [
 </script>
 
 <style scoped lang="scss">
+.section-lead {
+  margin: 4px 0 0;
+  color: var(--muted);
+  font-size: 12px;
+}
 .home-page {
   min-height: 100vh;
   color: var(--text);
@@ -1350,30 +1154,6 @@ const categories = [
   font-size: 8px;
   white-space: nowrap;
 }
-.home-footer {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 16px 24px;
-  color: var(--muted);
-  border-top: 1px solid var(--outline);
-  font-size: 10px;
-}
-.home-footer p {
-  margin: 0;
-}
-.home-footer nav {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 16px;
-}
-.home-footer a {
-  color: var(--muted);
-  text-decoration: none;
-}
-.home-footer a:hover {
-  color: var(--pwa-link);
-}
 
 @media (max-width: 1350px) {
   .app-grid {
@@ -1489,12 +1269,6 @@ const categories = [
     grid-column: 1 / -1;
     width: 100%;
   }
-  .home-footer {
-    align-items: flex-start;
-    flex-direction: column;
-    gap: 10px;
-    padding: 16px 12px;
-  }
 }
 @media (max-width: 420px) {
   .hero-panel {
@@ -1518,9 +1292,6 @@ const categories = [
   }
   .feature-grid {
     grid-template-columns: 1fr;
-  }
-  .home-footer nav {
-    gap: 10px 14px;
   }
 }
 @media (prefers-reduced-motion: reduce) {

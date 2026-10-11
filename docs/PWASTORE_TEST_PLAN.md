@@ -19,6 +19,8 @@ Règle : un test n'est déclaré réussi que s'il a été exécuté, avec sa com
 
 Base de test : `RefreshDatabase` (voir `phpunit.xml`), e-mails via `Mail::fake()`, stockage via `Storage::fake()`.
 
+**Limite connue** : la suite tourne sous SQLite en mémoire. Un bug propre à MySQL (alias d’agrégat absent dans `ORDER BY`) n’a été détecté que par un appel réel au Lot 3. Ajouter au Lot 12 une exécution de la suite sur une base MySQL de test, et garder un appel réel des routes modifiées à chaque lot.
+
 **Frontend** : aucun test. Vérification actuelle limitée à `npx oxlint`, `npx oxfmt --check` et `quasar build -m pwa`.
 
 ## 2. Outils à ajouter

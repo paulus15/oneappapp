@@ -26,6 +26,12 @@ export const adminLinks = [
     permission: 'catalog.manage'
   },
   {
+    to: '/admin/collections',
+    label: 'Sélections',
+    icon: 'collections_bookmark',
+    permission: 'catalog.manage'
+  },
+  {
     to: '/admin/countries',
     label: 'Pays',
     icon: 'public',
