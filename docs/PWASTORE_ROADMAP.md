@@ -9,21 +9,21 @@ Un lot n'est ✅ que si ses critères d'acceptation sont vérifiés côté Larav
 
 ## Vue d'ensemble
 
-| Lot | Thème                                    | Priorité | Dépend de         | Statut                             |
-| --- | ---------------------------------------- | -------- | ----------------- | ---------------------------------- |
-| 0   | Correctifs de sécurité et socle de tests | P0       | —                 | ✅                                 |
-| 1   | Authentification et compte unique        | P0       | 0                 | ✅                                 |
-| 2   | Activation et vérification développeur   | P1       | 1                 | ✅ (notifications au Lot 10)       |
-| 3   | Catalogue, accueil et fiches             | P1       | 0                 | ✅                                 |
-| 4   | Soumission par URL                       | P1       | 2                 | 🟦 (contrôle et soumission livrés) |
-| 5   | Builds et hébergement isolé              | P1       | 2, décision infra | ⏸                                  |
-| 6   | Administration, modération, statuts      | P0       | 1, 2              | ✅                                 |
-| 7   | Espace utilisateur, avis, signalements   | P1       | 3, 6              | ⬜                                 |
-| 8   | Portail développeur et statistiques      | P2       | 6, 7              | ⬜                                 |
-| 9   | PWA Lab et surveillance                  | P2       | 4                 | ⬜                                 |
-| 10  | Notifications, quotas, facturation       | P2       | 6                 | ⬜                                 |
-| 11  | Motion design, performance, responsive   | P2       | 3                 | ⬜                                 |
-| 12  | Tests finaux, sécurité, déploiement      | P0       | tous              | ⬜                                 |
+| Lot | Thème                                    | Priorité | Dépend de         | Statut                       |
+| --- | ---------------------------------------- | -------- | ----------------- | ---------------------------- |
+| 0   | Correctifs de sécurité et socle de tests | P0       | —                 | ✅                           |
+| 1   | Authentification et compte unique        | P0       | 0                 | ✅                           |
+| 2   | Activation et vérification développeur   | P1       | 1                 | ✅ (notifications au Lot 10) |
+| 3   | Catalogue, accueil et fiches             | P1       | 0                 | ✅                           |
+| 4   | Soumission par URL                       | P1       | 2                 | ✅                           |
+| 5   | Builds et hébergement isolé              | P1       | 2, décision infra | ⏸                            |
+| 6   | Administration, modération, statuts      | P0       | 1, 2              | ✅                           |
+| 7   | Espace utilisateur, avis, signalements   | P1       | 3, 6              | ⬜                           |
+| 8   | Portail développeur et statistiques      | P2       | 6, 7              | ⬜                           |
+| 9   | PWA Lab et surveillance                  | P2       | 4                 | ⬜                           |
+| 10  | Notifications, quotas, facturation       | P2       | 6                 | ⬜                           |
+| 11  | Motion design, performance, responsive   | P2       | 3                 | ⬜                           |
+| 12  | Tests finaux, sécurité, déploiement      | P0       | tous              | ⬜                           |
 
 Ordre d'exécution proposé : **0 → 1 → 6 → 2 → 3 → 4 → 7 → 8 → 10 → 9 → 5 → 11 → 12**.
 Raisons : la machine à états et les permissions (Lot 6) conditionnent la visibilité, les avis, les statistiques et les notifications. Le Lot 5 dépend d'une décision d'infrastructure. Le motion design vient sur des écrans stabilisés.
@@ -105,11 +105,11 @@ Déjà livré : activation gratuite individuelle ou organisation, profil, 5 stat
 
 Déjà livré : choix de la source, contrôle anti-SSRF, rapport, soumission, contrôle quotidien et quarantaine sur changement.
 
-| Fonctionnalité                                                                   | Statut |
-| -------------------------------------------------------------------------------- | ------ |
-| Historique des contrôles (`url_checks`) affiché au développeur et à l'admin      | ⬜     |
-| Assistant de publication en étapes (informations → source → aperçu → soumission) | ⬜     |
-| Aperçu de la fiche avant soumission                                              | ⬜     |
+| Fonctionnalité                                                                                                                               | Statut |
+| -------------------------------------------------------------------------------------------------------------------------------------------- | ------ |
+| Historique des contrôles (`url_checks`) affiché au développeur et à l'admin                                                                  | ✅     |
+| Parcours de publication en étapes sur la page de publication (fiche → source → aperçu → soumission), alimenté par `GET /apps/{id}/readiness` | ✅     |
+| Aperçu de la fiche avant soumission                                                                                                          | ✅     |
 
 **Critères d'acceptation** : le développeur voit chaque contrôle daté et ses résultats ; l'aperçu reflète exactement la fiche publique.
 
@@ -241,3 +241,4 @@ Aucun déploiement public sans validation explicite.
 | 2026-10-12 | 6    | Machine à états (`ApplicationLifecycle`, 9 statuts) avec migration des données (pending→submitted, approved→published, quarantined→suspended), publication séparée de l’approbation, archivage au lieu de la suppression, permissions administrateur granulaires, `audit_logs`, back-office (tableau de bord, applications, utilisateurs, catégories, journal), historique de publication côté développeur                                                                                                                             | `php artisan test` 83/83 ; `npm run test:unit` 15/15 ; oxlint/oxfmt propres ; build PWA OK ; `GET /admin/stats`, `/admin/apps`, `/admin/users`, `/admin/audit-logs` → 200 sur `oneapp.test` (jeton temporaire supprimé). Écrans non vérifiés visuellement |
 | 2026-10-12 | 2    | Page `/developers` (étapes, deux modes de publication, vérification, gratuité), lien depuis l’accueil et la barre de navigation, redirection conservée après inscription, filtres et recherche dans la revue des profils                                                                                                                                                                                                                                                                                                               | `php artisan test` 84/84 ; `npm run test:unit` 15/15 ; oxlint/oxfmt propres ; build PWA OK                                                                                                                                                                |
 | 2026-10-12 | 3    | `/home` (à la une, populaires, nouveautés, récemment mises à jour, sélections, catégories), sélections éditoriales administrables, apps similaires, page éditeur public, formulaire de contact, pages À propos / Aide / CGU / Confidentialité / Règles de publication (brouillons juridiques signalés), pages Catégories, Catégorie et Sélection, pied de page complet, carte d’application partagée. Données inventées retirées de l’accueil (note 5.0 par défaut, tailles fictives, application fictive, « certifié par PWA Store ») | `php artisan test` 88/88 ; `npm run test:unit` 17/17 ; oxlint/oxfmt propres ; build PWA OK ; `GET /home` → 200 sur `oneapp.test` après correction d’un bug visible uniquement sous MySQL (les tests tournent sous SQLite)                                 |
+| 2026-10-12 | 4    | Historique `url_checks` (manuel et automatique, réussites et échecs), contrôle automatique toutes les 6 h avec suspension après deux échecs consécutifs ou sur changement de contenu, exigences de soumission explicites (catégorie, description ≥ 30 caractères, icône, source vérifiée) via `readiness`, parcours de publication et aperçu de la fiche                                                                                                                                                                               | `php artisan test` 91/91 ; `npm run test:unit` 17/17 ; oxlint/oxfmt propres ; build PWA OK ; `GET /apps/{id}/readiness` et `/url-checks` → 200 sur `oneapp.test`                                                                                          |

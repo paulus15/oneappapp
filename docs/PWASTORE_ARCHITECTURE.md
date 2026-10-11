@@ -153,7 +153,7 @@ Cible, sans paquet externe :
 
 ## 8. Publication
 
-**Méthode A — URL** : existant réutilisé. Ajouts : historique `url_checks`, contrôle de disponibilité plus fréquent (toutes les 6 h) avec alerte au développeur au 2e échec consécutif, suspension automatique au changement d'empreinte (existant : quarantaine).
+**Méthode A — URL** (Lot 4) : `UrlMonitor` enregistre chaque contrôle dans `url_checks`. Contrôle automatique toutes les 6 h ; suspension au 2e échec consécutif ou au changement d'empreinte. La notification du développeur arrive avec le Lot 10.
 
 **Méthode B — Build** : existant réutilisé (`PwaPackageAnalyzer`, versions, modération, déploiement, rollback). Prérequis d'infrastructure : `PWA_RUNTIME_DOMAIN`, DNS wildcard, certificat wildcard, vhost qui sert `storage/app/private/<runtime_path>` par sous-domaine. Tant que ce prérequis manque, l'interface indique que l'hébergement n'est pas disponible au lieu d'échouer.
 

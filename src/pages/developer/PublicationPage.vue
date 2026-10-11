@@ -32,6 +32,42 @@
       <q-banner v-if="application.moderation_reason" class="workspace-alert">{{
         application.moderation_reason
       }}</q-banner>
+      <q-card
+        v-if="readiness && editable"
+        flat
+        bordered
+        class="workspace-card q-mb-md"
+      >
+        <h2>Parcours de publication</h2>
+        <ol class="journey">
+          <li
+            v-for="step in steps"
+            :key="step.title"
+            :class="{ done: step.done }"
+          >
+            <q-icon
+              :name="step.done ? 'check_circle' : 'radio_button_unchecked'"
+              :color="step.done ? 'positive' : 'grey-6'"
+            />
+            <div>
+              <strong>{{ step.title }}</strong>
+              <p v-for="gap in step.gaps" :key="gap" class="text-muted">{{
+                gap
+              }}</p>
+            </div>
+            <q-btn
+              v-if="step.action"
+              flat
+              dense
+              no-caps
+              color="primary"
+              :label="step.action.label"
+              :to="step.action.to"
+              @click="step.action.click?.()"
+            />
+          </li>
+        </ol>
+      </q-card>
       <div class="workspace-grid">
         <q-card flat bordered class="workspace-card"
           ><h2>Mode de distribution</h2
@@ -79,6 +115,33 @@
               v-for="warning in application.external_report?.warnings || []"
               :key="warning"
               >{{ warning }}</p
+            ><template v-if="urlChecks.length"
+              ><h3 class="q-mt-md">Historique des contrôles</h3
+              ><q-list dense separator class="rounded-borders"
+                ><q-item v-for="check in urlChecks" :key="check.id"
+                  ><q-item-section avatar
+                    ><q-icon
+                      :name="check.ok ? 'check_circle' : 'error'"
+                      :color="
+                        check.ok ? 'positive' : 'negative'
+                      " /></q-item-section
+                  ><q-item-section
+                    ><q-item-label
+                      >{{ new Date(check.created_at).toLocaleString('fr-FR') }}
+                      ·
+                      {{
+                        check.trigger === 'scheduled'
+                          ? 'contrôle automatique'
+                          : 'contrôle manuel'
+                      }}</q-item-label
+                    ><q-item-label caption>{{
+                      check.ok
+                        ? `${check.manifest_found ? 'Manifeste trouvé' : 'Manifeste absent'}${check.content_changed ? ' · contenu modifié' : ''}`
+                        : check.error
+                    }}</q-item-label></q-item-section
+                  ></q-item
+                ></q-list
+              ></template
             ></template
           >
           <p v-else
@@ -174,6 +237,55 @@
           ></q-card
         >
       </div>
+      <q-dialog v-model="previewOpen" :maximized="$q.screen.lt.sm">
+        <q-card class="preview-card">
+          <q-card-section class="row items-center">
+            <div class="col">
+              <span class="eyebrow">Aperçu de la fiche publique</span>
+            </div>
+            <q-btn flat round icon="close" aria-label="Fermer" v-close-popup />
+          </q-card-section>
+          <q-card-section class="preview-head">
+            <div class="preview-icon">
+              <AppIcon
+                :src="application.icon_url"
+                :alt="`Icône de ${application.name}`"
+                fallback-icon="apps"
+              />
+            </div>
+            <div>
+              <h2>{{ application.name }}</h2>
+              <p class="text-muted"
+                >{{ application.category?.name || 'Sans catégorie' }} ·
+                {{
+                  auth.user?.developer_profile?.public_name || auth.userName
+                }}</p
+              >
+            </div>
+          </q-card-section>
+          <q-card-section>
+            <p v-if="application.short_description">
+              <strong>{{ application.short_description }}</strong>
+            </p>
+            <p class="preview-description">{{
+              application.description || 'Aucune description.'
+            }}</p>
+            <div v-if="screenshots.length" class="preview-shots">
+              <img
+                v-for="(shot, i) in screenshots"
+                :key="shot"
+                :src="resolveMediaUrl(shot)"
+                :alt="`Capture ${i + 1}`"
+                loading="lazy"
+              />
+            </div>
+            <p v-else class="text-muted">Aucune capture d’écran.</p>
+            <p class="text-caption text-muted"
+              >Les notes et avis apparaîtront après publication.</p
+            >
+          </q-card-section>
+        </q-card>
+      </q-dialog>
       <section class="workspace-section"
         ><h2>Versions</h2
         ><p v-if="!application.versions?.length">Aucun build déposé.</p
@@ -250,6 +362,8 @@ import { useQuasar } from 'quasar'
 import { api } from '@/boot/axios'
 import { accountApi, apiMessage } from '@/services/account'
 import { useAuthStore } from '@/stores/auth'
+import AppIcon from '@/components/AppIcon.vue'
+import { resolveMediaUrl } from '@/utils/media'
 import {
   adminDecisions,
   EDITABLE_STATUSES,
@@ -266,6 +380,51 @@ const application = ref(null),
   error = ref('')
 const source = reactive({ source_type: 'build', external_url: '' })
 const events = ref([])
+const readiness = ref(null),
+  urlChecks = ref([]),
+  previewOpen = ref(false)
+const screenshots = computed(() => [
+  ...(application.value?.media?.screenshots?.mobile || []),
+  ...(application.value?.media?.screenshots?.tablet || [])
+])
+const LISTING_GAPS = ['catégorie', 'description', 'icône']
+const steps = computed(() => {
+  const gaps = readiness.value?.gaps || []
+  const listing = gaps.filter(g => LISTING_GAPS.some(k => g.includes(k)))
+  const source = gaps.filter(g => !listing.includes(g))
+  return [
+    {
+      title: 'Compléter la fiche',
+      done: !listing.length,
+      gaps: listing,
+      action: listing.length
+        ? {
+            label: 'Modifier la fiche',
+            to: `/developer/apps/${application.value.id}/edit`
+          }
+        : null
+    },
+    {
+      title:
+        application.value.source_type === 'url'
+          ? 'Vérifier l’URL de la PWA'
+          : 'Déposer un build analysé',
+      done: !source.length,
+      gaps: source
+    },
+    {
+      title: 'Prévisualiser la fiche',
+      done: false,
+      gaps: [],
+      action: { label: 'Aperçu', click: () => (previewOpen.value = true) }
+    },
+    {
+      title: 'Soumettre à la revue',
+      done: false,
+      gaps: readiness.value?.blockers || []
+    }
+  ]
+})
 const versionLabels = {
   pending: 'En attente de revue',
   approved: 'Approuvée',
@@ -300,6 +459,11 @@ async function load() {
       external_url: application.value.external_url || ''
     })
     events.value = (await accountApi.appEvents(route.params.id)).data.data
+    readiness.value = (await accountApi.readiness(route.params.id)).data
+    urlChecks.value =
+      application.value.source_type === 'url'
+        ? (await accountApi.urlChecks(route.params.id)).data.data
+        : []
     stats.value = (await accountApi.analytics(route.params.id)).data
   } catch (e) {
     error.value = apiMessage(e)
@@ -326,11 +490,17 @@ function saveSource() {
     'Mode de distribution enregistré.'
   )
 }
-function checkUrl() {
-  return run(
+async function checkUrl() {
+  await run(
     () => accountApi.checkUrl(application.value.id),
-    'Contrôle de l’URL terminé.'
+    'Contrôle de l’URL réussi.'
   )
+  // A failed check is recorded too: refresh the history, keeping the error shown.
+  if (error.value) {
+    const message = error.value
+    await load()
+    error.value = message
+  }
 }
 function submit() {
   return run(
@@ -402,3 +572,67 @@ function deploy(v) {
 }
 onMounted(load)
 </script>
+<style scoped>
+.journey {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 10px;
+}
+.journey li {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+.journey li > div {
+  flex: 1;
+  min-width: 0;
+}
+.journey p {
+  margin: 2px 0 0;
+  font-size: 13px;
+}
+.journey .q-icon {
+  font-size: 22px;
+  margin-top: 1px;
+}
+.preview-card {
+  width: min(720px, 100vw);
+  max-width: 100vw;
+}
+.preview-head {
+  display: flex;
+  gap: 14px;
+  align-items: center;
+}
+.preview-head h2 {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 750;
+}
+.preview-icon {
+  width: 64px;
+  height: 64px;
+  flex: 0 0 auto;
+  overflow: hidden;
+  border-radius: 14px;
+  display: grid;
+  place-items: center;
+  background: var(--surface-high);
+}
+.preview-description {
+  white-space: pre-line;
+}
+.preview-shots {
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  padding-bottom: 6px;
+}
+.preview-shots img {
+  height: 220px;
+  border-radius: 12px;
+  border: 1px solid var(--outline);
+}
+</style>
