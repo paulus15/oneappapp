@@ -44,6 +44,10 @@ const routes = [
         component: () => import('@/pages/store/AppListPage.vue')
       },
       {
+        path: 'developers',
+        component: () => import('@/pages/store/DevelopersPortalPage.vue')
+      },
+      {
         path: 'apps/:id',
         component: () => import('@/pages/store/AppDetailsPage.vue')
       },

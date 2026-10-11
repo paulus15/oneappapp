@@ -124,9 +124,7 @@
         </div>
 
         <nav class="top-links gt-md" aria-label="Liens secondaires">
-          <router-link v-if="!isMobile" to="/developer/activate"
-            >Développeurs</router-link
-          >
+          <router-link to="/developers">Développeurs</router-link>
           <router-link to="/">Apps</router-link>
           <a href="#features">Documentation</a>
         </nav>

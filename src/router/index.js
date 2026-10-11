@@ -74,6 +74,7 @@ export default defineRouter((/* { store, ssrContext } */) => {
       '/admin': 'Administration',
       '/account': 'Mon compte',
       '/developer/activate': 'Devenir développeur',
+      '/developers': 'Portail développeur',
       '/developer/profile': 'Profil développeur et quotas',
       '/admin/developers': 'Vérification des développeurs',
       '/admin/countries': 'Répartition par pays',

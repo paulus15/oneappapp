@@ -17,7 +17,8 @@ export const accountApi = {
   submitProfile: () => api.post('/developer/profile/submit'),
   uploadIdentity: form => api.post('/developer/profile/identity', form),
   quotas: () => api.get('/developer/quotas'),
-  developers: (page = 1) => api.get('/admin/developers', { params: { page } }),
+  developers: (page = 1, filters = {}) =>
+    api.get('/admin/developers', { params: { page, ...filters } }),
   reviewDeveloper: (id, data) =>
     api.post(`/admin/developers/${id}/review`, data),
   source: (id, data) => api.put(`/apps/${id}/source`, data),

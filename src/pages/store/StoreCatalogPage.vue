@@ -425,6 +425,7 @@
               label="Devenir développeur"
               to="/developer/activate"
             />
+            <q-btn flat no-caps label="En savoir plus" to="/developers" />
           </section>
 
           <section id="trending" class="glass-panel side-card trending-card">

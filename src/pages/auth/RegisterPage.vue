@@ -122,11 +122,12 @@
 <script setup>
 import { ref } from 'vue'
 import CountrySelect from '@/components/CountrySelect.vue'
-import { useRouter } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 
 const authStore = useAuthStore()
 const router = useRouter()
+const route = useRoute()
 
 const countryId = ref(null)
 const twoFactorEnabled = ref(false)
@@ -151,7 +152,10 @@ async function onSubmit() {
       twoFactorEnabled.value
     )
     if (success) {
-      router.push('/verify-email')
+      router.push({
+        path: '/verify-email',
+        query: { redirect: route.query.redirect }
+      })
     }
   } catch (err) {
     error.value = authStore.error || "Erreur lors de l'inscription"

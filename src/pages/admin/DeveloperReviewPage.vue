@@ -9,6 +9,31 @@
       ></header
     >
     <AdminNav />
+    <div class="row q-col-gutter-sm q-mb-md">
+      <div class="col-12 col-md-5"
+        ><q-input
+          v-model="filters.search"
+          outlined
+          dense
+          clearable
+          debounce="400"
+          label="Nom ou e-mail"
+          @update:model-value="reload"
+          ><template #prepend><q-icon name="search" /></template></q-input
+      ></div>
+      <div class="col-12 col-md-4"
+        ><q-select
+          v-model="filters.status"
+          :options="statusOptions"
+          emit-value
+          map-options
+          clearable
+          outlined
+          dense
+          label="Statut"
+          @update:model-value="reload"
+      /></div>
+    </div>
     <q-banner v-if="error" class="workspace-alert" role="alert"
       >{{ error
       }}<template #action
@@ -72,7 +97,7 @@
 import AdminNav from '@/components/AdminNav.vue'
 import DeveloperDocuments from '@/components/DeveloperDocuments.vue'
 import { identityLabels } from '@/utils/identity'
-import { onMounted, ref } from 'vue'
+import { onMounted, reactive, ref } from 'vue'
 import { useQuasar } from 'quasar'
 import { accountApi, apiMessage } from '@/services/account'
 const q = useQuasar(),
@@ -102,11 +127,23 @@ const transitions = {
   rejected: ['draft', 'suspended'],
   suspended: ['draft']
 }
+const filters = reactive({ status: null, search: '' })
+const statusOptions = Object.entries(labels).map(([value, label]) => ({
+  value,
+  label
+}))
+function reload() {
+  page.value = 1
+  return load()
+}
 async function load() {
   loading.value = true
   error.value = ''
   try {
-    const { data } = await accountApi.developers(page.value)
+    const { data } = await accountApi.developers(page.value, {
+      status: filters.status || undefined,
+      search: filters.search || undefined
+    })
     profiles.value = data.data
     lastPage.value = data.last_page
   } catch (e) {
