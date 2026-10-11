@@ -27,9 +27,6 @@
           Store Security) et Analytics (PWA Store Analytics)
         </div>
       </div>
-      <div class="system-status"
-        ><span /> Tous les services sont opérationnels</div
-      >
     </div>
 
     <div v-if="loading" class="row justify-center q-my-xl">
@@ -115,6 +112,16 @@
               </q-item-section>
             </q-item>
           </q-list>
+          <p v-if="!apps.length" class="text-white q-mt-md"
+            >Aucune application à modérer.</p
+          >
+          <q-pagination
+            v-if="lastPage > 1"
+            v-model="page"
+            :max="lastPage"
+            class="q-mt-md"
+            @update:model-value="fetchApps"
+          />
         </q-card>
       </div>
 
@@ -282,6 +289,8 @@ import AppIcon from '@/components/AppIcon.vue'
 
 const $q = useQuasar()
 const apps = ref([])
+const page = ref(1)
+const lastPage = ref(1)
 const loading = ref(true)
 
 const selectedApp = ref(null)
@@ -292,8 +301,11 @@ const trustScoreSlider = ref(100)
 async function fetchApps() {
   loading.value = true
   try {
-    const response = await api.get('/admin/apps')
-    apps.value = response.data
+    const { data } = await api.get('/admin/apps', {
+      params: { page: page.value }
+    })
+    apps.value = data.data
+    lastPage.value = data.last_page
   } catch (err) {
     console.error('Error fetching admin apps', err)
   } finally {

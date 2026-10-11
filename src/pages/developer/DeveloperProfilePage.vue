@@ -217,7 +217,9 @@
                   map-options
                   outlined
                   label="Type de pièce"
-                  :rules="[v => !!v || 'Choisissez un type de pièce']" /><q-input
+                  :rules="[
+                    v => !!v || 'Choisissez un type de pièce'
+                  ]" /><q-input
                   v-model="identity.expires_at"
                   type="date"
                   outlined

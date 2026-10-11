@@ -8,6 +8,7 @@ import {
 
 import routes from './routes.js'
 import { useAuthStore } from '@/stores/auth'
+import { resolveAccess } from './guards.js'
 
 /*
  * If not building with SSR mode, you can
@@ -55,14 +56,7 @@ export default defineRouter((/* { store, ssrContext } */) => {
         if (to.meta.requiresAuth && to.path !== '/account') return '/account'
       }
     }
-    if (to.meta.guestOnly && auth.isAuthenticated) return '/account'
-    if (to.meta.requiresAuth && !auth.isAuthenticated)
-      return { path: '/login', query: { redirect: to.fullPath } }
-    if (mobileView?.matches && to.path.startsWith('/developer'))
-      return '/account'
-    if (to.meta.adminOnly && !auth.isAdmin) return '/account'
-    if (to.meta.developerOnly && !auth.isDeveloper) return '/developer/activate'
-    return true
+    return resolveAccess(to, auth, { isMobile: !!mobileView?.matches })
   })
 
   Router.afterEach(to => {

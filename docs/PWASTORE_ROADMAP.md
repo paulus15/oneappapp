@@ -11,7 +11,7 @@ Un lot n'est ✅ que si ses critères d'acceptation sont vérifiés côté Larav
 
 | Lot | Thème                                    | Priorité | Dépend de         | Statut                                                  |
 | --- | ---------------------------------------- | -------- | ----------------- | ------------------------------------------------------- |
-| 0   | Correctifs de sécurité et socle de tests | P0       | —                 | ⬜                                                      |
+| 0   | Correctifs de sécurité et socle de tests | P0       | —                 | ✅                                                      |
 | 1   | Authentification et compte unique        | P0       | 0                 | 🟦 (inscription, OTP, 2FA, e-mail livrés)               |
 | 2   | Activation et vérification développeur   | P1       | 1                 | 🟦 (activation, vérification, pièce d'identité livrées) |
 | 3   | Catalogue, accueil et fiches             | P1       | 0                 | ⬜                                                      |
@@ -32,17 +32,18 @@ Raisons : la machine à états et les permissions (Lot 6) conditionnent la visib
 
 ## Lot 0 — Correctifs de sécurité et socle de tests (P0)
 
-| Fonctionnalité                                                                   | Constat | Statut |
-| -------------------------------------------------------------------------------- | ------- | ------ |
-| Désactiver l'envoi push simulé (410)                                             | D1      | ⬜     |
-| Analytics : apps publiées seulement, throttle, déduplication                     | D2      | ⬜     |
-| Portée de visibilité publique unique (catalogue, fiche, launch, install-intents) | D4      | ⬜     |
-| Avis : e-mail vérifié, 2000 car., throttle                                       | D5      | ⬜     |
-| Catégorie utilisée non supprimable                                               | D7      | ⬜     |
-| Pagination `GET /admin/apps`                                                     | D8      | ⬜     |
-| Suppression du N+1 des notes                                                     | D9      | ⬜     |
-| Installer Vitest et Playwright, premiers tests du store `auth` et des gardes     | —       | ⬜     |
-| Reformater avec oxfmt les 3 fichiers signalés                                    | D12     | ⬜     |
+| Fonctionnalité                                                                          | Constat | Statut |
+| --------------------------------------------------------------------------------------- | ------- | ------ |
+| Désactiver l'envoi push simulé (410)                                                    | D1      | ✅     |
+| Analytics : apps publiées seulement, throttle, déduplication                            | D2      | ✅     |
+| Portée de visibilité publique unique (catalogue, fiche, launch, install-intents)        | D4      | ✅     |
+| Avis : e-mail vérifié, 2000 car., throttle                                              | D5      | ✅     |
+| Catégorie utilisée non supprimable                                                      | D7      | ✅     |
+| Pagination `GET /admin/apps`                                                            | D8      | ✅     |
+| Suppression du N+1 des notes                                                            | D9      | ✅     |
+| Installer Vitest (Playwright au Lot 12), premiers tests du store `auth` et des gardes   | —       | ✅     |
+| Reformater avec oxfmt les 3 fichiers signalés                                           | D12     | ✅     |
+| Retrait du faux indicateur « Tous les services sont opérationnels » de la console admin | —       | ✅     |
 
 **Critères d'acceptation**
 
@@ -231,7 +232,8 @@ Aucun déploiement public sans validation explicite.
 
 ## Journal
 
-| Date       | Lot  | Événement                                                                                                                   | Vérification                                        |
-| ---------- | ---- | --------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------- |
-| 2026-10-11 | 1, 2 | Country, OTP e-mail, 2FA, tableau de bord développeur, pièce d'identité obligatoire (backend `a61010e`, frontend `e7bd455`) | `php artisan test` 59/59 ; `quasar build -m pwa` OK |
-| 2026-10-11 | —    | Audit et planification (ces documents)                                                                                      | Inspection du code ; aucune modification de code    |
+| Date       | Lot  | Événement                                                                                                                                                                                                                                                                              | Vérification                                                                                                                                                                                                                    |
+| ---------- | ---- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 2026-10-11 | 1, 2 | Country, OTP e-mail, 2FA, tableau de bord développeur, pièce d'identité obligatoire (backend `a61010e`, frontend `e7bd455`)                                                                                                                                                            | `php artisan test` 59/59 ; `quasar build -m pwa` OK                                                                                                                                                                             |
+| 2026-10-11 | —    | Audit et planification (ces documents)                                                                                                                                                                                                                                                 | Inspection du code ; aucune modification de code                                                                                                                                                                                |
+| 2026-10-11 | 0    | Visibilité publique unique (éditeur vérifié requis), push simulé désactivé (410), analytics restreints + dédupliqués + throttle, avis (e-mail vérifié, 2000 car., throttle), catégorie utilisée protégée, `/admin/apps` paginé, N+1 supprimé, Vitest installé, garde de route extraite | `php artisan test` 67/67 ; `npm run test:unit` 8/8 ; `npx oxlint` et `npx oxfmt --check` propres ; `quasar build -m pwa` OK. Conséquence : 0 app publique sur 10 approuvées en local tant que les éditeurs ne sont pas vérifiés |

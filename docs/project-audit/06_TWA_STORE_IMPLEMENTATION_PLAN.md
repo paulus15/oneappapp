@@ -526,19 +526,19 @@ Une sauvegarde SQL privée de la base locale a été créée avant la tentative 
 
 ### Contrats API ajoutés ou adaptés
 
-| Parcours                 | Endpoints                                                                                                                  |
-| ------------------------ | -------------------------------------------------------------------------------------------------------------------------- |
-| Compte                   | `POST /auth/register`, `POST /auth/login`, `GET /auth/me`, `PUT /account`                                                  |
-| E-mail                   | `POST /auth/email/resend`, `POST /auth/otp/verify`, `POST /auth/otp/resend` ; ancien lien signé supprimé                   |
-| Favoris                  | `GET /favorites`, `PUT /favorites/{application}`, `DELETE /favorites/{application}`                                        |
+| Parcours                 | Endpoints                                                                                                                                               |
+| ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Compte                   | `POST /auth/register`, `POST /auth/login`, `GET /auth/me`, `PUT /account`                                                                               |
+| E-mail                   | `POST /auth/email/resend`, `POST /auth/otp/verify`, `POST /auth/otp/resend` ; ancien lien signé supprimé                                                |
+| Favoris                  | `GET /favorites`, `PUT /favorites/{application}`, `DELETE /favorites/{application}`                                                                     |
 | Développeur              | `POST /developer/activate`, `GET/PUT /developer/profile`, `POST /developer/profile/submit`, `POST /developer/profile/identity`, `GET /developer/quotas` |
-| Revue éditeur            | `GET /admin/developers`, `POST /admin/developers/{profile}/review`                                                         |
-| Justificatifs            | `GET/POST /developer-profiles/{profile}/documents`, `POST/GET/DELETE /developer-documents/{document}`                      |
-| Distribution             | `PUT /apps/{application}/source`, `POST /apps/{application}/check-url`, `POST /apps/{application}/submit`                  |
-| Revue produit/version    | `POST /admin/apps/{application}/review`, `POST /admin/versions/{version}/review`                                           |
-| Publication et ouverture | `POST /versions/{version}/extract` réservé à la publication ; `GET /apps/{application}/launch` pour l’ouverture publique   |
-| Médias                   | `GET /media/screenshots/{file}` ; fichiers reçus par `POST/PUT /apps`                                                      |
-| Compatibilité            | API applications, versions, bibliothèque/installations, téléchargements et intentions adaptées aux états publiés/autorisés |
+| Revue éditeur            | `GET /admin/developers`, `POST /admin/developers/{profile}/review`                                                                                      |
+| Justificatifs            | `GET/POST /developer-profiles/{profile}/documents`, `POST/GET/DELETE /developer-documents/{document}`                                                   |
+| Distribution             | `PUT /apps/{application}/source`, `POST /apps/{application}/check-url`, `POST /apps/{application}/submit`                                               |
+| Revue produit/version    | `POST /admin/apps/{application}/review`, `POST /admin/versions/{version}/review`                                                                        |
+| Publication et ouverture | `POST /versions/{version}/extract` réservé à la publication ; `GET /apps/{application}/launch` pour l’ouverture publique                                |
+| Médias                   | `GET /media/screenshots/{file}` ; fichiers reçus par `POST/PUT /apps`                                                                                   |
+| Compatibilité            | API applications, versions, bibliothèque/installations, téléchargements et intentions adaptées aux états publiés/autorisés                              |
 
 Les chemins du tableau sont préfixés par `/api`. Les détails d’authentification, validations et réponses restent dans les contrôleurs et les tests livrés ; aucune deuxième authentification n’a été introduite.
 
