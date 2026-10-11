@@ -72,6 +72,7 @@ export default defineRouter((/* { store, ssrContext } */) => {
       '/developer': 'Espace développeur',
       '/developer/stats': 'Statistiques',
       '/developer/reviews': 'Avis et retours',
+      '/developer/lab': 'PWA Lab',
       '/developer/apps/create': 'Publier une application',
       '/admin': 'Administration',
       '/account': 'Mon compte',

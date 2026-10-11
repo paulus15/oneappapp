@@ -9,21 +9,21 @@ Un lot n'est ✅ que si ses critères d'acceptation sont vérifiés côté Larav
 
 ## Vue d'ensemble
 
-| Lot | Thème                                    | Priorité | Dépend de         | Statut                       |
-| --- | ---------------------------------------- | -------- | ----------------- | ---------------------------- |
-| 0   | Correctifs de sécurité et socle de tests | P0       | —                 | ✅                           |
-| 1   | Authentification et compte unique        | P0       | 0                 | ✅                           |
-| 2   | Activation et vérification développeur   | P1       | 1                 | ✅ (notifications au Lot 10) |
-| 3   | Catalogue, accueil et fiches             | P1       | 0                 | ✅                           |
-| 4   | Soumission par URL                       | P1       | 2                 | ✅                           |
-| 5   | Builds et hébergement isolé              | P1       | 2, décision infra | ⏸                            |
-| 6   | Administration, modération, statuts      | P0       | 1, 2              | ✅                           |
-| 7   | Espace utilisateur, avis, signalements   | P1       | 3, 6              | ✅                           |
-| 8   | Portail développeur et statistiques      | P2       | 6, 7              | ✅                           |
-| 9   | PWA Lab et surveillance                  | P2       | 4                 | ⬜                           |
-| 10  | Notifications, quotas, facturation       | P2       | 6                 | ✅ (facturation reportée)    |
-| 11  | Motion design, performance, responsive   | P2       | 3                 | ⬜                           |
-| 12  | Tests finaux, sécurité, déploiement      | P0       | tous              | ⬜                           |
+| Lot | Thème                                    | Priorité | Dépend de         | Statut                             |
+| --- | ---------------------------------------- | -------- | ----------------- | ---------------------------------- |
+| 0   | Correctifs de sécurité et socle de tests | P0       | —                 | ✅                                 |
+| 1   | Authentification et compte unique        | P0       | 0                 | ✅                                 |
+| 2   | Activation et vérification développeur   | P1       | 1                 | ✅ (notifications au Lot 10)       |
+| 3   | Catalogue, accueil et fiches             | P1       | 0                 | ✅                                 |
+| 4   | Soumission par URL                       | P1       | 2                 | ✅                                 |
+| 5   | Builds et hébergement isolé              | P1       | 2, décision infra | ⏸                                  |
+| 6   | Administration, modération, statuts      | P0       | 1, 2              | ✅                                 |
+| 7   | Espace utilisateur, avis, signalements   | P1       | 3, 6              | ✅                                 |
+| 8   | Portail développeur et statistiques      | P2       | 6, 7              | ✅                                 |
+| 9   | PWA Lab et surveillance                  | P2       | 4                 | ✅ (Lighthouse en attente d’infra) |
+| 10  | Notifications, quotas, facturation       | P2       | 6                 | ✅ (facturation reportée)          |
+| 11  | Motion design, performance, responsive   | P2       | 3                 | ⬜                                 |
+| 12  | Tests finaux, sécurité, déploiement      | P0       | tous              | ⬜                                 |
 
 Ordre d'exécution proposé : **0 → 1 → 6 → 2 → 3 → 4 → 7 → 8 → 10 → 9 → 5 → 11 → 12**.
 Raisons : la machine à états et les permissions (Lot 6) conditionnent la visibilité, les avis, les statistiques et les notifications. Le Lot 5 dépend d'une décision d'infrastructure. Le motion design vient sur des écrans stabilisés.
@@ -170,12 +170,12 @@ Déjà livré : upload, analyse ZIP, versions, modération, déploiement, rollba
 
 ## Lot 9 — PWA Lab et surveillance (P2)
 
-| Fonctionnalité                                                           | Statut           |
-| ------------------------------------------------------------------------ | ---------------- |
-| Analyse à la demande d'une URL (réutilise `ExternalPwaChecker`)          | ⬜               |
-| Rapport : conformes, problèmes, recommandations ; historique             | ⬜               |
-| Surveillance plus fréquente des apps URL publiées, alerte au développeur | ⬜               |
-| Performance / accessibilité via Lighthouse                               | ⏸ infra headless |
+| Fonctionnalité                                                                          | Statut           |
+| --------------------------------------------------------------------------------------- | ---------------- |
+| Analyse à la demande d'une URL (réutilise `ExternalPwaChecker`)                         | ✅               |
+| Rapport : conformes, problèmes, recommandations ; historique                            | ✅               |
+| Surveillance plus fréquente des apps URL publiées, alerte au développeur (Lots 4 et 10) | ✅               |
+| Performance / accessibilité via Lighthouse                                              | ⏸ infra headless |
 
 **Critères d'acceptation** : le rapport ne se présente jamais comme une certification de sécurité.
 
@@ -245,3 +245,4 @@ Aucun déploiement public sans validation explicite.
 | 2026-10-12 | 7    | Avis paginés avec répartition des notes, tri, modification et suppression ; réponse de l’éditeur ; un avis par compte (contrainte unique) ; avis masqués exclus des notes ; signalements d’applications et d’avis (dédupliqués) avec traitement admin ; modération des avis ; préférences (consultations récentes à consentement, notifications) ; export JSON des données ; pages admin Signalements et Avis                                                                                                                          | `php artisan test` 96/96 ; `npm run test:unit` 17/17 ; oxlint/oxfmt propres ; build PWA OK ; 6 routes du lot → 200 sur `oneapp.test` (MySQL)                                                                                                              |
 | 2026-10-12 | 8    | Vues de fiche comptées (une par visiteur et par heure, hors éditeur et administrateurs, `application_daily_views`), `GET /developer/stats` (7/30/90 jours, par application) séparant vues, ouvertures et installations déclarées, note moyenne, répartition, signalements ouverts ; boîte « Avis et retours » ; page Statistiques (indicateurs, petits multiples, vue tableau, répartition des notes, tableau par application) ; couleurs de graphique validées (contraste ≥ 3:1 clair et sombre)                                      | `php artisan test` 99/99 ; `npm run test:unit` 18/18 ; oxlint/oxfmt propres ; build PWA OK ; graphique rendu dans Chrome sans recouvrement en thème clair et sombre ; 3 routes → 200 et upsert des vues vérifié sous MySQL (transaction annulée)          |
 | 2026-10-12 | 10   | Notifications in-app (synchrones) et e-mail (file d’attente) pour bienvenue, activation, vérification, décisions d’application et de version, indisponibilité, avis, signalements, suspension, mot de passe, quota ; préférences respectées sauf sécurité ; anti-doublon 10 min ; résumé quotidien des avis ; cloche et page Notifications ; paramètres admin (quotas, contribution, devise) audités, paiements toujours désactivés. Faux indicateur de notification (pastille rouge permanente) retiré                                | `php artisan test` 104/104 ; `npm run test:unit` 19/19 ; oxlint/oxfmt propres ; build PWA OK ; 4 routes → 200 sur `oneapp.test` ; 5 tâches planifiées listées                                                                                             |
+| 2026-10-12 | 9    | PWA Lab : analyse statique d’une URL via le client anti-SSRF (accès, métadonnées, manifeste, icônes, mode d’affichage, service worker détectable, viewport, langue, textes alternatifs, poids HTML, temps de réponse), score technique et verdict d’installation avec leurs limites, historique par développeur ; correctif PHP 8.5 (`curl_close` déprécié)                                                                                                                                                                            | `php artisan test` 107/107 ; build PWA OK ; analyse réelle de https://squoosh.app/ : 95/100, installable, résultats cohérents                                                                                                                             |

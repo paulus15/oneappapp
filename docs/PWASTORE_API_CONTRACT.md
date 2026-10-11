@@ -126,9 +126,9 @@ Auth : `—` public · `U` compte connecté · `D` profil développeur · `A` ad
 
 | Méthode | Route                | Auth | Statut | Notes                                                                                                                                     |
 | ------- | -------------------- | ---- | ------ | ----------------------------------------------------------------------------------------------------------------------------------------- |
-| POST    | `/lab/analyses`      | D    | N (9)  | `url` → rapport : HTTPS, manifeste, icônes, service worker déclaré, métadonnées, critères d'installation, recommandations. Throttle 5/min |
-| GET     | `/lab/analyses`      | D    | N (9)  | Historique de l'utilisateur                                                                                                               |
-| GET     | `/lab/analyses/{id}` | D    | N (9)  |                                                                                                                                           |
+| POST    | `/lab/analyses`      | D    | E      | `url` → rapport : HTTPS, manifeste, icônes, service worker déclaré, métadonnées, critères d'installation, recommandations. Throttle 5/min |
+| GET     | `/lab/analyses`      | D    | E      | Historique de l'utilisateur                                                                                                               |
+| GET     | `/lab/analyses/{id}` | D    | E      |                                                                                                                                           |
 
 Performance et accessibilité nécessitent un navigateur headless (Lighthouse). Hors périmètre tant que l'infrastructure n'est pas décidée ; le rapport l'indique.
 

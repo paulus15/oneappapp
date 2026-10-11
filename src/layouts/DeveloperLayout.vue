@@ -174,6 +174,7 @@ const workspaceNavigation = [
   { label: 'Builds & versions', icon: 'inventory_2', disabled: true },
   { label: 'Statistiques', icon: 'insights', to: '/developer/stats' },
   { label: 'Avis et retours', icon: 'reviews', to: '/developer/reviews' },
+  { label: 'PWA Lab', icon: 'science', to: '/developer/lab' },
   { label: 'Revenus', icon: 'account_balance_wallet', disabled: true }
 ]
 
