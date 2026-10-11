@@ -46,6 +46,28 @@
           ></q-card
         >
         <q-card flat bordered class="workspace-card"
+          ><h2>Audience (30 jours)</h2
+          ><p
+            >{{ summary.views_30_days }} vue(s) de fiche ·
+            {{ summary.reviews }} avis<span v-if="summary.reviews">
+              · note {{ summary.average_rating }}/5</span
+            ></p
+          ><p v-if="summary.open_reports" class="text-negative"
+            >{{ summary.open_reports }} signalement(s) en cours d’examen</p
+          ><div class="workspace-actions"
+            ><q-btn
+              flat
+              no-caps
+              color="primary"
+              label="Statistiques"
+              to="/developer/stats" /><q-btn
+              flat
+              no-caps
+              color="primary"
+              label="Avis et retours"
+              to="/developer/reviews" /></div
+        ></q-card>
+        <q-card flat bordered class="workspace-card"
           ><h2>{{ summary.total_versions }} version(s)</h2
           ><p
             >{{ summary.installed_records }} installation(s) déclarée(s) ·

@@ -70,6 +70,8 @@ export default defineRouter((/* { store, ssrContext } */) => {
       '/forgot-password': 'Mot de passe oublié',
       '/verify-email': 'Code de confirmation',
       '/developer': 'Espace développeur',
+      '/developer/stats': 'Statistiques',
+      '/developer/reviews': 'Avis et retours',
       '/developer/apps/create': 'Publier une application',
       '/admin': 'Administration',
       '/account': 'Mon compte',

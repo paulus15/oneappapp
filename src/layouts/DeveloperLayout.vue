@@ -172,12 +172,8 @@ const workspaceNavigation = [
   { label: 'Vue d’ensemble', icon: 'space_dashboard', to: '/developer' },
   { label: 'Mes applications', icon: 'apps', disabled: true },
   { label: 'Builds & versions', icon: 'inventory_2', disabled: true },
-  {
-    label: 'Statistiques',
-    icon: 'insights',
-    disabled: true,
-    badge: 'Bientôt'
-  },
+  { label: 'Statistiques', icon: 'insights', to: '/developer/stats' },
+  { label: 'Avis et retours', icon: 'reviews', to: '/developer/reviews' },
   { label: 'Revenus', icon: 'account_balance_wallet', disabled: true }
 ]
 

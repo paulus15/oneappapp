@@ -25,6 +25,9 @@ body {
   --pwa-muted: #64748b;
   --pwa-border: #dde5f2;
   --pwa-link: #075bff;
+  // Chart mark validated (dataviz validator) against the light card surface.
+  --pwa-chart-mark: #075bff;
+  --pwa-chart-grid: #dde5f2;
   --pwa-primary-soft: #e8efff;
   --pwa-surface-high: #edf2fb;
   --pwa-surface-highest: #e0e9f8;
@@ -54,6 +57,9 @@ body.body--dark {
   --pwa-muted: #aabbd7;
   --pwa-border: #2d4163;
   --pwa-link: #87b5ff;
+  // #075bff falls to 2.92:1 on #142343; this lighter step passes 3:1.
+  --pwa-chart-mark: #4d8bff;
+  --pwa-chart-grid: #2d4163;
   --pwa-primary-soft: #18366b;
   --pwa-surface-high: #1c3053;
   --pwa-surface-highest: #273d60;

@@ -210,6 +210,16 @@ const routes = [
         meta: { requiresAuth: true, developerOnly: true }
       },
       {
+        path: 'stats',
+        component: () => import('@/pages/developer/DeveloperStatsPage.vue'),
+        meta: { requiresAuth: true, developerOnly: true }
+      },
+      {
+        path: 'reviews',
+        component: () => import('@/pages/developer/DeveloperReviewsPage.vue'),
+        meta: { requiresAuth: true, developerOnly: true }
+      },
+      {
         path: 'apps/create',
         component: () => import('@/pages/developer/CreateAppPage.vue'),
         meta: { requiresAuth: true, developerOnly: true }

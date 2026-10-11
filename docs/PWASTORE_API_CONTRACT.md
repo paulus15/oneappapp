@@ -43,21 +43,23 @@ Auth : `—` public · `U` compte connecté · `D` profil développeur · `A` ad
 
 ## 2. Éditeurs
 
-| Méthode             | Route                                     | Auth                  | Statut | Notes                                                 |
-| ------------------- | ----------------------------------------- | --------------------- | ------ | ----------------------------------------------------- |
-| POST                | `/developer/activate`                     | U                     | E      | `type: individual\|organization`, idempotent          |
-| GET                 | `/developer/profile`                      | U                     | E      | Profil + historique                                   |
-| PUT                 | `/developer/profile`                      | D                     | E      | Statuts `draft`, `rejected` uniquement                |
-| POST                | `/developer/profile/identity`             | D                     | E      | Multipart `type, expires_at, file`                    |
-| POST                | `/developer/profile/submit`               | D                     | E      | Profil complet + pièce valide + e-mail vérifié        |
-| GET                 | `/developer/dashboard`                    | D                     | E\*    | À enrichir : vues, avis, signalements (Lot 8)         |
-| GET                 | `/developer/quotas`                       | U                     | E      |                                                       |
-| GET                 | `/publishers/{id}`                        | —                     | E      | Profil public : nom public, pays, site, apps publiées |
-| GET                 | `/developer-profiles/{profile}/documents` | U/A                   | E      | Propriétaire ou admin                                 |
-| POST                | `/developer-profiles/{profile}/documents` | A `developers.review` | E      | Demande motivée                                       |
-| POST / GET / DELETE | `/developer-documents/{document}`         | U/A                   | E      | Dépôt, téléchargement journalisé, suppression         |
-| GET                 | `/admin/developers`                       | A `developers.review` | E\*    | À ajouter : filtre par statut, recherche (Lot 6)      |
-| POST                | `/admin/developers/{profile}/review`      | A `developers.review` | E      | `status, reason`                                      |
+| Méthode             | Route                                     | Auth                  | Statut | Notes                                                                                                                                                    |
+| ------------------- | ----------------------------------------- | --------------------- | ------ | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| POST                | `/developer/activate`                     | U                     | E      | `type: individual\|organization`, idempotent                                                                                                             |
+| GET                 | `/developer/profile`                      | U                     | E      | Profil + historique                                                                                                                                      |
+| PUT                 | `/developer/profile`                      | D                     | E      | Statuts `draft`, `rejected` uniquement                                                                                                                   |
+| POST                | `/developer/profile/identity`             | D                     | E      | Multipart `type, expires_at, file`                                                                                                                       |
+| POST                | `/developer/profile/submit`               | D                     | E      | Profil complet + pièce valide + e-mail vérifié                                                                                                           |
+| GET                 | `/developer/dashboard`                    | D                     | E\*    | À enrichir : vues, avis, signalements (Lot 8)                                                                                                            |
+| GET                 | `/developer/stats`                        | D                     | E      | `days` 7/30/90, `application_id?` ; totaux, série quotidienne (vues, ouvertures, installations déclarées), répartition des notes, détail par application |
+| GET                 | `/developer/reviews`                      | D                     | E      | Avis reçus sur ses applications ; `application_id?`, `unanswered?`                                                                                       |
+| GET                 | `/developer/quotas`                       | U                     | E      |                                                                                                                                                          |
+| GET                 | `/publishers/{id}`                        | —                     | E      | Profil public : nom public, pays, site, apps publiées                                                                                                    |
+| GET                 | `/developer-profiles/{profile}/documents` | U/A                   | E      | Propriétaire ou admin                                                                                                                                    |
+| POST                | `/developer-profiles/{profile}/documents` | A `developers.review` | E      | Demande motivée                                                                                                                                          |
+| POST / GET / DELETE | `/developer-documents/{document}`         | U/A                   | E      | Dépôt, téléchargement journalisé, suppression                                                                                                            |
+| GET                 | `/admin/developers`                       | A `developers.review` | E\*    | À ajouter : filtre par statut, recherche (Lot 6)                                                                                                         |
+| POST                | `/admin/developers/{profile}/review`      | A `developers.review` | E      | `status, reason`                                                                                                                                         |
 
 ## 3. Catalogue public
 
@@ -69,7 +71,7 @@ Auth : `—` public · `U` compte connecté · `D` profil développeur · `A` ad
 | GET        | `/apps/{id}/reviews`                           | —    | E      | Avis visibles paginés + réponse développeur                                                                  |
 | GET        | `/apps/{id}/similar`                           | —    | E      | Même catégorie, publiées                                                                                     |
 | GET        | `/apps/{application}/launch`                   | —    | E      | URL d'ouverture                                                                                              |
-| POST       | `/apps/{id}/views`                             | —    | N (8)  | Vue de fiche, dédupliquée par appareil et par heure                                                          |
+| POST       | `/apps/{id}/views`                             | —    | E      | Vue de fiche, dédupliquée par appareil et par heure                                                          |
 | GET        | `/home`                                        | —    | E      | Sections d'accueil : mises en avant, nouveautés, populaires, récemment mises à jour, collections, catégories |
 | GET        | `/categories`                                  | —    | E      | `?all=1` pour l'admin                                                                                        |
 | GET        | `/categories/{id\|slug}`                       | —    | E      |                                                                                                              |
