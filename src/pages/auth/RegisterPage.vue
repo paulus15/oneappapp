@@ -143,8 +143,12 @@ async function onSubmit() {
       countryId.value,
       twoFactorEnabled.value
     )
-    if (success) {
+    if (success?.requires_otp) {
       router.push('/verify-email')
+    } else if (success?.requires_email_verification) {
+      error.value = 'Compte créé. Consultez votre e-mail pour confirmer votre adresse avant de vous connecter.'
+    } else if (success?.access_token) {
+      router.push('/account')
     }
   } catch (err) {
     error.value = authStore.error || "Erreur lors de l'inscription"
