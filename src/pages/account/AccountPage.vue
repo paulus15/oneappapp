@@ -51,6 +51,7 @@
               required
             />
             <q-toggle v-model="form.two_factor_enabled" label="Double authentification par e-mail" />
+            <q-input v-model="form.current_password" type="password" autocomplete="current-password" outlined label="Mot de passe actuel (pour modifier la sécurité)" />
             <q-btn
               type="submit"
               no-caps
@@ -149,7 +150,7 @@ import { accountApi, apiMessage } from '@/services/account'
 import { useAuthStore } from '@/stores/auth'
 const auth = useAuthStore(),
   q = useQuasar()
-const form = reactive({ name: '', email: '', two_factor_enabled: false, two_factor_channel: 'email' })
+const form = reactive({ name: '', email: '', two_factor_enabled: false, two_factor_channel: 'email', current_password: '' })
 const loading = ref(true),
   saving = ref(false),
   sending = ref(false),
@@ -188,6 +189,7 @@ async function save() {
   try {
     const { data } = await accountApi.update(form)
     auth.setUser(data.user)
+    form.current_password = ''
     q.notify({
       type: data.verification_sent === false ? 'warning' : 'positive',
       message:
