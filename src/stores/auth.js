@@ -33,6 +33,7 @@ export const useAuthStore = defineStore('auth', {
     },
     acceptAuthResult(data) {
       if (data.requires_otp) { this.setChallenge(data); return }
+      if (data.requires_email_verification) { this.setChallenge(null); return }
       if (!data.access_token || !data.user) throw new Error('Réponse de connexion incomplète.')
       this.token = data.access_token
       localStorage.setItem('auth_token', this.token)
