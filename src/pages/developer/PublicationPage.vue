@@ -80,6 +80,19 @@
               ]"
               :disable="!editable || busy"
             />
+            <q-banner
+              v-if="
+                source.source_type === 'build' &&
+                platform &&
+                !platform.build_hosting
+              "
+              class="workspace-alert"
+              >L’hébergement des builds n’est pas encore activé sur cette
+              plateforme. Vous pouvez déposer et faire analyser vos builds, mais
+              leur mise en ligne attend la configuration d’un domaine isolé.
+              Pour publier dès maintenant, choisissez le référencement par
+              URL.</q-banner
+            >
             <q-input
               v-if="source.source_type === 'url'"
               v-model="source.external_url"
@@ -364,6 +377,7 @@ import { accountApi, apiMessage } from '@/services/account'
 import { useAuthStore } from '@/stores/auth'
 import AppIcon from '@/components/AppIcon.vue'
 import { resolveMediaUrl } from '@/utils/media'
+import { usePlatform } from '@/composables/usePlatform'
 import {
   adminDecisions,
   EDITABLE_STATUSES,
@@ -379,6 +393,7 @@ const application = ref(null),
   busy = ref(false),
   error = ref('')
 const source = reactive({ source_type: 'build', external_url: '' })
+const { platform } = usePlatform()
 const events = ref([])
 const readiness = ref(null),
   urlChecks = ref([]),
