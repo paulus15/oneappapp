@@ -124,7 +124,9 @@
         </div>
 
         <nav class="top-links gt-md" aria-label="Liens secondaires">
-          <router-link to="/developer/activate">Développeurs</router-link>
+          <router-link v-if="!isMobile" to="/developer/activate"
+            >Développeurs</router-link
+          >
           <router-link to="/">Apps</router-link>
           <a href="#features">Documentation</a>
         </nav>
@@ -233,8 +235,12 @@
           </q-item>
         </q-list>
 
-        <p class="drawer-label">Espace développeur</p>
-        <router-link to="/developer/activate" class="developer-entry">
+        <p v-if="!isMobile" class="drawer-label">Espace développeur</p>
+        <router-link
+          v-if="!isMobile"
+          to="/developer/activate"
+          class="developer-entry"
+        >
           <span class="developer-entry-icon"><q-icon name="terminal" /></span>
           <span class="developer-entry-copy">
             <strong>Espace développeur</strong>
@@ -243,12 +249,12 @@
           <q-icon name="arrow_forward" class="developer-entry-arrow" />
         </router-link>
 
-        <div class="publish-card">
+        <div v-if="!isMobile" class="publish-card">
           <span class="publish-glow" />
           <span class="publish-icon"><q-icon name="rocket_launch" /></span>
           <strong>Publiez votre application</strong>
           <p>
-            Atteignez des millions d’utilisateurs en Afrique et dans le monde.
+            Proposez vos PWA et suivez leur publication depuis votre espace.
           </p>
           <q-btn
             unelevated
@@ -308,9 +314,9 @@
         no-caps
         icon="person_outline"
         label="Compte"
-        :to="authStore.isAuthenticated ? '/developer' : '/login'"
+        :to="authStore.isAuthenticated ? '/account' : '/login'"
         :class="{
-          active: route.path === '/developer' || route.path === '/login'
+          active: route.path === '/account' || route.path === '/login'
         }"
       />
     </nav>
@@ -318,6 +324,8 @@
 </template>
 
 <script setup>
+import { useWorkspaceAccess } from '@/composables/useWorkspaceAccess'
+const { isMobile } = useWorkspaceAccess()
 import BrandLogo from '@/components/BrandLogo.vue'
 import { useTheme } from '@/composables/useTheme'
 import { nextTick, onMounted, ref, watch, computed } from 'vue'

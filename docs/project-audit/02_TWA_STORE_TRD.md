@@ -155,3 +155,39 @@ Le backend ne se limite pas à la persistance du catalogue. Il fournit les servi
 ## Documents associés
 
 [00](./00_TWA_STORE_AUDIT_SUMMARY.md) · [01](./01_TWA_STORE_PRD.md) · [02](./02_TWA_STORE_TRD.md) · [03](./03_TWA_STORE_APP_FLOW.md) · [04](./04_TWA_STORE_UX_UI.md) · [05](./05_TWA_STORE_BACKEND_SCHEMA.md) · [06](./06_TWA_STORE_IMPLEMENTATION_PLAN.md)
+
+## Contrats livrés : OTP, Country et espace adapté (11 octobre 2026)
+
+### Authentification
+
+- `POST /api/auth/register` exige `name`, `email`, `password`, `password_confirmation`, `country_id`. Le choix facultatif `two_factor_enabled` active la double authentification à la connexion ; seul le canal `email` est accepté. La réponse 201 contient une demande OTP, **aucun jeton de session**.
+- `POST /api/auth/login` vérifie le mot de passe côté serveur, sans ouvrir de session Web intermédiaire. Compte non confirmé : demande `verify_email`. Compte confirmé avec double authentification : demande `login` (202). Compte confirmé sans double authentification : session habituelle (200). Un indicateur client ne peut pas désactiver le réglage enregistré.
+- `POST /api/auth/otp/verify` reçoit `challenge_id` et `code` (chaîne de six chiffres). Après validation finale uniquement, il retourne `access_token`, `token_type` et `user`. Code incorrect, expiré, épuisé ou déjà consommé : 422 sans jeton. Le renvoi se fait par `POST /api/auth/otp/resend` ; un renvoi trop rapide reçoit 429.
+- Une demande contient `requires_otp`, `challenge_id`, `purpose`, `channel`, `destination` masquée, `expires_at`, `retry_after`, `code_sent` et `message`. Une indisponibilité d’envoi conserve une demande réessayable et ne donne pas accès au compte.
+- `POST /api/account/two-factor` est authentifié et exige `enabled`, `channel=email`, `current_password`. Le réglage ne change qu’après confirmation par code. Les anciennes sessions sont alors révoquées et la session courante est remplacée. SMS et WhatsApp sont désactivés dans l’interface et refusés côté serveur.
+- `PUT /api/account` modifie le nom et le pays. Un changement d’e-mail exige le mot de passe et confirme la nouvelle adresse avant remplacement. Si la double authentification est active, un premier code envoyé à l’ancienne adresse autorise ce changement, puis un second confirme la nouvelle. La validation finale révoque les anciens jetons.
+
+Le frontend conserve uniquement la demande en cours dans `sessionStorage` et ne stocke pas de code OTP. `/verify-email` gère confirmation, erreur, renvoi, poursuite d’un changement d’adresse et reprise après rechargement. La vitrine Blade existante prend également en charge une réponse de connexion demandant un code.
+
+### Pays, activité et bibliothèque
+
+| Endpoint                           | Accès                       | Contrat principal                                                                                                                                   |
+| ---------------------------------- | --------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `GET /api/countries`               | Public                      | Liste des pays actifs : `id`, `code`, `name`, `name_en`.                                                                                            |
+| `GET /api/admin/countries/summary` | Administrateur              | Comptes par pays de résidence, profils développeurs par pays légal, nombre de pays de résidence non renseignés. Aucun pays inféré depuis une IP.    |
+| `GET /api/developer/dashboard`     | Espace développeur autorisé | Activité du seul éditeur courant : applications par statut, versions, installations déclarées, ouvertures enregistrées, quotas et éléments récents. |
+| `GET /api/library?device_uuid=...` | Utilisateur authentifié     | Installations et téléchargements enregistrés pour ce compte et cet identifiant de navigateur.                                                       |
+| `POST /api/installations`          | Utilisateur authentifié     | Build approuvé ou PWA externe approuvée ; distinction entre `downloaded` et `installed`.                                                            |
+| `PATCH /api/installations/{id}`    | Propriétaire de l’entrée    | Mise à jour de l’état déclaré, notamment désinstallation.                                                                                           |
+
+### Règle d’affichage de Mon espace
+
+À partir de 768 px, un compte disposant d’un profil développeur (ou d’un rôle développeur historique) voit le tableau de bord de publication, avec accès à ses applications, sa vérification et ses quotas. Il garde accès à sa bibliothèque personnelle, ses favoris et ses réglages. Un compte utilisateur ordinaire voit sa bibliothèque.
+
+En dessous de 768 px, tous les comptes développeurs voient l’espace utilisateur : aucun appel au tableau de bord développeur, aucun bouton de publication, aucune entrée développeur dans les menus. Une navigation directe vers `/developer...`, ou un passage à la vue mobile depuis ces routes, ramène vers `/account`. Les droits serveur du compte ne sont pas modifiés par la taille de l’écran.
+
+### SMTP et portée de la validation
+
+Le SMTP fourni est enregistré uniquement dans le `.env` privé, exclu de Git. Le transport utilise le port 587 avec STARTTLS obligatoire ; la vérification TLS n’est pas désactivée. Le nom d’expéditeur reste `${APP_NAME}`, avec `APP_NAME=PWA Store`.
+
+La connexion et l’authentification SMTP ont été vérifiées avec succès, sans message de test envoyé. Les tests fonctionnels interceptent les e-mails en mémoire ; ils valident les parcours et les codes, mais ne prouvent pas la réception en boîte de réception ou le classement antispam. Le scheduler doit rester actif pour purger les demandes OTP expirées.

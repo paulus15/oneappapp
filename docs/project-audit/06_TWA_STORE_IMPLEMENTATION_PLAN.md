@@ -500,7 +500,7 @@ Le plan validé a été mis en œuvre progressivement dans les deux projets exis
 
 ### Livré dans le code
 
-- Compte unique Sanctum : inscription sans choix de rôle, vérification d’e-mail par lien signé, mise à jour du profil, favoris idempotents et bibliothèque existante.
+- Compte unique Sanctum : inscription sans choix de rôle, vérification d’e-mail par code OTP, mise à jour du profil, favoris idempotents et bibliothèque existante.
 - Profil développeur individuel ou organisation rattaché à `users.id`, activation idempotente sous verrou transactionnel, cinq statuts, transitions contrôlées et historique. La suspension préserve le compte utilisateur.
 - Autorisations serveur distinctes pour préparer et soumettre. Un e-mail et un profil vérifiés sont requis pour soumettre ; chaque produit et chaque version nécessitent une revue indépendante. L’administrateur ne peut pas approuver son propre produit/profil.
 - Référencement HTTPS : validation des adresses, rejet des réseaux non publics, résolution DNS contrôlée et épinglée, validation de chaque redirection, taille et durée limitées, contrôle statique du manifeste et empreinte de contenu. Commande périodique de contrôle et mise en quarantaine des changements.
@@ -528,7 +528,7 @@ Une sauvegarde SQL privée de la base locale a été créée avant la tentative 
 | Parcours                 | Endpoints                                                                                                                  |
 | ------------------------ | -------------------------------------------------------------------------------------------------------------------------- |
 | Compte                   | `POST /auth/register`, `POST /auth/login`, `GET /auth/me`, `PUT /account`                                                  |
-| E-mail                   | `POST /auth/email/resend`, `GET /auth/email/verify/{id}/{hash}` signé                                                      |
+| E-mail                   | `POST /auth/email/resend`, `POST /auth/otp/verify` ; ancien lien signé retiré (410)                                        |
 | Favoris                  | `GET /favorites`, `PUT /favorites/{application}`, `DELETE /favorites/{application}`                                        |
 | Développeur              | `POST /developer/activate`, `GET/PUT /developer/profile`, `POST /developer/profile/submit`, `GET /developer/quotas`        |
 | Revue éditeur            | `GET /admin/developers`, `POST /admin/developers/{profile}/review`                                                         |
@@ -541,7 +541,7 @@ Une sauvegarde SQL privée de la base locale a été créée avant la tentative 
 
 Les chemins du tableau sont préfixés par `/api`. Les détails d’authentification, validations et réponses restent dans les contrôleurs et les tests livrés ; aucune deuxième authentification n’a été introduite.
 
-### Vérifications réalisées
+### Vérifications du lot initial
 
 - PHPUnit sur copie isolée du backend, SQLite en mémoire, mail/cache/session de test : **39 tests, 153 assertions, tous réussis**. Cette suite isolée n’utilise pas la base métier.
 - Contrôles couverts : compte simple, activation répétée, transitions de vérification, soumission, autorisations, suspension, quotas, approbation indépendante des versions, adresses interdites et classification IP, médias, favoris, justificatifs privés/expiration/suppression, isolation des routes du runtime, bibliothèque et reprise de migration.
@@ -554,7 +554,7 @@ Les chemins du tableau sont préfixés par `/api`. Les détails d’authentifica
 ### Prérequis d’exploitation et limites vérifiées
 
 - Les migrations locales sont terminées. Prévoir la procédure normale de déploiement, sauvegarde et validation pour la production.
-- Configurer `PWA_FRONTEND_URL`, un SMTP opérationnel, `PWA_RUNTIME_DOMAIN` sur un domaine distinct, DNS et certificat wildcard. Le proxy doit transmettre ces hôtes au middleware Laravel et ne pas servir directement les archives privées. La publication échoue explicitement si le domaine isolé est absent.
+- Vérifier `PWA_FRONTEND_URL` et configurer `PWA_RUNTIME_DOMAIN` sur un domaine distinct, DNS et certificat wildcard. Le SMTP local est configuré et son authentification STARTTLS est validée ; la réception effective reste à vérifier. Le proxy doit transmettre ces hôtes au middleware Laravel et ne pas servir directement les archives privées. La publication échoue explicitement si le domaine isolé est absent.
 - Désactiver tout ancien accès statique à `/apps/{identifier}/...` côté serveur Web avant une exposition publique ; les anciennes applications doivent être revues et redéployées sur le runtime isolé. Un service worker déjà installé doit être pris en compte dans cette migration.
 - Exécuter le scheduler Laravel pour `pwa:check-external` et `pwa:purge-documents`. Définir la durée de conservation appropriée et aligner les sauvegardes sur la politique de suppression ; la purge applicative ne purge pas les sauvegardes externes.
 - L’analyse est statique : ce n’est pas une certification de sécurité. Les scripts distants peuvent évoluer sans changer l’HTML ou le manifeste ; revue humaine et supervision restent nécessaires. Aucun script soumis n’est exécuté sur le serveur.
@@ -632,3 +632,30 @@ Backend Laravel :
 - `tests/Feature/StorefrontTest.php`
 - `tests/TestCase.php`
 - `tests/Unit/ExternalPwaCheckerTest.php`
+
+## Complément livré : Country, OTP et tableau de bord adaptatif
+
+Les demandes complémentaires sont intégrées dans Laravel et Quasar. Les migrations `000004_add_countries_and_email_otp` et `000005_extend_device_library` ont été appliquées à MySQL local après sauvegarde privée (`/private/tmp/pwa-local-backup-20261011-171214/database.sql`). Les comptes et les applications existants sont conservés ; les anciennes sessions de comptes non confirmés doivent désormais confirmer leur e-mail.
+
+- Référentiel de 249 pays, relations utilisateurs/développeurs/disponibilité des applications, sélection dans les formulaires et statistiques d’administration.
+- Inscription confirmée exclusivement par OTP e-mail avant remise d’un jeton. Connexion avec OTP uniquement lorsque la double authentification est activée, sauf confirmation initiale encore manquante. Activation et désactivation protégées par mot de passe et code. Changement d’adresse protégé et différé jusqu’à confirmation.
+- SMTP configuré dans le fichier privé ; connexion, authentification et exigence TLS vérifiées. Aucun secret n’est enregistré dans ces documents.
+- Mon espace devient un tableau de bord pour les développeurs sur ordinateur/tablette ; sous 768 px, il présente uniquement les fonctions utilisateur. Les liens développeurs et les navigations directes sont traités de façon cohérente.
+- Bibliothèque filtrée par compte et navigateur : téléchargements enregistrés et installations déclarées, avec confirmation et désinstallation depuis l’interface. Aucune prétention à détecter toutes les installations natives du terminal.
+
+### Validation de ce complément
+
+- **58 tests backend et 262 assertions réussis**, en environnement SQLite isolé avec e-mails simulés : non-délivrance anticipée de jeton, expiration, cinq essais, renvoi temporisé, invalidation des anciens codes, absence de contournement de la double authentification, révocation de sessions, changement d’e-mail, référentiel Country, isolation du tableau de bord, bibliothèque par terminal et conservation d’un état installé lors d’un téléchargement.
+- **19 contrôles HTTP sur MySQL local réussis**, avec de vrais jetons Sanctum. Créations effectuées dans une transaction annulée ; nombres de lignes identiques après contrôle sur les tables concernées. Aucun destinataire réel contacté.
+- Chrome : inscription avec pays et OTP, refus d’un code erroné, absence de jeton avant OTP, connexion avec double authentification et confirmation du changement de réglage. Tableau de bord/espace utilisateur testés à **320, 390, 768 et 1440 px**, dans les deux thèmes, sans débordement horizontal. Ces scénarios utilisent une API interceptée exclusivement dans le script de test.
+- Contrôle navigateur supplémentaire **sans simulation** : Quasar charge réellement les 249 pays depuis Laravel et permet de sélectionner la Côte d’Ivoire sur mobile, sans soumettre d’inscription.
+- Lint, builds Quasar SPA/PWA et build Vite de la vitrine Laravel réussis.
+- Connexion SMTP et authentification réussies avec TLS obligatoire. Réception effective d’un e-mail, classement antispam et installations de PWA sur appareils physiques non validés par ces contrôles.
+
+Les détails des relations Country et leurs liens possibles avec les autres entités sont dans [05 — Schéma backend](./05_TWA_STORE_BACKEND_SCHEMA.md#évolution-appliquée--country-otp-et-bibliothèque-par-appareil-11-octobre-2026). Les contrats OTP et la règle d’affichage sont dans [02 — TRD](./02_TWA_STORE_TRD.md#contrats-livrés--otp-country-et-espace-adapté-11-octobre-2026).
+
+### Principaux fichiers de ce complément
+
+Backend : modèles `Country`, `AuthChallenge`, `User`, `DeveloperProfile`, `Application`, `Installation` ; service `EmailOtp` ; e-mail `AuthenticationCode` ; contrôleurs `AuthController`, `AccountController`, `CountryController`, `DeveloperDashboardController`, `DeveloperProfileController`, `ApplicationController`, `InstallationController` ; référentiel `database/data/countries.php` ; deux migrations ; `config/mail.php`, routes API/console et formulaire de connexion `resources/js/app.js`. Tests : `EmailOtpTest`, `CountryAndDashboardTest`, adaptations des tests de compte et de publication.
+
+Frontend : `CountrySelect`, `AccountSecurity`, `DeveloperOverview`, `PersonalLibrary` ; pages `VerifyEmailPage`, `CountryOverviewPage`, refonte de `AccountPage` et adaptations des formulaires d’inscription, connexion, profil développeur et applications ; `useWorkspaceAccess`, `utils/device`, store d’authentification, router, navigation principale, accueil et fiche application.

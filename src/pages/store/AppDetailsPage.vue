@@ -293,6 +293,17 @@
             :loading="extracting"
           />
 
+          <q-btn
+            v-if="
+              app.status === 'approved' &&
+              (app.source_type === 'url' || latestVersion?.status === 'active')
+            "
+            flat
+            no-caps
+            class="full-width q-mb-sm"
+            label="Déclarer cette PWA installée"
+            @click="confirmInstallation"
+          />
           <div class="text-caption text-blue-grey-400 italic">
             Installation proposée par votre navigateur, selon sa compatibilité.
           </div>
@@ -440,6 +451,9 @@
 </template>
 
 <script setup>
+import { deviceIdentity, devicePlatform } from '@/utils/device'
+import { useWorkspaceAccess } from '@/composables/useWorkspaceAccess'
+const { isMobile } = useWorkspaceAccess()
 import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { api } from '@/boot/axios'
@@ -470,7 +484,7 @@ const latestVersion = computed(() => {
 })
 
 const isOwnerOrAdmin = computed(() => {
-  if (!authStore.isAuthenticated || !app.value) return false
+  if (isMobile.value || !authStore.isAuthenticated || !app.value) return false
   return (
     authStore.user?.id === app.value.developer_id ||
     authStore.user?.role === 'admin'
@@ -522,6 +536,86 @@ function formatDate(dateStr) {
     month: 'long',
     year: 'numeric'
   })
+}
+
+function confirmInstallation() {
+  if (!authStore.isAuthenticated) {
+    router.push({ path: '/login', query: { redirect: route.fullPath } })
+    return
+  }
+  $q.dialog({
+    title: 'Installation sur cet appareil',
+    message:
+      'Avez-vous installé cette PWA depuis votre navigateur ? Confirmez pour la retrouver dans votre bibliothèque. Cette action ne lance pas l’installation.',
+    cancel: true
+  }).onOk(async () => {
+    try {
+      const device = deviceIdentity()
+      if (!device) throw new Error('Le stockage local est indisponible.')
+      await api.post('/installations', {
+        application_id: app.value.id,
+        app_version_id:
+          app.value.source_type === 'url' ? null : latestVersion.value?.id,
+        device_uuid: device,
+        platform: devicePlatform(),
+        status: 'installed',
+        metadata: { source: 'user_confirmation' }
+      })
+      $q.notify({
+        type: 'positive',
+        message: 'Installation enregistrée pour cet appareil.'
+      })
+    } catch (e) {
+      $q.notify({
+        type: 'negative',
+        message:
+          e.response?.data?.message ||
+          e.message ||
+          'Impossible d’enregistrer cette installation.'
+      })
+    }
+  })
+}
+async function downloadVersion(id) {
+  try {
+    const { data } = await api.get(`/versions/${id}/download`, {
+      responseType: 'blob'
+    })
+    const url = URL.createObjectURL(data),
+      link = document.createElement('a')
+    link.href = url
+    link.download = `${app.value.identifier || 'application'}-${id}.zip`
+    link.click()
+    setTimeout(() => URL.revokeObjectURL(url), 1000)
+    const device = deviceIdentity()
+    if (
+      authStore.isAuthenticated &&
+      device &&
+      app.value.status === 'approved'
+    ) {
+      try {
+        await api.post('/installations', {
+          application_id: app.value.id,
+          app_version_id: id,
+          device_uuid: device,
+          platform: devicePlatform(),
+          status: 'downloaded',
+          metadata: { source: 'store_download' }
+        })
+      } catch {
+        $q.notify({
+          type: 'warning',
+          message:
+            'Archive reçue, mais son enregistrement dans la bibliothèque a échoué.'
+        })
+      }
+    }
+  } catch {
+    $q.notify({
+      type: 'negative',
+      message: 'Impossible de télécharger cette version.'
+    })
+  }
 }
 
 async function launchApp() {

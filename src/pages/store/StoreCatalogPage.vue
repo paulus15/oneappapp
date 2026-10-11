@@ -23,6 +23,7 @@
             <q-btn
               outline
               no-caps
+              v-if="!isMobile"
               label="Devenir développeur"
               to="/developer/activate"
               class="secondary-cta"
@@ -410,7 +411,7 @@
             </a>
           </section>
 
-          <section id="business" class="developer-card">
+          <section v-if="!isMobile" id="business" class="developer-card">
             <q-icon name="developer_mode" class="developer-watermark" />
             <h2>Développeur ?</h2>
             <p
@@ -420,6 +421,7 @@
             <q-btn
               unelevated
               no-caps
+              v-if="!isMobile"
               label="Devenir développeur"
               to="/developer/activate"
             />
@@ -469,6 +471,8 @@
 </template>
 
 <script setup>
+import { useWorkspaceAccess } from '@/composables/useWorkspaceAccess'
+const { isMobile } = useWorkspaceAccess()
 import BrandLogo from '@/components/BrandLogo.vue'
 import { ref, computed, onMounted, watch } from 'vue'
 import { usePageMotion } from '@/composables/usePageMotion'

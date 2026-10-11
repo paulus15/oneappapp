@@ -14,6 +14,11 @@ const routes = [
         meta: { requiresAuth: true }
       },
       {
+        path: 'admin/countries',
+        component: () => import('@/pages/admin/CountryOverviewPage.vue'),
+        meta: { requiresAuth: true, adminOnly: true }
+      },
+      {
         path: 'admin/developers',
         component: () => import('@/pages/admin/DeveloperReviewPage.vue'),
         meta: { requiresAuth: true, adminOnly: true }

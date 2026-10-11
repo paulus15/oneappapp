@@ -14,7 +14,13 @@ export const useAuthStore = defineStore('auth', {
     token: localStorage.getItem('auth_token') || null,
     loading: false,
     error: null,
-    pendingChallenge: (() => { try { return JSON.parse(sessionStorage.getItem('otp_challenge')) } catch { return null } })(),
+    pendingChallenge: (() => {
+      try {
+        return JSON.parse(sessionStorage.getItem('otp_challenge'))
+      } catch {
+        return null
+      }
+    })(),
     hydrated: false
   }),
   getters: {
@@ -32,8 +38,12 @@ export const useAuthStore = defineStore('auth', {
       else sessionStorage.removeItem('otp_challenge')
     },
     acceptAuthResult(data) {
-      if (data.requires_otp) { this.setChallenge(data); return }
-      if (!data.access_token || !data.user) throw new Error('Réponse de connexion incomplète.')
+      if (data.requires_otp) {
+        this.setChallenge(data)
+        return
+      }
+      if (!data.access_token || !data.user)
+        throw new Error('Réponse de connexion incomplète.')
       this.token = data.access_token
       localStorage.setItem('auth_token', this.token)
       this.setUser(data.user)
@@ -41,10 +51,15 @@ export const useAuthStore = defineStore('auth', {
       this.hydrated = true
     },
     verifyOtp(code) {
-      return this.authenticate('/auth/otp/verify', { challenge_id: this.pendingChallenge?.challenge_id, code })
+      return this.authenticate('/auth/otp/verify', {
+        challenge_id: this.pendingChallenge?.challenge_id,
+        code
+      })
     },
     async resendOtp() {
-      const { data } = await api.post('/auth/otp/resend', { challenge_id: this.pendingChallenge?.challenge_id })
+      const { data } = await api.post('/auth/otp/resend', {
+        challenge_id: this.pendingChallenge?.challenge_id
+      })
       this.setChallenge(data)
       return data
     },
@@ -65,11 +80,17 @@ export const useAuthStore = defineStore('auth', {
       this.error = null
       try {
         const response = await api.post(path, data)
-        if (path === '/auth/login' || path === '/auth/register') this.clearSession()
+        if (path === '/auth/login' || path === '/auth/register')
+          this.clearSession()
         this.acceptAuthResult(response.data)
         return response.data
       } catch (e) {
-        this.error = Object.values(e.response?.data?.errors || {}).flat().join(' ') || e.response?.data?.message || 'Connexion au service impossible.'
+        this.error =
+          Object.values(e.response?.data?.errors || {})
+            .flat()
+            .join(' ') ||
+          e.response?.data?.message ||
+          'Connexion au service impossible.'
         throw e
       } finally {
         this.loading = false
@@ -78,7 +99,14 @@ export const useAuthStore = defineStore('auth', {
     login(email, password) {
       return this.authenticate('/auth/login', { email, password })
     },
-    register(name, email, password, password_confirmation, country_id, two_factor_enabled = false) {
+    register(
+      name,
+      email,
+      password,
+      password_confirmation,
+      country_id,
+      two_factor_enabled = false
+    ) {
       return this.authenticate('/auth/register', {
         name,
         email,

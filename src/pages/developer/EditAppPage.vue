@@ -225,6 +225,13 @@
             />
           </div>
 
+          <div class="col-12"
+            ><CountrySelect
+              v-model="appForm.countries"
+              multiple
+              value-field="code"
+              label="Pays de disponibilité (vide : tous les pays)"
+          /></div>
           <div class="col-12">
             <q-input
               v-model="appForm.description"
@@ -756,6 +763,7 @@
 </template>
 
 <script setup>
+import CountrySelect from '@/components/CountrySelect.vue'
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useQuasar } from 'quasar'
@@ -804,6 +812,7 @@ const appForm = ref({
   category: '',
   subcategory: '',
   short_description: '',
+  countries: [],
   description: '',
   icon_url: '',
   official_site_url: '',
@@ -855,6 +864,7 @@ async function loadApp() {
     const app = res.data
 
     currentAppName.value = app.name || ''
+    appForm.value.countries = app.countries || []
     appForm.value.name = app.name || ''
     appForm.value.identifier = app.identifier || ''
     appForm.value.is_active =
@@ -1039,6 +1049,11 @@ async function saveMetaDataOnly() {
     formData.append('name', appForm.value.name)
     formData.append('category_id', appForm.value.category_id)
     formData.append('is_active', appForm.value.is_active ? '1' : '0')
+    if (appForm.value.countries?.length)
+      appForm.value.countries.forEach(code =>
+        formData.append('countries[]', code)
+      )
+    else formData.append('countries', '')
 
     const selectedCat = categoriesList.value.find(
       c => c.id === appForm.value.category_id

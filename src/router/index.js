@@ -35,6 +35,17 @@ export default defineRouter((/* { store, ssrContext } */) => {
     history: createHistory(import.meta.env.QUASAR_VUE_ROUTER_BASE)
   })
 
+  const mobileView =
+    typeof window !== 'undefined'
+      ? window.matchMedia('(max-width: 767px)')
+      : null
+  mobileView?.addEventListener('change', event => {
+    if (
+      event.matches &&
+      Router.currentRoute.value.path.startsWith('/developer')
+    )
+      Router.replace('/account')
+  })
   Router.beforeEach(async to => {
     const auth = useAuthStore()
     if (auth.token && !auth.hydrated) {
@@ -47,6 +58,8 @@ export default defineRouter((/* { store, ssrContext } */) => {
     if (to.meta.guestOnly && auth.isAuthenticated) return '/account'
     if (to.meta.requiresAuth && !auth.isAuthenticated)
       return { path: '/login', query: { redirect: to.fullPath } }
+    if (mobileView?.matches && to.path.startsWith('/developer'))
+      return '/account'
     if (to.meta.adminOnly && !auth.isAdmin) return '/account'
     if (to.meta.developerOnly && !auth.isDeveloper) return '/developer/activate'
     return true
@@ -67,7 +80,8 @@ export default defineRouter((/* { store, ssrContext } */) => {
       '/account': 'Mon compte',
       '/developer/activate': 'Devenir développeur',
       '/developer/profile': 'Profil développeur et quotas',
-      '/admin/developers': 'Vérification des développeurs'
+      '/admin/developers': 'Vérification des développeurs',
+      '/admin/countries': 'Répartition par pays'
     }
     const title =
       titles[to.path] ||

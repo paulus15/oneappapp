@@ -121,13 +121,14 @@
                 maxlength="255"
                 :readonly="!editable"
               />
-              <q-input
-                v-model="form.country"
-                outlined
-                label="Pays (code à deux lettres, ex. CI)"
-                maxlength="2"
-                :readonly="!editable"
-                @update:model-value="form.country = form.country?.toUpperCase()"
+              <CountrySelect
+                v-model="form.country_id"
+                :label="
+                  form.type === 'organization'
+                    ? 'Pays d’enregistrement'
+                    : 'Pays de résidence du développeur'
+                "
+                :disable="!editable"
               />
               <template v-if="form.type === 'organization'"
                 ><q-input
@@ -242,6 +243,7 @@
   </q-page>
 </template>
 <script setup>
+import CountrySelect from '@/components/CountrySelect.vue'
 import DeveloperDocuments from '@/components/DeveloperDocuments.vue'
 import { computed, onMounted, reactive, ref } from 'vue'
 import { useQuasar } from 'quasar'
@@ -260,7 +262,7 @@ const fields = [
   'type',
   'public_name',
   'legal_name',
-  'country',
+  'country_id',
   'representative_name',
   'business_email',
   'website',

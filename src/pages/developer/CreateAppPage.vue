@@ -103,6 +103,13 @@
               color="primary"
             />
           </div>
+          <div class="col-12"
+            ><CountrySelect
+              v-model="newApp.countries"
+              multiple
+              value-field="code"
+              label="Pays de disponibilité (vide : tous les pays)"
+          /></div>
           <div class="col-12">
             <q-input
               v-model="newApp.description"
@@ -436,6 +443,7 @@
 </template>
 
 <script setup>
+import CountrySelect from '@/components/CountrySelect.vue'
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useQuasar } from 'quasar'
@@ -495,6 +503,7 @@ const newApp = ref({
   category: '',
   subcategory: '',
   short_description: '',
+  countries: [],
   description: '',
   icon_url: '',
   official_site_url: '',
@@ -589,6 +598,11 @@ async function createApp() {
     }
     formData.append('short_description', newApp.value.short_description)
     formData.append('description', newApp.value.description)
+    if (newApp.value.countries?.length)
+      newApp.value.countries.forEach(code =>
+        formData.append('countries[]', code)
+      )
+    else formData.append('countries', '')
     if (newApp.value.icon_url) {
       formData.append('icon_url', newApp.value.icon_url)
     }

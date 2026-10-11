@@ -81,8 +81,15 @@
           </q-input>
 
           <CountrySelect v-model="countryId" required />
-          <q-checkbox v-model="twoFactorEnabled" label="Authentification à double facteurs par e-mail" />
-          <p class="text-caption">Un code envoyé par e-mail confirmera votre inscription. Si vous activez la double authentification, un code sera également demandé à chaque connexion.</p>
+          <q-checkbox
+            v-model="twoFactorEnabled"
+            label="Authentification à double facteurs par e-mail"
+          />
+          <p class="text-caption"
+            >Un code envoyé par e-mail confirmera votre inscription. Si vous
+            activez la double authentification, un code sera également demandé à
+            chaque connexion.</p
+          >
           <div v-if="error" class="form-error" role="alert">
             {{ error }}
           </div>

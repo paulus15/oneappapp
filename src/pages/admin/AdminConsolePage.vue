@@ -4,6 +4,14 @@
       flat
       no-caps
       color="primary"
+      to="/admin/countries"
+      label="Répartition par pays"
+      class="q-mb-md"
+    />
+    <q-btn
+      flat
+      no-caps
+      color="primary"
       to="/admin/developers"
       label="Vérifier les développeurs"
       class="q-mb-md"

@@ -429,3 +429,53 @@ Le [catalogue fonctionnel BF01–BF13](./01_TWA_STORE_PRD.md#catalogue-fonctionn
 ## Documents associés
 
 [00](./00_TWA_STORE_AUDIT_SUMMARY.md) · [01](./01_TWA_STORE_PRD.md) · [02](./02_TWA_STORE_TRD.md) · [03](./03_TWA_STORE_APP_FLOW.md) · [04](./04_TWA_STORE_UX_UI.md) · [05](./05_TWA_STORE_BACKEND_SCHEMA.md) · [06](./06_TWA_STORE_IMPLEMENTATION_PLAN.md)
+
+## Évolution appliquée : Country, OTP et bibliothèque par appareil (11 octobre 2026)
+
+Cette section décrit le schéma livré après l’audit initial. Les migrations `2026_10_11_000004_add_countries_and_email_otp.php` et `2026_10_11_000005_extend_device_library.php` sont appliquées sur MySQL local, après sauvegarde. Aucun pays n’a été inventé pour les comptes existants.
+
+### Référentiel Country et relations
+
+`countries` contient 249 pays et territoires : `id`, `code` unique sur deux caractères, `name` en français, `name_en`, `is_active` et timestamps. Le fichier versionné `database/data/countries.php` provient des codes du fichier système tzdata `iso3166.tab` daté du 1er juillet 2025 (domaine public), avec les libellés français ICU. Le référentiel est fourni par la migration, sans dépendance à une API géographique externe.
+
+| Entité                              | Lien livré                                                    | Signification et limites                                                                                                                                                                                             |
+| ----------------------------------- | ------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| User                                | `users.country_id → countries.id`, nullable pour l’historique | Pays de résidence déclaré, obligatoire pour une nouvelle inscription, modifiable dans le profil. Ce n’est ni la nationalité ni une position GPS/IP.                                                                  |
+| DeveloperProfile individuel         | `developer_profiles.country_id → countries.id`                | Pays de résidence du développeur, renseigné pour la vérification. Indépendant du pays du compte utilisateur.                                                                                                         |
+| DeveloperProfile organisation       | Même relation                                                 | Pays d’enregistrement de l’organisation ; ne pas le déduire du pays du représentant.                                                                                                                                 |
+| Application                         | Relation N:N `application_country`                            | Pays de disponibilité déclarés. Sélection vide : disponibilité non restreinte dans les métadonnées. Aucun géoblocage réseau n’a été ajouté.                                                                          |
+| Installation | `installations.country_id → countries.id`, nullable (migration `000006`) | Copie du pays déclaré du compte au moment de la première installation, conservée ensuite. Pas de reprise des installations antérieures : elles restent « pays non renseigné ». Ce n’est pas une position GPS/IP. |
+| Review, Favorite                    | Relation indirecte via l’utilisateur                          | Ajouter un pays direct créerait une duplication ; réutiliser le pays déclaré du compte si un agrégat est nécessaire.                                                                                                 |
+| AppVersion                          | Relation indirecte via l’application et son éditeur           | Une version ne possède pas de pays de résidence.                                                                                                                                                                     |
+| AnalyticsEvent | `analytics_events.country_id → countries.id`, nullable | Copie du pays déclaré de l’utilisateur authentifié au moment de l’événement. Les anciens événements ne sont pas réattribués. |
+| Facturation et canaux téléphoniques | À définir lors de leur mise en œuvre                          | Le pays de facturation et les indicatifs téléphoniques ne doivent pas être assimilés automatiquement à la résidence. SMS et WhatsApp n’ont pas de fournisseur connecté.                                              |
+
+L’ancien champ `developer_profiles.country` reste synchronisé avec le code du référentiel pour compatibilité. `applications.countries` reste le contrat API sous forme de codes ; la relation N:N est synchronisée lors de l’enregistrement. La migration reprend les codes reconnus des données existantes et conserve les anciennes valeurs inconnues sans les remplacer arbitrairement.
+
+```mermaid
+erDiagram
+    COUNTRIES ||--o{ USERS : residence_declaree
+    COUNTRIES ||--o{ DEVELOPER_PROFILES : pays_legal
+    COUNTRIES ||--o{ APPLICATION_COUNTRY : disponibilite
+    APPLICATIONS ||--o{ APPLICATION_COUNTRY : disponibilite
+    USERS ||--o| DEVELOPER_PROFILES : active
+    USERS ||--o{ AUTH_CHALLENGES : confirme
+    USERS ||--o{ INSTALLATIONS : declare
+    APPLICATIONS ||--o{ INSTALLATIONS : reference
+    COUNTRIES ||--o{ INSTALLATIONS : pays_au_moment
+    COUNTRIES ||--o{ ANALYTICS_EVENTS : pays_au_moment
+```
+
+### Authentification par code
+
+`users.two_factor_enabled` est un booléen désactivé par défaut ; `two_factor_channel` vaut `email` lorsque la fonction est active. Les demandes OTP sont dans `auth_challenges` : identifiant UUID, utilisateur, usage, canal, destination e-mail, empreinte du code, nombre d’essais, contexte de l’action, expiration, date d’envoi et date de consommation.
+
+Le code à six chiffres expire après dix minutes. Il est conservé sous forme de HMAC avec la clé applicative, jamais en clair dans cette table. Cinq essais sont autorisés par demande ; un renvoi ne réinitialise pas ce compteur. Le serveur impose aussi un délai de 60 secondes entre renvois, six envois par compte et par heure, une limite de vérifications par compte et les limites des routes. Une transaction et des verrous protègent la consommation du code et les changements de sécurité. La commande quotidienne `pwa:purge-auth-challenges` supprime les demandes expirées depuis plus d’un jour.
+
+Les usages sont distincts : confirmation initiale, connexion avec double authentification, changement du réglage de sécurité, autorisation d’un changement d’e-mail et confirmation du nouvel e-mail. Les anciens liens signés ne confirment plus de compte ; leur route renvoie 410. Les anciens jetons de comptes non confirmés ont été révoqués lors de la migration.
+
+### Bibliothèque
+
+`installations.app_version_id` accepte désormais `null` pour une PWA externe. `downloaded_at` mémorise un téléchargement enregistré ; ce champ est distinct de `installed_at` et de `status=installed`. Télécharger de nouveau un build ne remplace pas une installation déjà déclarée par un état « téléchargé ».
+
+Le filtre `GET /api/library?device_uuid=...` reste strictement limité à l’utilisateur authentifié. L’identifiant aléatoire du navigateur est conservé localement ; il ne constitue pas une empreinte matérielle. Effacer ce stockage ou utiliser un autre navigateur crée une autre identité de terminal. Le Store n’énumère pas les PWA du système : l’utilisateur confirme une installation depuis la fiche et peut déclarer sa désinstallation depuis sa bibliothèque.

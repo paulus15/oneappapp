@@ -120,7 +120,10 @@ async function onSubmit() {
   try {
     const success = await authStore.login(email.value, password.value)
     if (success?.requires_otp) {
-      router.push({ path: '/verify-email', query: { redirect: route.query.redirect } })
+      router.push({
+        path: '/verify-email',
+        query: { redirect: route.query.redirect }
+      })
       return
     }
     if (success) {
