@@ -1,9 +1,9 @@
 <template>
   <section class="q-mt-lg">
-    <h2>Justificatifs complémentaires</h2>
+    <h2>Justificatifs</h2>
     <p
-      >Uniquement sur demande motivée. Les fichiers restent privés et peuvent
-      être supprimés à tout moment.</p
+      >Pièce d’identité et documents demandés de façon motivée. Les fichiers
+      restent privés et peuvent être supprimés à tout moment.</p
     >
     <q-banner v-if="error" class="workspace-alert" role="alert">{{
       error
@@ -25,7 +25,7 @@
         {{ new Date(doc.expires_at).toLocaleDateString('fr-FR') }}.</p
       >
       <q-file
-        v-if="!admin"
+        v-if="!admin && doc.kind !== 'identity'"
         outlined
         :model-value="null"
         accept=".pdf,.jpg,.jpeg,.png"

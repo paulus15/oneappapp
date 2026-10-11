@@ -10,6 +10,7 @@ export const accountApi = {
   activate: type => api.post('/developer/activate', { type }),
   saveProfile: data => api.put('/developer/profile', data),
   submitProfile: () => api.post('/developer/profile/submit'),
+  uploadIdentity: form => api.post('/developer/profile/identity', form),
   quotas: () => api.get('/developer/quotas'),
   developers: (page = 1) => api.get('/admin/developers', { params: { page } }),
   reviewDeveloper: (id, data) =>

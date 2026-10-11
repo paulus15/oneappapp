@@ -39,6 +39,12 @@
             ><dt>E-mail professionnel</dt><dd>{{ p.business_email }}</dd
             ><dt>Informations légales</dt
             ><dd>{{ p.legal_information }}</dd></template
+          ><dt>Pièce d’identité</dt
+          ><dd>{{
+            p.identity_document_type
+              ? `${identityLabels[p.identity_document_type]} · expire le ${new Date(p.identity_document_expires_at).toLocaleDateString('fr-FR')}`
+              : 'Non déposée'
+          }}</dd
           ><dt>Présentation</dt><dd>{{ p.description || 'Non renseignée' }}</dd
           ><dt>Site</dt><dd>{{ p.website || 'Non renseigné' }}</dd></dl
         ><p v-if="p.decision_reason">Dernier motif : {{ p.decision_reason }}</p
@@ -63,6 +69,7 @@
 </template>
 <script setup>
 import DeveloperDocuments from '@/components/DeveloperDocuments.vue'
+import { identityLabels } from '@/utils/identity'
 import { onMounted, ref } from 'vue'
 import { useQuasar } from 'quasar'
 import { accountApi, apiMessage } from '@/services/account'

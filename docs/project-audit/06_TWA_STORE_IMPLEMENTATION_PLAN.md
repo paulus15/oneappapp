@@ -502,11 +502,12 @@ Le plan validé a été mis en œuvre progressivement dans les deux projets exis
 
 - Compte unique Sanctum : inscription sans choix de rôle, vérification d’e-mail par code OTP, mise à jour du profil, favoris idempotents et bibliothèque existante.
 - Profil développeur individuel ou organisation rattaché à `users.id`, activation idempotente sous verrou transactionnel, cinq statuts, transitions contrôlées et historique. La suspension préserve le compte utilisateur.
-- Autorisations serveur distinctes pour préparer et soumettre. Un e-mail et un profil vérifiés sont requis pour soumettre ; chaque produit et chaque version nécessitent une revue indépendante. L’administrateur ne peut pas approuver son propre produit/profil.
+- Autorisations serveur distinctes pour préparer et soumettre. Un e-mail confirmé, un profil complet vérifié et une pièce d’identité non expirée sont requis pour soumettre (`User::publicationBlockers()` expose les motifs au front) ; chaque produit et chaque version nécessitent une revue indépendante. L’administrateur ne peut pas approuver son propre produit/profil.
 - Référencement HTTPS : validation des adresses, rejet des réseaux non publics, résolution DNS contrôlée et épinglée, validation de chaque redirection, taille et durée limitées, contrôle statique du manifeste et empreinte de contenu. Commande périodique de contrôle et mise en quarantaine des changements.
 - Builds : contrôles des chemins, liens symboliques, extensions, taille décompressée, nombre de fichiers, ressources externes déclarées, empreinte et nouvelle analyse avant publication. Stockage privé, publication sur `pwa-{id}.{PWA_RUNTIME_DOMAIN}`, origine différente par application, version active interchangeable avec une ancienne version approuvée. Le runtime ne transmet pas les requêtes aux API Laravel.
 - Paramètres de quotas centralisés dans `config/pwa_store.php`. Valeurs commerciales non fixées, aucun prestataire ni encaissement ajouté. Le dépassement bloque les nouvelles soumissions concernées.
-- Justificatifs facultatifs uniquement sur demande motivée d’un administrateur : PDF/JPEG/PNG de 5 Mo maximum, stockage privé, téléchargement authentifié en pièce jointe, journal des consultations et suppression à la demande. Expiration configurable, 30 jours par défaut technique ; commande quotidienne de purge.
+- Pièce d’identité obligatoire (carte nationale, passeport, titre de séjour ou permis ; celle du représentant pour une organisation) avec date d’expiration future, exigée pour soumettre le profil et pour sa vérification. Une pièce expirée bloque la publication ; son renouvellement renvoie le profil en vérification. Migration `2026_10_11_000007_add_developer_identity_document.php`.
+- Justificatifs complémentaires uniquement sur demande motivée d’un administrateur : PDF/JPEG/PNG de 5 Mo maximum, stockage privé, téléchargement authentifié en pièce jointe, journal des consultations et suppression à la demande. Expiration configurable, 30 jours par défaut technique ; commande quotidienne de purge.
 - Capture d’écran réelle enregistrée côté serveur. Suppression des images de démonstration dans les fiches publiques.
 - Pages compte, activation/profil/quotas, publication/versions et revue des développeurs. Navigation, guards, session et erreurs raccordés aux vrais endpoints.
 - Authentification compacte et responsive, thèmes clair/sombre, police système globale, animations GSAP chargées à la demande, réduction des mouvements, parallaxe limitée au bureau et animations décoratives suspendues hors écran.
@@ -528,9 +529,9 @@ Une sauvegarde SQL privée de la base locale a été créée avant la tentative 
 | Parcours                 | Endpoints                                                                                                                  |
 | ------------------------ | -------------------------------------------------------------------------------------------------------------------------- |
 | Compte                   | `POST /auth/register`, `POST /auth/login`, `GET /auth/me`, `PUT /account`                                                  |
-| E-mail                   | `POST /auth/email/resend`, `POST /auth/otp/verify` ; ancien lien signé retiré (410)                                        |
+| E-mail                   | `POST /auth/email/resend`, `POST /auth/otp/verify`, `POST /auth/otp/resend` ; ancien lien signé supprimé                   |
 | Favoris                  | `GET /favorites`, `PUT /favorites/{application}`, `DELETE /favorites/{application}`                                        |
-| Développeur              | `POST /developer/activate`, `GET/PUT /developer/profile`, `POST /developer/profile/submit`, `GET /developer/quotas`        |
+| Développeur              | `POST /developer/activate`, `GET/PUT /developer/profile`, `POST /developer/profile/submit`, `POST /developer/profile/identity`, `GET /developer/quotas` |
 | Revue éditeur            | `GET /admin/developers`, `POST /admin/developers/{profile}/review`                                                         |
 | Justificatifs            | `GET/POST /developer-profiles/{profile}/documents`, `POST/GET/DELETE /developer-documents/{document}`                      |
 | Distribution             | `PUT /apps/{application}/source`, `POST /apps/{application}/check-url`, `POST /apps/{application}/submit`                  |

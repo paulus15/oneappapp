@@ -82,7 +82,10 @@
           >Votre profil est en cours de vérification. Vous pouvez préparer vos
           applications.</q-banner
         >
-        <DeveloperDocuments :profile-id="profile.id" />
+        <DeveloperDocuments
+          :key="profile.events?.length"
+          :profile-id="profile.id"
+        />
         <div class="workspace-grid">
           <q-card flat bordered class="workspace-card">
             <h2>{{
@@ -163,8 +166,8 @@
                 :readonly="!editable"
               />
               <p class="text-muted"
-                >Aucune pièce d’identité n’est demandée à cette étape. Les
-                informations légales sont réservées à la vérification.</p
+                >Les informations légales et la pièce d’identité sont réservées
+                à la vérification.</p
               >
               <div v-if="editable" class="workspace-actions"
                 ><q-btn
@@ -177,19 +180,82 @@
                   no-caps
                   color="primary"
                   label="Soumettre à vérification"
-                  :disable="!auth.user?.email_verified_at || busy"
+                  :disable="
+                    !auth.user?.email_verified_at || !identityValid || busy
+                  "
                   @click="submit"
               /></div>
             </q-form>
           </q-card>
           <div>
+            <q-card flat bordered class="workspace-card q-mb-md"
+              ><h2>Pièce d’identité</h2
+              ><p v-if="profile.identity_document_type"
+                >{{ identityLabels[profile.identity_document_type] }} · expire
+                le
+                {{
+                  new Date(
+                    profile.identity_document_expires_at
+                  ).toLocaleDateString('fr-FR')
+                }}</p
+              ><q-banner
+                v-if="profile.identity_document_type && !identityValid"
+                class="workspace-alert"
+                >Cette pièce a expiré. Déposez-en une nouvelle pour publier à
+                nouveau.</q-banner
+              ><p v-if="!profile.identity_document_type" class="text-muted"
+                >Obligatoire pour soumettre votre profil et publier. Pour une
+                organisation, déposez la pièce du représentant.</p
+              ><q-form
+                v-if="identityEditable"
+                class="workspace-form"
+                @submit="uploadIdentity"
+                ><q-select
+                  v-model="identity.type"
+                  :options="identityOptions"
+                  emit-value
+                  map-options
+                  outlined
+                  label="Type de pièce"
+                  :rules="[v => !!v || 'Choisissez un type de pièce']" /><q-input
+                  v-model="identity.expires_at"
+                  type="date"
+                  outlined
+                  stack-label
+                  label="Date d’expiration"
+                  :min="tomorrow"
+                  :rules="[
+                    v => (!!v && v >= tomorrow) || 'La pièce doit être valide'
+                  ]" /><q-file
+                  v-model="identity.file"
+                  outlined
+                  accept=".pdf,.jpg,.jpeg,.png"
+                  max-file-size="5242880"
+                  label="Fichier (PDF, JPEG ou PNG, 5 Mo maximum)"
+                  :rules="[v => !!v || 'Ajoutez le fichier']" /><q-btn
+                  type="submit"
+                  no-caps
+                  color="primary"
+                  label="Déposer la pièce d’identité"
+                  :loading="busy"
+              /></q-form>
+            </q-card>
             <q-card flat bordered class="workspace-card"
               ><h2>Votre publication</h2
-              ><p>{{
-                profile.status === 'verified'
-                  ? 'Votre profil est vérifié. Chaque application et chaque version restent soumises à une revue indépendante.'
-                  : 'Complétez votre profil, vérifiez votre e-mail puis demandez sa vérification.'
-              }}</p
+              ><p v-if="auth.canSubmit"
+                >Votre profil est vérifié. Chaque application et chaque version
+                restent soumises à une revue indépendante.</p
+              ><template v-else
+                ><p class="text-muted"
+                  >Vous pouvez préparer vos applications, mais pas les publier
+                  tant que :</p
+                ><ul
+                  ><li
+                    v-for="reason in auth.user?.publication_blockers || []"
+                    :key="reason"
+                    >{{ reason }}</li
+                  ></ul
+                ></template
               ><q-btn
                 no-caps
                 color="primary"
@@ -248,6 +314,11 @@ import DeveloperDocuments from '@/components/DeveloperDocuments.vue'
 import { computed, onMounted, reactive, ref } from 'vue'
 import { useQuasar } from 'quasar'
 import { accountApi, apiMessage } from '@/services/account'
+import {
+  identityIsValid,
+  identityLabels,
+  identityOptions
+} from '@/utils/identity'
 import { useAuthStore } from '@/stores/auth'
 const auth = useAuthStore(),
   q = useQuasar()
@@ -290,6 +361,19 @@ const statusColor = computed(
 const editable = computed(() =>
   ['draft', 'rejected'].includes(profile.value?.status)
 )
+const identityValid = computed(() => identityIsValid(profile.value))
+// A verified profile may only renew a lapsed document; that sends it back to review.
+const identityEditable = computed(
+  () =>
+    editable.value ||
+    (profile.value?.status === 'verified' && !identityValid.value)
+)
+const tomorrow = (() => {
+  const d = new Date()
+  d.setDate(d.getDate() + 1)
+  return d.toISOString().slice(0, 10)
+})()
+const identity = reactive({ type: null, expires_at: '', file: null })
 function accept(p) {
   profile.value = p
   for (const key of fields) form[key] = p?.[key] ?? ''
@@ -350,6 +434,25 @@ async function submit() {
       type: 'positive',
       message: 'Votre profil a été soumis à vérification.'
     })
+  } catch (e) {
+    error.value = apiMessage(e)
+  } finally {
+    busy.value = false
+  }
+}
+async function uploadIdentity() {
+  busy.value = true
+  error.value = ''
+  try {
+    const form = new FormData()
+    form.append('type', identity.type)
+    form.append('expires_at', identity.expires_at)
+    form.append('file', identity.file)
+    const { data } = await accountApi.uploadIdentity(form)
+    accept(data.profile)
+    auth.setUser(data.user)
+    Object.assign(identity, { type: null, expires_at: '', file: null })
+    q.notify({ type: 'positive', message: 'Pièce d’identité déposée.' })
   } catch (e) {
     error.value = apiMessage(e)
   } finally {

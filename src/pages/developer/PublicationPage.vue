@@ -100,9 +100,14 @@
             :disable="!auth.canSubmit || busy"
             @click="submit"
           />
-          <p v-if="!auth.canSubmit" class="text-muted"
-            >Vérifiez votre adresse e-mail et votre profil développeur pour
-            soumettre.</p
+          <div v-if="!auth.canSubmit" class="text-muted"
+            ><p
+              v-for="reason in auth.user?.publication_blockers || []"
+              :key="reason"
+              >{{ reason }}</p
+            ><router-link to="/developer/profile"
+              >Compléter mon profil développeur</router-link
+            ></div
           >
           <div v-if="auth.isAdmin" class="workspace-actions"
             ><q-btn
