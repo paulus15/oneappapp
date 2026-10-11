@@ -80,6 +80,7 @@
       </div>
       <section v-if="auth.isDeveloper && !q.screen.lt.md" class="workspace-section">
         <h2>Activité développeur</h2>
+        <p>Statut : {{ auth.user.developer_profile?.status || 'À compléter' }}</p>
         <q-btn no-caps color="primary" to="/developer" label="Ouvrir le tableau de bord développeur" />
       </section>
       <section class="workspace-section"
