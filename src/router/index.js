@@ -8,6 +8,7 @@ import {
 
 import routes from './routes.js'
 import { useAuthStore } from '@/stores/auth'
+import { Screen } from 'quasar'
 
 /*
  * If not building with SSR mode, you can
@@ -48,6 +49,7 @@ export default defineRouter((/* { store, ssrContext } */) => {
     if (to.meta.requiresAuth && !auth.isAuthenticated)
       return { path: '/login', query: { redirect: to.fullPath } }
     if (to.meta.adminOnly && !auth.isAdmin) return '/account'
+    if (to.meta.developerOnly && Screen.lt.md) return '/account'
     if (to.meta.developerOnly && !auth.isDeveloper) return '/developer/activate'
     return true
   })
