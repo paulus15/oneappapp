@@ -50,6 +50,7 @@
               outlined
               required
             />
+            <q-toggle v-model="form.two_factor_enabled" label="Double authentification par e-mail" />
             <q-btn
               type="submit"
               no-caps
@@ -148,7 +149,7 @@ import { accountApi, apiMessage } from '@/services/account'
 import { useAuthStore } from '@/stores/auth'
 const auth = useAuthStore(),
   q = useQuasar()
-const form = reactive({ name: '', email: '' })
+const form = reactive({ name: '', email: '', two_factor_enabled: false, two_factor_channel: 'email' })
 const loading = ref(true),
   saving = ref(false),
   sending = ref(false),
@@ -173,7 +174,7 @@ async function load() {
   try {
     await auth.fetchUser()
     if (!auth.user) return
-    Object.assign(form, { name: auth.user.name, email: auth.user.email })
+    Object.assign(form, { name: auth.user.name, email: auth.user.email, two_factor_enabled: !!auth.user.two_factor_enabled })
     await loadFavorites()
     installations.value = (await api.get('/library')).data
   } catch (e) {
