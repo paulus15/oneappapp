@@ -1,0 +1,237 @@
+# PWA Store — Roadmap
+
+Suivi des lots de développement. Références : `PWASTORE_AUDIT.md` (constats D1 à D13), `PWASTORE_ARCHITECTURE.md`, `PWASTORE_API_CONTRACT.md`, `PWASTORE_TEST_PLAN.md`.
+
+**Statuts** : ⬜ à faire · 🟦 en cours · ✅ terminé et vérifié · ⏸ en attente de décision.
+**Priorité** : P0 bloquant/sécurité · P1 parcours principal · P2 complément · P3 confort.
+
+Un lot n'est ✅ que si ses critères d'acceptation sont vérifiés côté Laravel **et** Quasar, et si ses résultats de tests sont consignés dans son journal.
+
+## Vue d'ensemble
+
+| Lot | Thème                                    | Priorité | Dépend de         | Statut                                                  |
+| --- | ---------------------------------------- | -------- | ----------------- | ------------------------------------------------------- |
+| 0   | Correctifs de sécurité et socle de tests | P0       | —                 | ⬜                                                      |
+| 1   | Authentification et compte unique        | P0       | 0                 | 🟦 (inscription, OTP, 2FA, e-mail livrés)               |
+| 2   | Activation et vérification développeur   | P1       | 1                 | 🟦 (activation, vérification, pièce d'identité livrées) |
+| 3   | Catalogue, accueil et fiches             | P1       | 0                 | ⬜                                                      |
+| 4   | Soumission par URL                       | P1       | 2                 | 🟦 (contrôle et soumission livrés)                      |
+| 5   | Builds et hébergement isolé              | P1       | 2, décision infra | ⏸                                                       |
+| 6   | Administration, modération, statuts      | P0       | 1, 2              | ⬜                                                      |
+| 7   | Espace utilisateur, avis, signalements   | P1       | 3, 6              | ⬜                                                      |
+| 8   | Portail développeur et statistiques      | P2       | 6, 7              | ⬜                                                      |
+| 9   | PWA Lab et surveillance                  | P2       | 4                 | ⬜                                                      |
+| 10  | Notifications, quotas, facturation       | P2       | 6                 | ⬜                                                      |
+| 11  | Motion design, performance, responsive   | P2       | 3                 | ⬜                                                      |
+| 12  | Tests finaux, sécurité, déploiement      | P0       | tous              | ⬜                                                      |
+
+Ordre d'exécution proposé : **0 → 1 → 6 → 2 → 3 → 4 → 7 → 8 → 10 → 9 → 5 → 11 → 12**.
+Raisons : la machine à états et les permissions (Lot 6) conditionnent la visibilité, les avis, les statistiques et les notifications. Le Lot 5 dépend d'une décision d'infrastructure. Le motion design vient sur des écrans stabilisés.
+
+---
+
+## Lot 0 — Correctifs de sécurité et socle de tests (P0)
+
+| Fonctionnalité                                                                   | Constat | Statut |
+| -------------------------------------------------------------------------------- | ------- | ------ |
+| Désactiver l'envoi push simulé (410)                                             | D1      | ⬜     |
+| Analytics : apps publiées seulement, throttle, déduplication                     | D2      | ⬜     |
+| Portée de visibilité publique unique (catalogue, fiche, launch, install-intents) | D4      | ⬜     |
+| Avis : e-mail vérifié, 2000 car., throttle                                       | D5      | ⬜     |
+| Catégorie utilisée non supprimable                                               | D7      | ⬜     |
+| Pagination `GET /admin/apps`                                                     | D8      | ⬜     |
+| Suppression du N+1 des notes                                                     | D9      | ⬜     |
+| Installer Vitest et Playwright, premiers tests du store `auth` et des gardes     | —       | ⬜     |
+| Reformater avec oxfmt les 3 fichiers signalés                                    | D12     | ⬜     |
+
+**Critères d'acceptation**
+
+- Un compte ne peut ni pousser vers un autre utilisateur, ni enregistrer d'événement sur une app non publiée ; 429 au-delà du seuil.
+- Une app d'éditeur suspendu renvoie 404/absente sur les quatre routes publiques.
+- Chaque correctif a un test qui échouait avant.
+- `npm run test:unit` existe et passe.
+
+## Lot 1 — Authentification et compte unique (P0)
+
+Déjà livré : inscription avec pays, OTP e-mail, 2FA par e-mail, changement d'e-mail sécurisé, déconnexion.
+
+| Fonctionnalité                                                                                | Statut                            |
+| --------------------------------------------------------------------------------------------- | --------------------------------- |
+| Mot de passe oublié + réinitialisation (backend + pages)                                      | ⬜                                |
+| Changement de mot de passe                                                                    | ⬜                                |
+| Expiration des jetons, liste et révocation des sessions                                       | ⬜                                |
+| « Rester connecté » effectif (durée du jeton)                                                 | ⬜                                |
+| Verrou par compte après échecs répétés                                                        | ⬜                                |
+| Désactivation du compte (OTP), anonymisation différée                                         | ⏸ durée de conservation à décider |
+| Statut de compte (`active`, `suspended`, `deactivated`) appliqué à la connexion et aux jetons | ⬜                                |
+
+**Critères d'acceptation**
+
+- La réponse de « mot de passe oublié » est identique qu'un e-mail existe ou non ; le lien expire en 60 min et ne sert qu'une fois ; toutes les sessions sont révoquées après réinitialisation.
+- Un compte suspendu ou désactivé ne peut plus se connecter, et ses jetons sont invalides.
+- Page « Sécurité du compte » : 2FA, mot de passe, sessions actives, sur mobile et desktop.
+
+## Lot 2 — Activation et vérification développeur (P1)
+
+Déjà livré : activation gratuite individuelle ou organisation, profil, 5 statuts, historique, justificatifs privés, pièce d'identité obligatoire, revue admin, blocage de publication motivé.
+
+| Fonctionnalité                                                                                          | Statut                   |
+| ------------------------------------------------------------------------------------------------------- | ------------------------ |
+| CTA « Vous développez des applications ? Devenez développeur sur PWA Store » sur l'accueil et le compte | ⬜ (vérifier l'existant) |
+| Page de présentation du portail développeur                                                             | ⬜                       |
+| Notifications de décision (via Lot 10)                                                                  | ⬜                       |
+| Filtre par statut et recherche dans la revue admin                                                      | ⬜                       |
+| Sort des 12 comptes `developer` historiques sans profil                                                 | ⏸ décision               |
+
+**Critères d'acceptation** : un visiteur comprend comment devenir développeur depuis l'accueil ; un développeur suit son statut et voit le motif de chaque décision.
+
+## Lot 3 — Catalogue, accueil et fiches (P1)
+
+| Fonctionnalité                                                                                                   | Statut                      |
+| ---------------------------------------------------------------------------------------------------------------- | --------------------------- |
+| Endpoint `/home` (mises en avant, nouveautés, populaires, mises à jour récentes, collections, catégories)        | ⬜                          |
+| Accueil : retrait des catégories et arguments codés en dur                                                       | ⬜                          |
+| Pages Catégories et « Applications d'une catégorie »                                                             | ⬜                          |
+| Résultats de recherche dédiés, filtres, tri, chargement progressif                                               | ⬜ (partiel existant)       |
+| Fiche : éditeur public, langues, partage, signalement, apps similaires, installation honnête selon le navigateur | ⬜                          |
+| Profil public développeur                                                                                        | ⬜                          |
+| Pages statiques : À propos, Devenir développeur, Aide, Contact, CGU, Confidentialité, Règles de publication      | ⏸ contenus légaux à fournir |
+| Footer complet                                                                                                   | ⬜                          |
+
+**Critères d'acceptation** : aucun contenu de catalogue n'est codé en dur ; une catégorie créée par l'admin apparaît sans redéploiement ; le bouton d'installation n'est affiché que si `beforeinstallprompt` est disponible ou si la plateforme le permet.
+
+## Lot 4 — Soumission par URL (P1)
+
+Déjà livré : choix de la source, contrôle anti-SSRF, rapport, soumission, contrôle quotidien et quarantaine sur changement.
+
+| Fonctionnalité                                                                   | Statut |
+| -------------------------------------------------------------------------------- | ------ |
+| Historique des contrôles (`url_checks`) affiché au développeur et à l'admin      | ⬜     |
+| Assistant de publication en étapes (informations → source → aperçu → soumission) | ⬜     |
+| Aperçu de la fiche avant soumission                                              | ⬜     |
+
+**Critères d'acceptation** : le développeur voit chaque contrôle daté et ses résultats ; l'aperçu reflète exactement la fiche publique.
+
+## Lot 5 — Builds et hébergement isolé (P1, ⏸)
+
+Déjà livré : upload, analyse ZIP, versions, modération, déploiement, rollback, refus d'une origine partagée avec le Store.
+
+| Fonctionnalité                                                                   | Statut           |
+| -------------------------------------------------------------------------------- | ---------------- |
+| Configuration `PWA_RUNTIME_DOMAIN`, DNS et certificat wildcard, vhost            | ⏸ décision infra |
+| Message clair quand l'hébergement n'est pas configuré (au lieu d'une erreur 503) | ⬜               |
+| Tests d'archives malveillantes supplémentaires                                   | ⬜               |
+| Antivirus optionnel (ClamAV)                                                     | ⏸                |
+
+**Critères d'acceptation** : une version approuvée est servie sur `pwa-{id}.<domaine>`, sans accès aux cookies du Store ; le retour à une version antérieure approuvée fonctionne.
+
+## Lot 6 — Administration, modération et statuts (P0)
+
+| Fonctionnalité                                                                    | Statut |
+| --------------------------------------------------------------------------------- | ------ |
+| Machine à états des applications + migration des statuts (`ApplicationLifecycle`) | ⬜     |
+| Publication séparée de l'approbation ; archivage au lieu de la suppression        | ⬜     |
+| Permissions granulaires admin + Policies                                          | ⬜     |
+| Journal d'audit (`audit_logs`) et page de consultation                            | ⬜     |
+| Gestion des utilisateurs : liste, recherche, fiche, suspension motivée            | ⬜     |
+| File de modération filtrée et paginée, demande de correction                      | ⬜     |
+| Écran de gestion des catégories                                                   | ⬜     |
+| Mise en avant et collections éditoriales                                          | ⬜     |
+| Tableau de bord admin (compteurs réels)                                           | ⬜     |
+| Historique de publication visible côté développeur et admin                       | ⬜     |
+| Confirmation des actions sensibles dans l'interface                               | ⬜     |
+
+**Critères d'acceptation** : toutes les transitions interdites renvoient 409 ; chaque action sensible écrit une ligne d'audit avec motif ; un admin sans permission reçoit 403 et ne voit pas l'écran.
+
+## Lot 7 — Espace utilisateur, avis et signalements (P1)
+
+| Fonctionnalité                                               | Statut |
+| ------------------------------------------------------------ | ------ |
+| Tableau de bord personnel (existant à enrichir)              | 🟦     |
+| Avis paginés, modification, suppression, réponse développeur | ⬜     |
+| Signalement d'une application ou d'un avis, traitement admin | ⬜     |
+| « Mes avis »                                                 | ⬜     |
+| Préférences, « vus récemment » avec consentement             | ⬜     |
+| Export des données personnelles                              | ⬜     |
+
+**Critères d'acceptation** : un avis exige un compte vérifié et respecte les limites ; un avis masqué disparaît de la fiche et de la moyenne ; le signalement est traçable jusqu'à sa résolution.
+
+## Lot 8 — Portail développeur et statistiques (P2)
+
+| Fonctionnalité                                                                               | Statut |
+| -------------------------------------------------------------------------------------------- | ------ |
+| Tableau de bord développeur (existant) enrichi : vues, ouvertures, avis, signalements, notes | 🟦     |
+| Écrans : avis et retours, statistiques par application, paramètres                           | ⬜     |
+| Distinction claire vues / ouvertures / installations déclarées                               | ⬜     |
+| Graphiques                                                                                   | ⬜     |
+
+**Critères d'acceptation** : chaque chiffre affiché correspond à une requête vérifiable ; aucune valeur estimée n'est présentée comme mesurée.
+
+## Lot 9 — PWA Lab et surveillance (P2)
+
+| Fonctionnalité                                                           | Statut           |
+| ------------------------------------------------------------------------ | ---------------- |
+| Analyse à la demande d'une URL (réutilise `ExternalPwaChecker`)          | ⬜               |
+| Rapport : conformes, problèmes, recommandations ; historique             | ⬜               |
+| Surveillance plus fréquente des apps URL publiées, alerte au développeur | ⬜               |
+| Performance / accessibilité via Lighthouse                               | ⏸ infra headless |
+
+**Critères d'acceptation** : le rapport ne se présente jamais comme une certification de sécurité.
+
+## Lot 10 — Notifications, quotas et facturation (P2)
+
+| Fonctionnalité                                              | Statut                  |
+| ----------------------------------------------------------- | ----------------------- |
+| Notifications Laravel `database` + `mail` en file d'attente | ⬜                      |
+| Cloche, page Notifications, compteur non lu                 | ⬜                      |
+| Préférences par type et canal                               | ⬜                      |
+| Paramètres admin des quotas et de la devise                 | ⬜                      |
+| Structure plans / factures, paiements désactivés            | ⬜                      |
+| Intégration push réelle                                     | ⏸ fournisseur à choisir |
+
+**Critères d'acceptation** : aucun paiement ne peut être déclenché ; chaque événement listé dans l'architecture émet sa notification et respecte les préférences.
+
+## Lot 11 — Motion design, performance, responsive (P2)
+
+| Fonctionnalité                                                                                    | Statut       |
+| ------------------------------------------------------------------------------------------------- | ------------ |
+| Inter et Inter Tight auto-hébergées                                                               | ⬜           |
+| Hero immersif, apparitions au scroll (GSAP ScrollTrigger), cartes flottantes, transitions de page | ⬜           |
+| Skeletons et états vides animés                                                                   | ⬜ (partiel) |
+| Découpage de `StoreCatalogPage` et `EditAppPage`                                                  | ⬜           |
+| Budget de performance (LCP < 2,5 s en 4G simulée, bundle initial maîtrisé)                        | ⬜           |
+
+**Critères d'acceptation** : `prefers-reduced-motion` désactive toutes les animations non essentielles ; navigation complète au clavier ; aucune régression aux 3 largeurs de référence.
+
+## Lot 12 — Tests finaux, sécurité, déploiement (P0)
+
+| Fonctionnalité                                                              | Statut     |
+| --------------------------------------------------------------------------- | ---------- |
+| Parcours E2E complet et variantes négatives (`PWASTORE_TEST_PLAN.md` §5)    | ⬜         |
+| Revue sécurité (en-têtes, CSP, CORS, secrets, rétention, tâches planifiées) | ⬜         |
+| Retrait ou redirection de la vitrine Blade                                  | ⏸ décision |
+| Documentation de déploiement (cron, worker de file, variables, sauvegardes) | ⬜         |
+| Revue juridique des contenus                                                | ⏸ externe  |
+
+Aucun déploiement public sans validation explicite.
+
+---
+
+## Décisions (validées le 11 octobre 2026)
+
+| #   | Sujet                                | Décision                                                                                                                                                                                                   |
+| --- | ------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | Applications de comptes non vérifiés | Un compte non vérifié ne publie pas : une application n'est publiquement visible que si son éditeur est vérifié (ou administrateur). Les apps historiques sont masquées jusqu'à vérification de l'éditeur. |
+| 2   | Vitrine Blade                        | Retrait au profit de Quasar, `/apps/{slug}` redirigé vers la fiche Quasar (Lot 12).                                                                                                                        |
+| 3   | Origines isolées                     | Sous-domaines `pwa-{id}.<PWA_RUNTIME_DOMAIN>` avec DNS et certificat wildcard. Le domaine reste à fournir par le porteur de projet.                                                                        |
+| 4   | Statuts d'application                | Machine à états cible adoptée (Architecture §4).                                                                                                                                                           |
+| 5   | Conservation                         | Compte désactivé anonymisé 30 jours après la désactivation ; avis conservés mais anonymisés.                                                                                                               |
+| 6   | Outils de test frontend              | Vitest + Vue Test Utils + jsdom dès le Lot 0 ; Playwright au Lot 12 (téléchargement des navigateurs).                                                                                                      |
+| 7   | Contenus légaux                      | Brouillons préparés par l'équipe, marqués « à valider par un juriste » (Lot 3).                                                                                                                            |
+
+## Journal
+
+| Date       | Lot  | Événement                                                                                                                   | Vérification                                        |
+| ---------- | ---- | --------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------- |
+| 2026-10-11 | 1, 2 | Country, OTP e-mail, 2FA, tableau de bord développeur, pièce d'identité obligatoire (backend `a61010e`, frontend `e7bd455`) | `php artisan test` 59/59 ; `quasar build -m pwa` OK |
+| 2026-10-11 | —    | Audit et planification (ces documents)                                                                                      | Inspection du code ; aucune modification de code    |
