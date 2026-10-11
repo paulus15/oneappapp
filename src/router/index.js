@@ -7,6 +7,7 @@ import {
 } from 'vue-router'
 
 import routes from './routes.js'
+import { useAuthStore } from '@/stores/auth'
 
 /*
  * If not building with SSR mode, you can
@@ -34,27 +35,21 @@ export default defineRouter((/* { store, ssrContext } */) => {
     history: createHistory(import.meta.env.QUASAR_VUE_ROUTER_BASE)
   })
 
-  Router.beforeEach((to, from, next) => {
-    const token = localStorage.getItem('auth_token')
-    const userJson = localStorage.getItem('user')
-    const user = userJson ? JSON.parse(userJson) : null
-    const isAuthenticated = !!token
-
-    if (to.meta.guestOnly && isAuthenticated) {
-      next('/')
-    } else if (to.meta.requiresAuth && !isAuthenticated) {
-      next('/login')
-    } else if (
-      to.meta.developerOnly &&
-      user?.role !== 'developer' &&
-      user?.role !== 'admin'
-    ) {
-      next('/')
-    } else if (to.meta.adminOnly && user?.role !== 'admin') {
-      next('/')
-    } else {
-      next()
+  Router.beforeEach(async to => {
+    const auth = useAuthStore()
+    if (auth.token && !auth.hydrated) {
+      try {
+        await auth.fetchUser()
+      } catch {
+        if (to.meta.requiresAuth && to.path !== '/account') return '/account'
+      }
     }
+    if (to.meta.guestOnly && auth.isAuthenticated) return '/account'
+    if (to.meta.requiresAuth && !auth.isAuthenticated)
+      return { path: '/login', query: { redirect: to.fullPath } }
+    if (to.meta.adminOnly && !auth.isAdmin) return '/account'
+    if (to.meta.developerOnly && !auth.isDeveloper) return '/developer/activate'
+    return true
   })
 
   Router.afterEach(to => {
@@ -65,9 +60,14 @@ export default defineRouter((/* { store, ssrContext } */) => {
       '/trending': 'Tendances',
       '/login': 'Connexion',
       '/register': 'Inscription',
+      '/verify-email': 'Code de confirmation',
       '/developer': 'Espace développeur',
       '/developer/apps/create': 'Publier une application',
-      '/admin': 'Administration'
+      '/admin': 'Administration',
+      '/account': 'Mon compte',
+      '/developer/activate': 'Devenir développeur',
+      '/developer/profile': 'Profil développeur et quotas',
+      '/admin/developers': 'Vérification des développeurs'
     }
     const title =
       titles[to.path] ||

@@ -3,7 +3,7 @@
     <q-card flat class="auth-card">
       <q-card-section class="card-header">
         <span class="auth-eyebrow">Rejoindre la communauté</span>
-        <h1 class="auth-title">Créez votre espace PWA Store</h1>
+        <h1 class="auth-title">Créez votre compte</h1>
         <p class="auth-subtitle"
           >Un compte unique pour explorer ou publier sur toutes les
           plateformes.</p
@@ -11,11 +11,14 @@
       </q-card-section>
 
       <q-card-section>
-        <q-form @submit="onSubmit" class="q-gutter-md">
+        <q-form @submit="onSubmit" class="auth-form">
           <q-input
             v-model="name"
+            autocomplete="name"
             label="Nom complet"
             filled
+            dense
+            hide-bottom-space
             color="primary"
             required
             :rules="[val => (val && val.length > 0) || 'Nom requis']"
@@ -25,41 +28,25 @@
           <q-input
             v-model="email"
             type="email"
-            label="Adresse Email"
+            autocomplete="email"
+            label="Adresse e-mail"
             filled
+            dense
+            hide-bottom-space
             color="primary"
             required
             :rules="[val => (val && val.length > 0) || 'Email requis']"
             ><template #prepend><q-icon name="alternate_email" /></template
           ></q-input>
 
-          <div class="account-type-title">Type de Compte</div>
-          <div class="row q-col-gutter-sm q-mb-md">
-            <div class="col-6">
-              <q-radio
-                v-model="role"
-                val="user"
-                label="Utilisateur"
-                color="primary"
-                class="full-width radio-box"
-              />
-            </div>
-            <div class="col-6">
-              <q-radio
-                v-model="role"
-                val="developer"
-                label="Développeur"
-                color="primary"
-                class="full-width radio-box"
-              />
-            </div>
-          </div>
-
           <q-input
             v-model="password"
+            autocomplete="new-password"
             :type="showPassword ? 'text' : 'password'"
             label="Mot de passe"
             filled
+            dense
+            hide-bottom-space
             color="primary"
             required
             :rules="[val => (val && val.length >= 8) || 'Minimum 8 caractères']"
@@ -68,9 +55,12 @@
 
           <q-input
             v-model="passwordConfirmation"
+            autocomplete="new-password"
             :type="showPassword ? 'text' : 'password'"
             label="Confirmer le mot de passe"
             filled
+            dense
+            hide-bottom-space
             color="primary"
             required
             :rules="[
@@ -90,11 +80,14 @@
             /></template>
           </q-input>
 
+          <CountrySelect v-model="countryId" required />
+          <q-checkbox v-model="twoFactorEnabled" label="Authentification à double facteurs par e-mail" />
+          <p class="text-caption">Un code envoyé par e-mail confirmera votre inscription. Si vous activez la double authentification, un code sera également demandé à chaque connexion.</p>
           <div v-if="error" class="form-error" role="alert">
             {{ error }}
           </div>
 
-          <div class="q-mt-md">
+          <div class="auth-submit">
             <q-btn
               label="Créer mon compte"
               type="submit"
@@ -121,15 +114,17 @@
 
 <script setup>
 import { ref } from 'vue'
+import CountrySelect from '@/components/CountrySelect.vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 
 const authStore = useAuthStore()
 const router = useRouter()
 
+const countryId = ref(null)
+const twoFactorEnabled = ref(false)
 const name = ref('')
 const email = ref('')
-const role = ref('user')
 const password = ref('')
 const passwordConfirmation = ref('')
 const showPassword = ref(false)
@@ -145,10 +140,11 @@ async function onSubmit() {
       email.value,
       password.value,
       passwordConfirmation.value,
-      role.value
+      countryId.value,
+      twoFactorEnabled.value
     )
     if (success) {
-      router.push('/')
+      router.push('/verify-email')
     }
   } catch (err) {
     error.value = authStore.error || "Erreur lors de l'inscription"
@@ -157,95 +153,3 @@ async function onSubmit() {
   }
 }
 </script>
-
-<style scoped lang="scss">
-.auth-page {
-  width: 100%;
-  min-height: 0 !important;
-  display: grid;
-  place-items: center;
-  color: var(--text);
-}
-.auth-card {
-  width: min(460px, 100%);
-  background: transparent;
-}
-.card-header {
-  padding: 0 12px 16px;
-}
-.auth-eyebrow {
-  display: inline-flex;
-  margin-bottom: 8px;
-  color: var(--pwa-link);
-  font-size: 9px;
-  font-weight: 800;
-  letter-spacing: 0.11em;
-  text-transform: uppercase;
-}
-.auth-title {
-  margin: 0;
-  color: var(--text);
-  font-size: clamp(25px, 3vw, 34px);
-  font-weight: 850;
-  line-height: 1.08;
-  letter-spacing: -0.045em;
-}
-.auth-subtitle {
-  margin: 10px 0 0;
-  color: var(--muted);
-  font-size: 11px;
-  line-height: 1.55;
-}
-.account-type-title {
-  color: var(--muted);
-  font-size: 11px;
-  font-weight: 700;
-  margin-bottom: 6px;
-}
-.radio-box {
-  min-height: 44px;
-  background: var(--surface-high);
-  border: 1px solid var(--outline);
-  padding: 7px 10px;
-  border-radius: 11px;
-  color: var(--text);
-  font-size: 12px;
-}
-.submit-btn {
-  min-height: 44px;
-  color: var(--pwa-on-primary);
-  background: var(--primary);
-  font-weight: 800;
-  border-radius: 12px;
-  box-shadow: 0 12px 26px color-mix(in srgb, var(--primary) 24%, transparent);
-  font-size: 13px;
-}
-.form-error {
-  padding: 10px 12px;
-  color: var(--q-negative);
-  background: rgba(239, 91, 103, 0.1);
-  border: 1px solid rgba(239, 91, 103, 0.2);
-  border-radius: 10px;
-  font-size: 10px;
-}
-.auth-card :deep(.q-field__label),
-.auth-card :deep(.q-field__native) {
-  color: var(--text);
-}
-.auth-card :deep(.q-field__prepend),
-.auth-card :deep(.q-field__append) {
-  color: var(--muted);
-}
-.footer-text {
-  color: var(--muted);
-  font-size: 11px;
-}
-.login-link {
-  color: var(--pwa-link);
-  font-weight: 700;
-  text-decoration: none;
-}
-.login-link:hover {
-  text-decoration: underline;
-}
-</style>

@@ -1,5 +1,10 @@
 // Theme tokens live on body so teleported menus and dialogs inherit them too.
 :root {
+  // Tailwind's default sans-serif system stack, shared with Quasar.
+  --pwa-font-sans:
+    ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI',
+    Roboto, 'Helvetica Neue', 'Noto Sans', Arial, sans-serif,
+    'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
   --pwa-platform-android: #3ddc84;
   --pwa-platform-windows: #00a4ef;
   --pwa-primary: #075bff;
@@ -12,6 +17,8 @@
   --pwa-on-primary: #ffffff;
 }
 body {
+  --pwa-auth-story-background: #edf3ff;
+  --pwa-auth-story-accent: #075bff;
   --pwa-background: #f6f9ff;
   --pwa-surface: #ffffff;
   --pwa-text: #08132d;
@@ -39,6 +46,8 @@ body {
   color-scheme: light;
 }
 body.body--dark {
+  --pwa-auth-story-background: #08132d;
+  --pwa-auth-story-accent: #08c8f8;
   --pwa-background: #08132d;
   --pwa-surface: #142343;
   --pwa-text: #f8faff;

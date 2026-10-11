@@ -61,6 +61,15 @@
             </div>
           </div>
 
+          <q-btn
+            flat
+            no-caps
+            color="primary"
+            icon="favorite_border"
+            label="Ajouter aux favoris"
+            @click="addFavorite"
+            class="q-mb-md"
+          />
           <div class="section-title q-mb-xs">Description</div>
           <p class="description-text q-mb-lg">
             {{ app.description }}
@@ -68,19 +77,30 @@
 
           <div class="section-title q-mb-xs">Captures d'écran</div>
           <div class="screenshots-section q-mb-lg">
-            <!-- Mobile screenshots scroll -->
-            <div class="screenshot-group mobile-group">
+            <p
+              v-if="
+                !app.media?.screenshots?.mobile?.length &&
+                !app.media?.screenshots?.tablet?.length
+              "
+              class="text-grey"
+              >Aucune capture fournie par l’éditeur.</p
+            >
+            <div
+              v-if="app.media?.screenshots?.mobile?.length"
+              class="screenshot-group mobile-group"
+            >
               <div class="device-type-label"
                 ><q-icon name="smartphone" /> Mobile</div
               >
               <div class="screenshot-scroll">
                 <div
-                  v-for="i in 4"
+                  v-for="(shot, i) in app.media.screenshots.mobile"
                   :key="'mob-' + i"
                   class="screenshot-card mobile-card"
                 >
                   <q-img
-                    :src="getMobileScreenshot(app.id, i)"
+                    :src="shot"
+                    :alt="`Capture mobile ${i + 1}`"
                     spinner-color="primary"
                   />
                 </div>
@@ -88,18 +108,22 @@
             </div>
 
             <!-- Tablet screenshots scroll -->
-            <div class="screenshot-group tablet-group q-mt-md">
+            <div
+              v-if="app.media?.screenshots?.tablet?.length"
+              class="screenshot-group tablet-group q-mt-md"
+            >
               <div class="device-type-label"
                 ><q-icon name="tablet_mac" /> Tablette</div
               >
               <div class="screenshot-scroll">
                 <div
-                  v-for="i in 2"
+                  v-for="(shot, i) in app.media.screenshots.tablet"
                   :key="'tab-' + i"
                   class="screenshot-card tablet-card"
                 >
                   <q-img
-                    :src="getTabletScreenshot(app.id, i)"
+                    :src="shot"
+                    :alt="`Capture tablette ${i + 1}`"
                     spinner-color="primary"
                   />
                 </div>
@@ -254,23 +278,23 @@
             no-caps
             class="full-width text-weight-bold text-white rounded-borders q-mb-sm launch-pwa-btn"
             @click="launchApp"
-            :disabled="!latestVersion"
+            :disabled="extracting"
           />
 
           <q-btn
-            v-if="isAppInstallable"
+            v-if="app.status === 'approved'"
             color="green-6"
             icon="add_to_home_screen"
-            label="Installer l'application"
+            label="Ouvrir pour installer"
             unelevated
             no-caps
             class="full-width text-weight-bold text-white rounded-borders q-mb-sm install-pwa-btn"
-            @click="installAppFromStore"
-            :loading="installingApp"
+            @click="launchApp"
+            :loading="extracting"
           />
 
           <div class="text-caption text-blue-grey-400 italic">
-            Hash SHA-256 certifié par PWA Store Security
+            Installation proposée par votre navigateur, selon sa compatibilité.
           </div>
 
           <!-- PWA Installation Info -->
@@ -285,7 +309,10 @@
             </div>
           </div>
 
-          <div v-if="latestVersion" class="hash-box q-mt-md text-left truncate">
+          <div
+            v-if="latestVersion?.hash_sha256"
+            class="hash-box q-mt-md text-left truncate"
+          >
             SHA256: {{ latestVersion.hash_sha256.substring(0, 16) }}...
           </div>
         </q-card>
@@ -390,15 +417,6 @@
       </div>
     </div>
 
-    <!-- Hidden iframe to capture the sub-app's PWA install prompt -->
-    <iframe
-      v-if="isExtracted && latestVersion"
-      :src="pwaUrl"
-      style="display: none; width: 0; height: 0; border: none"
-      ref="pwaIframe"
-      id="pwa-installer-iframe"
-    ></iframe>
-
     <!-- Extraction Dialog -->
     <q-dialog v-model="extracting" persistent>
       <q-card
@@ -410,11 +428,10 @@
         >
           <q-spinner-orbit color="primary" size="lg" />
           <div class="text-h6 text-weight-bold text-center"
-            >Extraction en cours...</div
+            >Ouverture en cours...</div
           >
           <div class="extraction-caption text-caption text-center">
-            PWA Store prépare les fichiers de l'application et sécurise le bac à
-            sable.
+            Vérification de la disponibilité de l’application.
           </div>
         </q-card-section>
       </q-card>
@@ -423,14 +440,15 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onUnmounted } from 'vue'
-import { useRoute } from 'vue-router'
+import { ref, computed, onMounted } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import { api } from '@/boot/axios'
 import { useAuthStore } from '@/stores/auth'
 import { useQuasar } from 'quasar'
 import AppIcon from '@/components/AppIcon.vue'
 
 const route = useRoute()
+const router = useRouter()
 const authStore = useAuthStore()
 const $q = useQuasar()
 
@@ -438,12 +456,7 @@ const app = ref(null)
 const loading = ref(true)
 const error = ref('')
 
-const pwaIframe = ref(null)
-const isAppInstallable = ref(false)
-const installingApp = ref(false)
-
 const extracting = ref(false)
-const isExtracted = ref(false)
 
 const myRating = ref(5)
 const myComment = ref('')
@@ -451,7 +464,9 @@ const submittingReview = ref(false)
 
 const latestVersion = computed(() => {
   if (!app.value?.versions || app.value.versions.length === 0) return null
-  return app.value.versions[0]
+  return (
+    app.value.versions.find(v => v.status === 'active') || app.value.versions[0]
+  )
 })
 
 const isOwnerOrAdmin = computed(() => {
@@ -461,36 +476,6 @@ const isOwnerOrAdmin = computed(() => {
     authStore.user?.role === 'admin'
   )
 })
-
-const pwaUrl = computed(() => {
-  if (!app.value?.identifier) return '#'
-  const apiBase = api.defaults.baseURL || 'https://oneapp.test/api'
-  const origin = apiBase.replace('/api', '')
-  return `${origin}/apps/${app.value.identifier}/index.html`
-})
-
-const getMobileScreenshot = (appId, index) => {
-  const images = [
-    'https://images.unsplash.com/photo-1512941937669-90a1b58e7e9c',
-    'https://images.unsplash.com/photo-1551650975-87deedd944c3',
-    'https://images.unsplash.com/photo-1601784551446-20c9e07cdbdb',
-    'https://images.unsplash.com/photo-1523206489230-c012c64b2b48',
-    'https://images.unsplash.com/photo-1546054454-aa26e2b734c7'
-  ]
-  const seed = (appId * 7 + index * 13) % images.length
-  return `${images[seed]}?w=240&h=420&fit=crop&q=80`
-}
-
-const getTabletScreenshot = (appId, index) => {
-  const images = [
-    'https://images.unsplash.com/photo-1544244015-0df4b3ffc6b0',
-    'https://images.unsplash.com/photo-1589739900243-4b52cd9b104e',
-    'https://images.unsplash.com/photo-1561154464-82e9adf32764',
-    'https://images.unsplash.com/photo-1527689368864-3a821dbccc34'
-  ]
-  const seed = (appId * 11 + index * 17) % images.length
-  return `${images[seed]}?w=500&h=330&fit=crop&q=80`
-}
 
 async function fetchAppDetails() {
   loading.value = true
@@ -519,7 +504,11 @@ async function submitReview() {
     myRating.value = 5
     await fetchAppDetails()
   } catch (err) {
-    console.error('Error submitting review', err)
+    $q.notify({
+      type: 'negative',
+      message:
+        err.response?.data?.message || 'Impossible d’enregistrer votre avis.'
+    })
   } finally {
     submittingReview.value = false
   }
@@ -535,70 +524,49 @@ function formatDate(dateStr) {
   })
 }
 
-function handleIframeMessage(event) {
-  if (event.origin !== window.location.origin) return
-
-  if (event.data && event.data.type === 'pwa-installable') {
-    isAppInstallable.value = true
-  }
-
-  if (event.data && event.data.type === 'pwa-installed-success') {
-    installingApp.value = false
-    isAppInstallable.value = false
-    $q.notify({
-      type: 'positive',
-      message: `${app.value.name} a été installée avec succès sur votre appareil !`
-    })
-  }
-
-  if (event.data && event.data.type === 'pwa-install-failed') {
-    installingApp.value = false
-    $q.notify({
-      type: 'warning',
-      message: "Lancement de l'application pour procéder à l'installation...",
-      timeout: 3000
-    })
-    window.open(pwaUrl.value, '_blank')
-  }
-}
-
-function installAppFromStore() {
-  if (!pwaIframe.value) return
-  installingApp.value = true
-  pwaIframe.value.contentWindow.postMessage(
-    { type: 'trigger-pwa-install' },
-    '*'
-  )
-}
-
 async function launchApp() {
-  if (!latestVersion.value) return
-
   extracting.value = true
+  // Open synchronously to preserve the user's browser gesture.
+  const target = window.open('about:blank', '_blank')
+  if (target) target.opener = null
   try {
-    await api.post(`/versions/${latestVersion.value.id}/extract`)
-    isExtracted.value = true
-
-    // Ouvrir l'application dans un nouvel onglet
-    window.open(pwaUrl.value, '_blank')
+    const { data } = await api.get(`/apps/${app.value.id}/launch`)
+    const url = new URL(data.url)
+    if (url.protocol !== 'https:')
+      throw new Error('Adresse de lancement non sécurisée.')
+    if (target) target.location.replace(url.href)
+    else window.location.assign(url.href)
   } catch (err) {
-    console.error('Error during PWA extraction', err)
+    target?.close()
     $q.notify({
       type: 'negative',
-      message: "Erreur lors de la préparation de l'application."
+      message:
+        err.response?.data?.message || 'Impossible d’ouvrir cette application.'
     })
   } finally {
     extracting.value = false
   }
 }
 
+async function addFavorite() {
+  if (!authStore.isAuthenticated) {
+    router.push({ path: '/login', query: { redirect: route.fullPath } })
+    return
+  }
+  try {
+    await api.put(`/favorites/${app.value.id}`)
+    $q.notify({ type: 'positive', message: 'Application ajoutée aux favoris.' })
+  } catch (e) {
+    $q.notify({
+      type: 'negative',
+      message:
+        e.response?.data?.message || 'Impossible d’enregistrer ce favori.'
+    })
+  }
+}
+
 onMounted(() => {
   fetchAppDetails()
-  window.addEventListener('message', handleIframeMessage)
-})
-
-onUnmounted(() => {
-  window.removeEventListener('message', handleIframeMessage)
 })
 </script>
 
@@ -753,7 +721,7 @@ onUnmounted(() => {
 .hash-box {
   background: var(--surface-low);
   border: 1px solid var(--outline);
-  font-family: monospace;
+  font-family: var(--pwa-font-sans);
   padding: 6px 10px;
   border-radius: 6px;
   font-size: 10px;

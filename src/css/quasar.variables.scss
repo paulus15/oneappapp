@@ -8,3 +8,6 @@ $positive: #16a34a;
 $negative: #ef4444;
 $warning: #f59e0b;
 $info: #08c8f8;
+
+// Use the same system font for Quasar components and application content.
+$typography-font-family: var(--pwa-font-sans);

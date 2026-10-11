@@ -493,3 +493,142 @@ Le [catalogue BF](./01_TWA_STORE_PRD.md#catalogue-fonctionnel-laravel-et-intégr
 ## Documents associés
 
 [00](./00_TWA_STORE_AUDIT_SUMMARY.md) · [01](./01_TWA_STORE_PRD.md) · [02](./02_TWA_STORE_TRD.md) · [03](./03_TWA_STORE_APP_FLOW.md) · [04](./04_TWA_STORE_UX_UI.md) · [05](./05_TWA_STORE_BACKEND_SCHEMA.md) · [06](./06_TWA_STORE_IMPLEMENTATION_PLAN.md)
+
+## Mise en œuvre du 11 octobre 2026
+
+Le plan validé a été mis en œuvre progressivement dans les deux projets existants. La préférence explicite de l’utilisateur prévaut : **pile système sans-serif de Tailwind**, sans chargement d’Inter ou d’Inter Tight.
+
+### Livré dans le code
+
+- Compte unique Sanctum : inscription sans choix de rôle, vérification d’e-mail par lien signé, mise à jour du profil, favoris idempotents et bibliothèque existante.
+- Profil développeur individuel ou organisation rattaché à `users.id`, activation idempotente sous verrou transactionnel, cinq statuts, transitions contrôlées et historique. La suspension préserve le compte utilisateur.
+- Autorisations serveur distinctes pour préparer et soumettre. Un e-mail et un profil vérifiés sont requis pour soumettre ; chaque produit et chaque version nécessitent une revue indépendante. L’administrateur ne peut pas approuver son propre produit/profil.
+- Référencement HTTPS : validation des adresses, rejet des réseaux non publics, résolution DNS contrôlée et épinglée, validation de chaque redirection, taille et durée limitées, contrôle statique du manifeste et empreinte de contenu. Commande périodique de contrôle et mise en quarantaine des changements.
+- Builds : contrôles des chemins, liens symboliques, extensions, taille décompressée, nombre de fichiers, ressources externes déclarées, empreinte et nouvelle analyse avant publication. Stockage privé, publication sur `pwa-{id}.{PWA_RUNTIME_DOMAIN}`, origine différente par application, version active interchangeable avec une ancienne version approuvée. Le runtime ne transmet pas les requêtes aux API Laravel.
+- Paramètres de quotas centralisés dans `config/pwa_store.php`. Valeurs commerciales non fixées, aucun prestataire ni encaissement ajouté. Le dépassement bloque les nouvelles soumissions concernées.
+- Justificatifs facultatifs uniquement sur demande motivée d’un administrateur : PDF/JPEG/PNG de 5 Mo maximum, stockage privé, téléchargement authentifié en pièce jointe, journal des consultations et suppression à la demande. Expiration configurable, 30 jours par défaut technique ; commande quotidienne de purge.
+- Capture d’écran réelle enregistrée côté serveur. Suppression des images de démonstration dans les fiches publiques.
+- Pages compte, activation/profil/quotas, publication/versions et revue des développeurs. Navigation, guards, session et erreurs raccordés aux vrais endpoints.
+- Authentification compacte et responsive, thèmes clair/sombre, police système globale, animations GSAP chargées à la demande, réduction des mouvements, parallaxe limitée au bureau et animations décoratives suspendues hors écran.
+
+### Migrations et installation locale
+
+Trois migrations additives :
+
+1. `2026_10_11_000001_add_developer_accounts.php` : profils, historique et favoris.
+2. `2026_10_11_000002_add_publication_workflow.php` : distribution, modération des versions et événements de publication. Les étapes sont reprenables après une interruption DDL MySQL.
+3. `2026_10_11_000003_add_developer_documents.php` : justificatifs privés et expiration.
+
+Une sauvegarde SQL privée de la base locale a été créée avant la tentative de migration : `/private/tmp/pwa-local-backup-20261011-105427/database.sql`. Aucun reset ni migration de production n’a été exécuté.
+
+**Installation locale terminée** : après accord explicite de l’utilisateur, la connexion inactive 101 a été fermée. Les migrations 2 et 3 ont été appliquées avec succès ; les trois migrations sont enregistrées dans MySQL. La reprise a conservé les colonnes déjà ajoutées, sans réinitialisation de la base.
+
+### Contrats API ajoutés ou adaptés
+
+| Parcours                 | Endpoints                                                                                                                  |
+| ------------------------ | -------------------------------------------------------------------------------------------------------------------------- |
+| Compte                   | `POST /auth/register`, `POST /auth/login`, `GET /auth/me`, `PUT /account`                                                  |
+| E-mail                   | `POST /auth/email/resend`, `GET /auth/email/verify/{id}/{hash}` signé                                                      |
+| Favoris                  | `GET /favorites`, `PUT /favorites/{application}`, `DELETE /favorites/{application}`                                        |
+| Développeur              | `POST /developer/activate`, `GET/PUT /developer/profile`, `POST /developer/profile/submit`, `GET /developer/quotas`        |
+| Revue éditeur            | `GET /admin/developers`, `POST /admin/developers/{profile}/review`                                                         |
+| Justificatifs            | `GET/POST /developer-profiles/{profile}/documents`, `POST/GET/DELETE /developer-documents/{document}`                      |
+| Distribution             | `PUT /apps/{application}/source`, `POST /apps/{application}/check-url`, `POST /apps/{application}/submit`                  |
+| Revue produit/version    | `POST /admin/apps/{application}/review`, `POST /admin/versions/{version}/review`                                           |
+| Publication et ouverture | `POST /versions/{version}/extract` réservé à la publication ; `GET /apps/{application}/launch` pour l’ouverture publique   |
+| Médias                   | `GET /media/screenshots/{file}` ; fichiers reçus par `POST/PUT /apps`                                                      |
+| Compatibilité            | API applications, versions, bibliothèque/installations, téléchargements et intentions adaptées aux états publiés/autorisés |
+
+Les chemins du tableau sont préfixés par `/api`. Les détails d’authentification, validations et réponses restent dans les contrôleurs et les tests livrés ; aucune deuxième authentification n’a été introduite.
+
+### Vérifications réalisées
+
+- PHPUnit sur copie isolée du backend, SQLite en mémoire, mail/cache/session de test : **39 tests, 153 assertions, tous réussis**. Cette suite isolée n’utilise pas la base métier.
+- Contrôles couverts : compte simple, activation répétée, transitions de vérification, soumission, autorisations, suspension, quotas, approbation indépendante des versions, adresses interdites et classification IP, médias, favoris, justificatifs privés/expiration/suppression, isolation des routes du runtime, bibliothèque et reprise de migration.
+- Formatage et analyse frontend : `npm run lint:check`.
+- Builds Quasar SPA et PWA exécutés avec succès. À relancer après toute modification ultérieure.
+- Chrome : connexion et inscription à 320, 390, 1024 et 1440 px. Contrôle des nouvelles pages à 320, 390 et 1440 px, dans les deux thèmes ; correction du débordement du titre des justificatifs. Fond de présentation clair `rgb(237, 243, 255)`, sombre `rgb(8, 19, 45)`.
+- Contrôle supplémentaire sur le véritable noyau HTTP Laravel et MySQL local : **10 requêtes conformes** (compte, double activation sans doublon, profil, quotas, favoris, bibliothèque, justificatifs et deux refus 403 attendus). Utilisateur de contrôle créé dans une transaction annulée ; nombres de lignes identiques avant/après sur les huit tables vérifiées. L’authentification de ce contrôle est injectée dans la garde Sanctum : il ne remplace pas une recette navigateur de connexion par jeton.
+- Les contrôles navigateur des comptes protégés utilisent des réponses API interceptées en mémoire, uniquement dans le script de test. Ils prouvent l’affichage et l’absence d’erreurs JavaScript, pas une intégration de bout en bout avec MySQL ou un serveur SMTP réel. Les autorisations sont couvertes séparément par les tests HTTP Laravel.
+
+### Prérequis d’exploitation et limites vérifiées
+
+- Les migrations locales sont terminées. Prévoir la procédure normale de déploiement, sauvegarde et validation pour la production.
+- Configurer `PWA_FRONTEND_URL`, un SMTP opérationnel, `PWA_RUNTIME_DOMAIN` sur un domaine distinct, DNS et certificat wildcard. Le proxy doit transmettre ces hôtes au middleware Laravel et ne pas servir directement les archives privées. La publication échoue explicitement si le domaine isolé est absent.
+- Désactiver tout ancien accès statique à `/apps/{identifier}/...` côté serveur Web avant une exposition publique ; les anciennes applications doivent être revues et redéployées sur le runtime isolé. Un service worker déjà installé doit être pris en compte dans cette migration.
+- Exécuter le scheduler Laravel pour `pwa:check-external` et `pwa:purge-documents`. Définir la durée de conservation appropriée et aligner les sauvegardes sur la politique de suppression ; la purge applicative ne purge pas les sauvegardes externes.
+- L’analyse est statique : ce n’est pas une certification de sécurité. Les scripts distants peuvent évoluer sans changer l’HTML ou le manifeste ; revue humaine et supervision restent nécessaires. Aucun script soumis n’est exécuté sur le serveur.
+- Livraison SMTP, hébergement public avec DNS/TLS, service workers/installations sur appareils réels, performances sur appareils modestes et restauration de la sauvegarde n’ont pas été validés ici.
+- Les tâches avancées de l’audit initial (récupération de mot de passe, livraison push réelle, administration complète des catégories, amélioration des mesures analytiques et recette multi-appareils) restent distinctes de ce lot. Aucun faux succès ne les remplace.
+
+### Fichiers modifiés ou ajoutés
+
+Frontend, par rapport à l’état Git courant (inclut les changements de présentation déjà en cours au début de ce lot) :
+
+- `package-lock.json`
+- `package.json`
+- `src/boot/axios.js`
+- `src/components/DeveloperDocuments.vue`
+- `src/composables/usePageMotion.js`
+- `src/css/app.scss`
+- `src/css/quasar.variables.scss`
+- `src/css/theme.scss`
+- `src/layouts/AuthLayout.vue`
+- `src/layouts/DeveloperLayout.vue`
+- `src/layouts/MainLayout.vue`
+- `src/pages/account/AccountPage.vue`
+- `src/pages/admin/AdminConsolePage.vue`
+- `src/pages/admin/DeveloperReviewPage.vue`
+- `src/pages/auth/LoginPage.vue`
+- `src/pages/auth/RegisterPage.vue`
+- `src/pages/developer/DeveloperConsolePage.vue`
+- `src/pages/developer/DeveloperProfilePage.vue`
+- `src/pages/developer/EditAppPage.vue`
+- `src/pages/developer/PublicationPage.vue`
+- `src/pages/store/AppDetailsPage.vue`
+- `src/pages/store/StoreCatalogPage.vue`
+- `src/router/index.js`
+- `src/router/routes.js`
+- `src/services/account.js`
+- `src/stores/auth.js`
+
+Backend Laravel :
+
+- `app/Http/Controllers/Api/AccountController.php`
+- `app/Http/Controllers/Api/AppVersionController.php`
+- `app/Http/Controllers/Api/ApplicationController.php`
+- `app/Http/Controllers/Api/AuthController.php`
+- `app/Http/Controllers/Api/DeveloperDocumentController.php`
+- `app/Http/Controllers/Api/DeveloperProfileController.php`
+- `app/Http/Controllers/Api/InstallIntentController.php`
+- `app/Http/Controllers/Api/InstallationController.php`
+- `app/Http/Controllers/Api/PublicationController.php`
+- `app/Http/Controllers/StorefrontController.php`
+- `app/Http/Middleware/ServePwaRuntime.php`
+- `app/Models/AppVersion.php`
+- `app/Models/Application.php`
+- `app/Models/DeveloperDocument.php`
+- `app/Models/DeveloperProfile.php`
+- `app/Models/DeveloperProfileEvent.php`
+- `app/Models/User.php`
+- `app/Services/ApplicationMedia.php`
+- `app/Services/ExternalPwaChecker.php`
+- `app/Services/PublicationQuota.php`
+- `app/Services/PwaPackageAnalyzer.php`
+- `app/Services/PwaRuntime.php`
+- `bootstrap/app.php`
+- `config/pwa_store.php`
+- `database/migrations/2026_10_11_000001_add_developer_accounts.php`
+- `database/migrations/2026_10_11_000002_add_publication_workflow.php`
+- `database/migrations/2026_10_11_000003_add_developer_documents.php`
+- `public/oneapp-sw.js`
+- `routes/api.php`
+- `routes/console.php`
+- `tests/Feature/AppVersionExtractionRouteTest.php`
+- `tests/Feature/DeveloperAccountTest.php`
+- `tests/Feature/DeveloperDocumentTest.php`
+- `tests/Feature/IsolatedRuntimeTest.php`
+- `tests/Feature/PublicationWorkflowTest.php`
+- `tests/Feature/StorefrontTest.php`
+- `tests/TestCase.php`
+- `tests/Unit/ExternalPwaCheckerTest.php`

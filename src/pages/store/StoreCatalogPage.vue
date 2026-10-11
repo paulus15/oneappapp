@@ -1,6 +1,6 @@
 <template>
   <q-page class="home-page">
-    <main class="home-content">
+    <main ref="motionRoot" class="home-content">
       <section class="hero-panel" aria-labelledby="hero-title">
         <div class="hero-orb hero-orb-one" />
         <div class="hero-orb hero-orb-two" />
@@ -23,14 +23,23 @@
             <q-btn
               outline
               no-caps
-              label="Publier mon app"
-              to="/developer"
+              label="Devenir développeur"
+              to="/developer/activate"
               class="secondary-cta"
             />
           </div>
         </div>
 
         <div class="device-scene" aria-hidden="true">
+          <div class="floating-apps" v-if="rawApps.length">
+            <div
+              v-for="entry in rawApps.slice(0, 3)"
+              :key="entry.id"
+              class="floating-app"
+            >
+              <q-icon name="apps" /><span>{{ entry.name }}</span>
+            </div>
+          </div>
           <span class="platform-badge android"><q-icon name="android" /></span>
           <span class="platform-badge web"><q-icon name="language" /></span>
           <span class="platform-badge apps"><q-icon name="apps" /></span>
@@ -278,7 +287,7 @@
             </section>
 
             <!-- Section Gratuites -->
-            <section class="home-section">
+            <section data-reveal class="home-section">
               <header class="section-heading">
                 <div>
                   <span class="section-kicker">Gratuites</span>
@@ -316,7 +325,7 @@
             </section>
 
             <!-- Section Premium -->
-            <section class="home-section">
+            <section data-reveal class="home-section">
               <header class="section-heading">
                 <div>
                   <span class="section-kicker">Payantes</span>
@@ -405,10 +414,15 @@
             <q-icon name="developer_mode" class="developer-watermark" />
             <h2>Développeur ?</h2>
             <p
-              >Publiez votre application sur PWA Store et touchez des millions
-              d’utilisateurs avec notre runtime universel.</p
+              >Vous développez des applications ? Devenez développeur sur PWA
+              Store.</p
             >
-            <q-btn unelevated no-caps label="Commencer" to="/developer" />
+            <q-btn
+              unelevated
+              no-caps
+              label="Devenir développeur"
+              to="/developer/activate"
+            />
           </section>
 
           <section id="trending" class="glass-panel side-card trending-card">
@@ -457,6 +471,9 @@
 <script setup>
 import BrandLogo from '@/components/BrandLogo.vue'
 import { ref, computed, onMounted, watch } from 'vue'
+import { usePageMotion } from '@/composables/usePageMotion'
+const motionRoot = ref(null)
+usePageMotion(motionRoot)
 import { useRoute, useRouter } from 'vue-router'
 import { api } from '@/boot/axios'
 import AppIcon from '@/components/AppIcon.vue'
@@ -1694,6 +1711,54 @@ const categories = [
 
   .filter-select:last-child {
     grid-column: auto;
+  }
+}
+</style>
+
+<style scoped lang="scss">
+.floating-apps {
+  position: absolute;
+  inset: 15% -5%;
+  z-index: 4;
+  pointer-events: none;
+}
+.floating-app {
+  position: absolute;
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  max-width: 175px;
+  padding: 12px 16px;
+  border-radius: 16px;
+  background: var(--pwa-surface);
+  color: var(--pwa-text);
+  border: 1px solid rgba(8, 200, 248, 0.3);
+  box-shadow: 0 14px 40px #075bff20;
+  animation: card-float 6s ease-in-out infinite;
+}
+.floating-app span {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.floating-app:nth-child(2) {
+  right: 0;
+  top: 42%;
+  animation-delay: -2s;
+}
+.floating-app:nth-child(3) {
+  left: 2%;
+  bottom: 0;
+  animation-delay: -4s;
+}
+@keyframes card-float {
+  50% {
+    transform: translateY(-8px) rotate(1deg);
+  }
+}
+@media (max-width: 1023px), (prefers-reduced-motion: reduce) {
+  .floating-app {
+    animation: none;
   }
 }
 </style>

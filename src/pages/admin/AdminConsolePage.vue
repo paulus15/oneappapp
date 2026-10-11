@@ -1,5 +1,13 @@
 <template>
   <q-page class="admin-page">
+    <q-btn
+      flat
+      no-caps
+      color="primary"
+      to="/admin/developers"
+      label="Vérifier les développeurs"
+      class="q-mb-md"
+    />
     <div class="admin-hero q-mb-lg">
       <div>
         <span class="admin-eyebrow"
@@ -287,7 +295,25 @@ async function fetchApps() {
 
 async function updateAppStatus(app, newStatus) {
   try {
-    await api.post(`/apps/${app.id}/status`, { status: newStatus })
+    const reason = await new Promise(resolve =>
+      $q
+        .dialog({
+          title: 'Motif de décision',
+          prompt: {
+            model: '',
+            type: 'textarea',
+            isValid: value => value.trim().length >= 3
+          },
+          cancel: true
+        })
+        .onOk(resolve)
+        .onCancel(() => resolve(null))
+    )
+    if (!reason) return
+    await api.post(`/admin/apps/${app.id}/review`, {
+      status: newStatus,
+      reason
+    })
     $q.notify({
       type: 'positive',
       message: `Statut mis à jour : ${newStatus}`
@@ -310,7 +336,7 @@ async function selectAppForAnalytics(app) {
   loadingStats.value = true
   trustScoreSlider.value = app.trust_score
   try {
-    const response = await api.get(`/analytics/apps/${app.id}`)
+    const response = await api.get(`/analytics/summary/${app.id}`)
     stats.value = response.data
   } catch (err) {
     console.error('Error fetching analytics', err)
@@ -322,7 +348,7 @@ async function selectAppForAnalytics(app) {
 async function updateTrustScore() {
   if (!selectedApp.value) return
   try {
-    await api.post(`/apps/${selectedApp.value.id}/trust`, {
+    await api.put(`/apps/${selectedApp.value.id}`, {
       trust_score: trustScoreSlider.value
     })
     $q.notify({

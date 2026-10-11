@@ -55,7 +55,7 @@
             <div class="row justify-between items-start no-wrap q-mb-sm">
               <div
                 class="row items-center app-title-clickable cursor-pointer"
-                @click="$router.push(`/developer/apps/${app.id}/edit`)"
+                @click="$router.push(`/developer/apps/${app.id}/publication`)"
               >
                 <q-avatar
                   size="44px"
@@ -127,7 +127,7 @@
               label="Modifier"
               color="primary"
               class="text-caption text-weight-bold"
-              @click="$router.push(`/developer/apps/${app.id}/edit`)"
+              @click="$router.push(`/developer/apps/${app.id}/publication`)"
             />
             <div class="row items-center gap-xs">
               <q-btn

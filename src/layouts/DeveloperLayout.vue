@@ -47,7 +47,6 @@
           @click="toggleTheme"
         />
         <q-btn flat round icon="notifications_none" aria-label="Notifications">
-          <q-badge floating rounded color="deep-orange-5" />
         </q-btn>
 
         <q-btn flat no-caps class="developer-profile">
@@ -135,8 +134,8 @@
         <div class="drawer-user">
           <span class="status-dot" />
           <span>
-            <strong>Services opérationnels</strong>
-            <small>API et builds disponibles</small>
+            <strong>Espace développeur</strong>
+            <small>Votre compte PWA Store</small>
           </span>
         </div>
       </div>
@@ -165,6 +164,11 @@ const userInitial = computed(
 )
 
 const workspaceNavigation = [
+  {
+    label: 'Mon profil et mes quotas',
+    icon: 'verified_user',
+    to: '/developer/profile'
+  },
   { label: 'Vue d’ensemble', icon: 'space_dashboard', to: '/developer' },
   { label: 'Mes applications', icon: 'apps', disabled: true },
   { label: 'Builds & versions', icon: 'inventory_2', disabled: true },

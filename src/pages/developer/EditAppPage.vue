@@ -1,5 +1,13 @@
 <template>
   <q-page class="edit-app-page">
+    <q-btn
+      flat
+      no-caps
+      color="primary"
+      :to="`/developer/apps/${appId}/publication`"
+      label="Publication, versions et statistiques"
+      class="q-mb-md"
+    />
     <div class="edit-app-hero q-mb-md">
       <q-btn
         flat
@@ -1066,6 +1074,16 @@ async function saveMetaDataOnly() {
       }
     })
 
+    for (const device of ['mobile', 'tablet']) {
+      const retained = appForm.value[`screenshots_${device}`]
+        .filter(shot => !shot.file)
+        .map(shot => shot.url)
+      if (!retained.length) formData.append(`retained_media[${device}]`, '')
+      else
+        retained.forEach((url, i) =>
+          formData.append(`retained_media[${device}][${i}]`, url)
+        )
+    }
     await api.post(`/apps/${appId}`, formData, {
       headers: { 'Content-Type': 'multipart/form-data' }
     })
@@ -1075,18 +1093,20 @@ async function saveMetaDataOnly() {
       message:
         'Informations et statut de l’application enregistrés avec succès.'
     })
+    return true
   } catch (err) {
     $q.notify({
       type: 'negative',
       message: err.response?.data?.message || 'Erreur lors de la mise à jour'
     })
+    return false
   } finally {
     saving.value = false
   }
 }
 
 async function saveAll() {
-  await saveMetaDataOnly()
+  if (!(await saveMetaDataOnly())) return
 
   if (newVersion.value.zip_file) {
     if (!newVersion.value.version_number.trim()) {

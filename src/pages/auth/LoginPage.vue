@@ -3,19 +3,22 @@
     <q-card flat class="auth-card">
       <q-card-section class="card-header">
         <span class="auth-eyebrow">Ravi de vous revoir</span>
-        <h1 class="auth-title">Connectez-vous à PWA Store</h1>
+        <h1 class="auth-title">Connectez-vous</h1>
         <p class="auth-subtitle"
-          >Retrouvez vos applications, vos préférences et votre activité.</p
+          >Retrouvez votre espace et vos applications sur PWA Store.</p
         >
       </q-card-section>
 
       <q-card-section>
-        <q-form @submit="onSubmit" class="q-gutter-md">
+        <q-form @submit="onSubmit" class="auth-form">
           <q-input
             v-model="email"
             type="email"
+            autocomplete="email"
             label="Adresse e-mail"
             filled
+            dense
+            hide-bottom-space
             color="primary"
             required
             lazy-rules
@@ -26,9 +29,12 @@
 
           <q-input
             v-model="password"
+            autocomplete="current-password"
             :type="showPassword ? 'text' : 'password'"
             label="Mot de passe"
             filled
+            dense
+            hide-bottom-space
             color="primary"
             required
             lazy-rules
@@ -67,7 +73,7 @@
             {{ error }}
           </div>
 
-          <div class="q-mt-md">
+          <div class="auth-submit">
             <q-btn
               label="Continuer"
               type="submit"
@@ -94,11 +100,12 @@
 
 <script setup>
 import { ref } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 
 const authStore = useAuthStore()
 const router = useRouter()
+const route = useRoute()
 
 const email = ref('')
 const password = ref('')
@@ -112,8 +119,20 @@ async function onSubmit() {
   error.value = ''
   try {
     const success = await authStore.login(email.value, password.value)
+    if (success?.requires_otp) {
+      router.push({ path: '/verify-email', query: { redirect: route.query.redirect } })
+      return
+    }
     if (success) {
-      router.push('/')
+      const redirect = route.query.redirect
+      router.push(
+        typeof redirect === 'string' &&
+          redirect.startsWith('/') &&
+          !redirect.startsWith('//') &&
+          !redirect.includes('\\')
+          ? redirect
+          : '/account'
+      )
     }
   } catch (err) {
     error.value = authStore.error || 'Erreur de connexion'
@@ -122,104 +141,3 @@ async function onSubmit() {
   }
 }
 </script>
-
-<style scoped lang="scss">
-.auth-page {
-  width: 100%;
-  min-height: 0 !important;
-  display: grid;
-  place-items: center;
-  color: var(--text);
-}
-.auth-card {
-  width: min(430px, 100%);
-  background: transparent;
-}
-.card-header {
-  padding: 0 12px 18px;
-}
-.auth-eyebrow {
-  display: inline-flex;
-  margin-bottom: 10px;
-  color: var(--pwa-link);
-  font-size: 10px;
-  font-weight: 800;
-  letter-spacing: 0.11em;
-  text-transform: uppercase;
-}
-.auth-title {
-  max-width: 390px;
-  margin: 0;
-  color: var(--text);
-  font-size: clamp(27px, 3vw, 36px);
-  font-weight: 850;
-  line-height: 1.08;
-  letter-spacing: -0.045em;
-}
-.auth-subtitle {
-  max-width: 390px;
-  margin: 12px 0 0;
-  color: var(--muted);
-  font-size: 12px;
-  line-height: 1.6;
-}
-.auth-card :deep(.q-field__label),
-.auth-card :deep(.q-field__native) {
-  color: var(--text);
-}
-.auth-card :deep(.q-field__prepend),
-.auth-card :deep(.q-field__append) {
-  color: var(--muted);
-}
-.form-options {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 14px;
-  color: var(--muted);
-  font-size: 10px;
-}
-.text-action {
-  padding: 4px 0;
-  color: var(--pwa-link);
-  background: none;
-  border: 0;
-  cursor: pointer;
-  font-size: 10px;
-  font-weight: 750;
-}
-.form-error {
-  padding: 10px 12px;
-  color: var(--q-negative);
-  background: rgba(239, 91, 103, 0.1);
-  border: 1px solid rgba(239, 91, 103, 0.2);
-  border-radius: 10px;
-  font-size: 10px;
-  text-align: left;
-}
-.submit-btn {
-  min-height: 44px;
-  color: var(--pwa-on-primary);
-  background: var(--primary);
-  font-weight: 800;
-  border-radius: 12px;
-  box-shadow: 0 12px 26px color-mix(in srgb, var(--primary) 24%, transparent);
-  font-size: 13px;
-}
-.card-footer {
-  padding-top: 12px;
-  text-align: center;
-}
-.footer-text {
-  color: var(--muted);
-  font-size: 10px;
-}
-.register-link {
-  color: var(--pwa-link);
-  font-weight: 700;
-  text-decoration: none;
-}
-.register-link:hover {
-  text-decoration: underline;
-}
-</style>

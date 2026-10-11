@@ -124,7 +124,7 @@
         </div>
 
         <nav class="top-links gt-md" aria-label="Liens secondaires">
-          <router-link to="/developer">Développeurs</router-link>
+          <router-link to="/developer/activate">Développeurs</router-link>
           <router-link to="/">Apps</router-link>
           <a href="#features">Documentation</a>
         </nav>
@@ -170,7 +170,7 @@
               <q-icon name="expand_more" class="gt-sm" />
               <q-menu auto-close class="profile-menu">
                 <q-list style="min-width: 180px">
-                  <q-item clickable to="/developer">
+                  <q-item clickable to="/account">
                     <q-item-section avatar
                       ><q-icon name="person_outline"
                     /></q-item-section>
@@ -234,10 +234,10 @@
         </q-list>
 
         <p class="drawer-label">Espace développeur</p>
-        <router-link to="/developer" class="developer-entry">
+        <router-link to="/developer/activate" class="developer-entry">
           <span class="developer-entry-icon"><q-icon name="terminal" /></span>
           <span class="developer-entry-copy">
-            <strong>Developer Center</strong>
+            <strong>Espace développeur</strong>
             <small>Gérez vos apps et vos builds</small>
           </span>
           <q-icon name="arrow_forward" class="developer-entry-arrow" />
@@ -250,7 +250,12 @@
           <p>
             Atteignez des millions d’utilisateurs en Afrique et dans le monde.
           </p>
-          <q-btn unelevated no-caps label="Commencer" to="/developer" />
+          <q-btn
+            unelevated
+            no-caps
+            label="Commencer"
+            to="/developer/activate"
+          />
         </div>
 
         <!-- Install Store Button -->

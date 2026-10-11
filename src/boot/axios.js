@@ -1,5 +1,6 @@
 import { boot } from 'quasar/wrappers'
 import axios from 'axios'
+import { useAuthStore } from '@/stores/auth'
 import { API_BASE_URL } from '@/utils/media'
 
 // Create an axios instance
@@ -34,10 +35,12 @@ export default boot(({ app, router }) => {
     error => {
       if (error.response && error.response.status === 401) {
         // Clear token and redirect to login page
-        localStorage.removeItem('auth_token')
-        localStorage.removeItem('user')
+        useAuthStore().clearSession()
         if (router.currentRoute.value.path !== '/login') {
-          router.push('/login')
+          router.push({
+            path: '/login',
+            query: { redirect: router.currentRoute.value.fullPath }
+          })
         }
       }
       return Promise.reject(error)
