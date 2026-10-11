@@ -233,7 +233,7 @@
           </q-item>
         </q-list>
 
-        <p class="drawer-label">Espace développeur</p>
+        <template v-if="!$q.screen.lt.md">\n        <p class="drawer-label">Espace développeur</p>
         <router-link to="/developer/activate" class="developer-entry">
           <span class="developer-entry-icon"><q-icon name="terminal" /></span>
           <span class="developer-entry-copy">
@@ -258,6 +258,7 @@
           />
         </div>
 
+        </template>
         <!-- Install Store Button -->
         <div v-if="canInstallStore" class="q-px-md q-pb-md">
           <q-btn
@@ -308,7 +309,7 @@
         no-caps
         icon="person_outline"
         label="Compte"
-        :to="authStore.isAuthenticated ? '/developer' : '/login'"
+        :to="authStore.isAuthenticated ? '/account' : '/login'"
         :class="{
           active: route.path === '/developer' || route.path === '/login'
         }"
