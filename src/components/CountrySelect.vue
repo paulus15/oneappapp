@@ -25,7 +25,7 @@ async function load() {
   finally { loading.value = false }
 }
 function filter(value, update) {
-  update(() => { const needle = value.toLocaleLowerCase('fr'); options.value = countries.value.filter(c => `${c.name} ${c.code} ${c.name_en}`.toLocaleLowerCase('fr').includes(needle)) })
+  update(() => { const needle = value.toLocaleLowerCase('fr'); options.value = countries.value.filter(c => `${c.name} ${c.iso_code} ${c.iso3_code}`.toLocaleLowerCase('fr').includes(needle)) })
 }
 onMounted(load)
 </script>
