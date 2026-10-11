@@ -59,7 +59,7 @@
             />
           </q-form>
         </q-card>
-        <q-card flat bordered class="workspace-card developer-invite"
+        <q-card v-if="!q.screen.lt.md" flat bordered class="workspace-card developer-invite"
           ><q-icon name="code" size="32px" color="primary" /><h2
             >Vous développez des applications ?</h2
           ><p
@@ -78,6 +78,10 @@
             "
         /></q-card>
       </div>
+      <section v-if="auth.isDeveloper && !q.screen.lt.md" class="workspace-section">
+        <h2>Activité développeur</h2>
+        <q-btn no-caps color="primary" to="/developer" label="Ouvrir le tableau de bord développeur" />
+      </section>
       <section class="workspace-section"
         ><h2>Mes favoris</h2>
         <p v-if="!favorites.length" class="text-muted"
