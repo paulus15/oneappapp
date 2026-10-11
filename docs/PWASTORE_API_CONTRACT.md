@@ -26,14 +26,14 @@ Auth : `—` public · `U` compte connecté · `D` profil développeur · `A` ad
 | POST      | `/auth/logout`           | U    | E      | Révoque le jeton courant                                                                                 |
 | GET       | `/auth/me`               | U    | E      | `accountPayload`                                                                                         |
 | POST      | `/auth/email/resend`     | U    | E      | Nouvel OTP `verify_email`                                                                                |
-| POST      | `/auth/password/forgot`  | —    | N (1)  | `email` → 202 toujours identique                                                                         |
-| POST      | `/auth/password/reset`   | —    | N (1)  | `email, token, password, password_confirmation` ; révoque tous les jetons                                |
+| POST      | `/auth/password/forgot`  | —    | E      | `email` → 202 toujours identique                                                                         |
+| POST      | `/auth/password/reset`   | —    | E      | `email, token, password, password_confirmation` ; révoque tous les jetons                                |
 | PUT       | `/account`               | U    | E      | `name, email, country_id, current_password?` ; changement d'e-mail → 202 OTP                             |
-| PUT       | `/account/password`      | U    | N (1)  | `current_password, password, password_confirmation` ; révoque les autres jetons                          |
+| PUT       | `/account/password`      | U    | E      | `current_password, password, password_confirmation` ; révoque les autres jetons                          |
 | POST      | `/account/two-factor`    | U    | E      | `enabled, channel=email, current_password` → 202 OTP                                                     |
-| GET       | `/account/sessions`      | U    | N (1)  | Jetons actifs (nom, dernière utilisation, courant)                                                       |
-| DELETE    | `/account/sessions/{id}` | U    | N (1)  | Révoquer une session                                                                                     |
-| POST      | `/account/deactivate`    | U    | N (1)  | `current_password` → 202 OTP, puis désactivation                                                         |
+| GET       | `/account/sessions`      | U    | E      | Jetons actifs (nom, dernière utilisation, courant)                                                       |
+| DELETE    | `/account/sessions/{id}` | U    | E      | Révoquer une session                                                                                     |
+| POST      | `/account/deactivate`    | U    | E      | `current_password` → 202 OTP, puis désactivation                                                         |
 | GET       | `/account/export`        | U    | N (7)  | Export JSON des données personnelles                                                                     |
 | GET / PUT | `/account/preferences`   | U    | N (7)  | Langue, notifications, consentement « vus récemment »                                                    |
 | GET       | `/countries`             | —    | E      | Pays actifs                                                                                              |

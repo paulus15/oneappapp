@@ -67,6 +67,7 @@ export default defineRouter((/* { store, ssrContext } */) => {
       '/trending': 'Tendances',
       '/login': 'Connexion',
       '/register': 'Inscription',
+      '/forgot-password': 'Mot de passe oublié',
       '/verify-email': 'Code de confirmation',
       '/developer': 'Espace développeur',
       '/developer/apps/create': 'Publier une application',

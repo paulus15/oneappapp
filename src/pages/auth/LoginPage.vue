@@ -64,8 +64,8 @@
               label="Rester connecté"
               color="primary"
             />
-            <button type="button" class="text-action"
-              >Mot de passe oublié ?</button
+            <router-link to="/forgot-password" class="text-action"
+              >Mot de passe oublié ?</router-link
             >
           </div>
 
@@ -118,7 +118,11 @@ async function onSubmit() {
   loading.value = true
   error.value = ''
   try {
-    const success = await authStore.login(email.value, password.value)
+    const success = await authStore.login(
+      email.value,
+      password.value,
+      rememberMe.value
+    )
     if (success?.requires_otp) {
       router.push({
         path: '/verify-email',

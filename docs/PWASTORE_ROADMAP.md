@@ -12,7 +12,7 @@ Un lot n'est ✅ que si ses critères d'acceptation sont vérifiés côté Larav
 | Lot | Thème                                    | Priorité | Dépend de         | Statut                                                  |
 | --- | ---------------------------------------- | -------- | ----------------- | ------------------------------------------------------- |
 | 0   | Correctifs de sécurité et socle de tests | P0       | —                 | ✅                                                      |
-| 1   | Authentification et compte unique        | P0       | 0                 | 🟦 (inscription, OTP, 2FA, e-mail livrés)               |
+| 1   | Authentification et compte unique        | P0       | 0                 | ✅                                                      |
 | 2   | Activation et vérification développeur   | P1       | 1                 | 🟦 (activation, vérification, pièce d'identité livrées) |
 | 3   | Catalogue, accueil et fiches             | P1       | 0                 | ⬜                                                      |
 | 4   | Soumission par URL                       | P1       | 2                 | 🟦 (contrôle et soumission livrés)                      |
@@ -56,15 +56,15 @@ Raisons : la machine à états et les permissions (Lot 6) conditionnent la visib
 
 Déjà livré : inscription avec pays, OTP e-mail, 2FA par e-mail, changement d'e-mail sécurisé, déconnexion.
 
-| Fonctionnalité                                                                                | Statut                            |
-| --------------------------------------------------------------------------------------------- | --------------------------------- |
-| Mot de passe oublié + réinitialisation (backend + pages)                                      | ⬜                                |
-| Changement de mot de passe                                                                    | ⬜                                |
-| Expiration des jetons, liste et révocation des sessions                                       | ⬜                                |
-| « Rester connecté » effectif (durée du jeton)                                                 | ⬜                                |
-| Verrou par compte après échecs répétés                                                        | ⬜                                |
-| Désactivation du compte (OTP), anonymisation différée                                         | ⏸ durée de conservation à décider |
-| Statut de compte (`active`, `suspended`, `deactivated`) appliqué à la connexion et aux jetons | ⬜                                |
+| Fonctionnalité                                                                                | Statut |
+| --------------------------------------------------------------------------------------------- | ------ |
+| Mot de passe oublié + réinitialisation (backend + pages)                                      | ✅     |
+| Changement de mot de passe                                                                    | ✅     |
+| Expiration des jetons, liste et révocation des sessions                                       | ✅     |
+| « Rester connecté » effectif (durée du jeton)                                                 | ✅     |
+| Verrou par compte après échecs répétés                                                        | ✅     |
+| Désactivation du compte (OTP), anonymisation à 30 jours                                       | ✅     |
+| Statut de compte (`active`, `suspended`, `deactivated`) appliqué à la connexion et aux jetons | ✅     |
 
 **Critères d'acceptation**
 
@@ -76,28 +76,28 @@ Déjà livré : inscription avec pays, OTP e-mail, 2FA par e-mail, changement d'
 
 Déjà livré : activation gratuite individuelle ou organisation, profil, 5 statuts, historique, justificatifs privés, pièce d'identité obligatoire, revue admin, blocage de publication motivé.
 
-| Fonctionnalité                                                                                          | Statut                   |
-| ------------------------------------------------------------------------------------------------------- | ------------------------ |
-| CTA « Vous développez des applications ? Devenez développeur sur PWA Store » sur l'accueil et le compte | ⬜ (vérifier l'existant) |
-| Page de présentation du portail développeur                                                             | ⬜                       |
-| Notifications de décision (via Lot 10)                                                                  | ⬜                       |
-| Filtre par statut et recherche dans la revue admin                                                      | ⬜                       |
-| Sort des 12 comptes `developer` historiques sans profil                                                 | ⏸ décision               |
+| Fonctionnalité                                                                                          | Statut                                        |
+| ------------------------------------------------------------------------------------------------------- | --------------------------------------------- |
+| CTA « Vous développez des applications ? Devenez développeur sur PWA Store » sur l'accueil et le compte | ⬜ (vérifier l'existant)                      |
+| Page de présentation du portail développeur                                                             | ⬜                                            |
+| Notifications de décision (via Lot 10)                                                                  | ⬜                                            |
+| Filtre par statut et recherche dans la revue admin                                                      | ⬜                                            |
+| Sort des 12 comptes `developer` historiques sans profil                                                 | ✅ apps masquées jusqu'à vérification (Lot 0) |
 
 **Critères d'acceptation** : un visiteur comprend comment devenir développeur depuis l'accueil ; un développeur suit son statut et voit le motif de chaque décision.
 
 ## Lot 3 — Catalogue, accueil et fiches (P1)
 
-| Fonctionnalité                                                                                                   | Statut                      |
-| ---------------------------------------------------------------------------------------------------------------- | --------------------------- |
-| Endpoint `/home` (mises en avant, nouveautés, populaires, mises à jour récentes, collections, catégories)        | ⬜                          |
-| Accueil : retrait des catégories et arguments codés en dur                                                       | ⬜                          |
-| Pages Catégories et « Applications d'une catégorie »                                                             | ⬜                          |
-| Résultats de recherche dédiés, filtres, tri, chargement progressif                                               | ⬜ (partiel existant)       |
-| Fiche : éditeur public, langues, partage, signalement, apps similaires, installation honnête selon le navigateur | ⬜                          |
-| Profil public développeur                                                                                        | ⬜                          |
-| Pages statiques : À propos, Devenir développeur, Aide, Contact, CGU, Confidentialité, Règles de publication      | ⏸ contenus légaux à fournir |
-| Footer complet                                                                                                   | ⬜                          |
+| Fonctionnalité                                                                                                                                    | Statut                |
+| ------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------- |
+| Endpoint `/home` (mises en avant, nouveautés, populaires, mises à jour récentes, collections, catégories)                                         | ⬜                    |
+| Accueil : retrait des catégories et arguments codés en dur                                                                                        | ⬜                    |
+| Pages Catégories et « Applications d'une catégorie »                                                                                              | ⬜                    |
+| Résultats de recherche dédiés, filtres, tri, chargement progressif                                                                                | ⬜ (partiel existant) |
+| Fiche : éditeur public, langues, partage, signalement, apps similaires, installation honnête selon le navigateur                                  | ⬜                    |
+| Profil public développeur                                                                                                                         | ⬜                    |
+| Pages statiques : À propos, Devenir développeur, Aide, Contact, CGU, Confidentialité, Règles de publication (brouillons à valider par un juriste) | ⬜                    |
+| Footer complet                                                                                                                                    | ⬜                    |
 
 **Critères d'acceptation** : aucun contenu de catalogue n'est codé en dur ; une catégorie créée par l'admin apparaît sans redéploiement ; le bouton d'installation n'est affiché que si `beforeinstallprompt` est disponible ou si la plateforme le permet.
 
@@ -206,13 +206,13 @@ Déjà livré : upload, analyse ZIP, versions, modération, déploiement, rollba
 
 ## Lot 12 — Tests finaux, sécurité, déploiement (P0)
 
-| Fonctionnalité                                                              | Statut     |
-| --------------------------------------------------------------------------- | ---------- |
-| Parcours E2E complet et variantes négatives (`PWASTORE_TEST_PLAN.md` §5)    | ⬜         |
-| Revue sécurité (en-têtes, CSP, CORS, secrets, rétention, tâches planifiées) | ⬜         |
-| Retrait ou redirection de la vitrine Blade                                  | ⏸ décision |
-| Documentation de déploiement (cron, worker de file, variables, sauvegardes) | ⬜         |
-| Revue juridique des contenus                                                | ⏸ externe  |
+| Fonctionnalité                                                              | Statut    |
+| --------------------------------------------------------------------------- | --------- |
+| Parcours E2E complet et variantes négatives (`PWASTORE_TEST_PLAN.md` §5)    | ⬜        |
+| Revue sécurité (en-têtes, CSP, CORS, secrets, rétention, tâches planifiées) | ⬜        |
+| Retrait de la vitrine Blade, redirection vers Quasar                        | ⬜        |
+| Documentation de déploiement (cron, worker de file, variables, sauvegardes) | ⬜        |
+| Revue juridique des contenus                                                | ⏸ externe |
 
 Aucun déploiement public sans validation explicite.
 
@@ -232,8 +232,9 @@ Aucun déploiement public sans validation explicite.
 
 ## Journal
 
-| Date       | Lot  | Événement                                                                                                                                                                                                                                                                              | Vérification                                                                                                                                                                                                                    |
-| ---------- | ---- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 2026-10-11 | 1, 2 | Country, OTP e-mail, 2FA, tableau de bord développeur, pièce d'identité obligatoire (backend `a61010e`, frontend `e7bd455`)                                                                                                                                                            | `php artisan test` 59/59 ; `quasar build -m pwa` OK                                                                                                                                                                             |
-| 2026-10-11 | —    | Audit et planification (ces documents)                                                                                                                                                                                                                                                 | Inspection du code ; aucune modification de code                                                                                                                                                                                |
-| 2026-10-11 | 0    | Visibilité publique unique (éditeur vérifié requis), push simulé désactivé (410), analytics restreints + dédupliqués + throttle, avis (e-mail vérifié, 2000 car., throttle), catégorie utilisée protégée, `/admin/apps` paginé, N+1 supprimé, Vitest installé, garde de route extraite | `php artisan test` 67/67 ; `npm run test:unit` 8/8 ; `npx oxlint` et `npx oxfmt --check` propres ; `quasar build -m pwa` OK. Conséquence : 0 app publique sur 10 approuvées en local tant que les éditeurs ne sont pas vérifiés |
+| Date       | Lot  | Événement                                                                                                                                                                                                                                                                                                                                                                     | Vérification                                                                                                                                                                                                                    |
+| ---------- | ---- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 2026-10-11 | 1, 2 | Country, OTP e-mail, 2FA, tableau de bord développeur, pièce d'identité obligatoire (backend `a61010e`, frontend `e7bd455`)                                                                                                                                                                                                                                                   | `php artisan test` 59/59 ; `quasar build -m pwa` OK                                                                                                                                                                             |
+| 2026-10-11 | —    | Audit et planification (ces documents)                                                                                                                                                                                                                                                                                                                                        | Inspection du code ; aucune modification de code                                                                                                                                                                                |
+| 2026-10-11 | 0    | Visibilité publique unique (éditeur vérifié requis), push simulé désactivé (410), analytics restreints + dédupliqués + throttle, avis (e-mail vérifié, 2000 car., throttle), catégorie utilisée protégée, `/admin/apps` paginé, N+1 supprimé, Vitest installé, garde de route extraite                                                                                        | `php artisan test` 67/67 ; `npm run test:unit` 8/8 ; `npx oxlint` et `npx oxfmt --check` propres ; `quasar build -m pwa` OK. Conséquence : 0 app publique sur 10 approuvées en local tant que les éditeurs ne sont pas vérifiés |
+| 2026-10-12 | 1    | Mot de passe oublié par code OTP (réponse identique pour une adresse inconnue), changement de mot de passe, sessions (liste, révocation, durée 1 j / 30 j selon « Rester connecté »), verrou par compte (10 échecs / 15 min), statut de compte (actif, suspendu, désactivé) appliqué aux jetons, désactivation par OTP et anonymisation à 30 jours (`pwa:anonymize-accounts`) | `php artisan test` 74/74 ; `npm run test:unit` 12/12 ; oxlint/oxfmt propres ; build PWA OK ; appel réel `POST /auth/password/forgot` sur `oneapp.test` → 202. Écrans non vérifiés visuellement dans un navigateur               |

@@ -63,4 +63,55 @@ describe('auth store', () => {
     expect(auth.error).toBe('Code incorrect.')
     expect(auth.isAuthenticated).toBe(false)
   })
+
+  it('sends the remember choice with the login', async () => {
+    post.mockResolvedValue({ data: session })
+    await useAuthStore().login('awa@example.test', 'secret-password', true)
+    expect(post).toHaveBeenCalledWith('/auth/login', {
+      email: 'awa@example.test',
+      password: 'secret-password',
+      remember: true
+    })
+  })
+
+  it('resets the password with the pending challenge and opens a session', async () => {
+    const auth = useAuthStore()
+    post.mockResolvedValueOnce({
+      data: {
+        requires_otp: true,
+        challenge_id: 'r1',
+        purpose: 'password_reset',
+        destination: 'a***@example.test'
+      }
+    })
+    await auth.forgotPassword('awa@example.test')
+    expect(auth.pendingChallenge.purpose).toBe('password_reset')
+    post.mockResolvedValueOnce({ data: session })
+    await auth.resetPassword('123456', 'new-password-1', 'new-password-1')
+    expect(post).toHaveBeenLastCalledWith('/auth/password/reset', {
+      challenge_id: 'r1',
+      code: '123456',
+      password: 'new-password-1',
+      password_confirmation: 'new-password-1'
+    })
+    expect(auth.isAuthenticated).toBe(true)
+  })
+
+  it('keeps the masked destination when a resend omits it', async () => {
+    const auth = useAuthStore()
+    auth.setChallenge({ challenge_id: 'c1', destination: 'a***@example.test' })
+    post.mockResolvedValue({ data: { challenge_id: 'c1', retry_after: 60 } })
+    await auth.resendOtp()
+    expect(auth.pendingChallenge.destination).toBe('a***@example.test')
+  })
+
+  it('closes the session once the account is deactivated', async () => {
+    const auth = useAuthStore()
+    auth.acceptAuthResult(session)
+    auth.setChallenge({ challenge_id: 'd1', purpose: 'deactivate_account' })
+    post.mockResolvedValue({ data: { deactivated: true, message: 'ok' } })
+    await auth.verifyOtp('123456')
+    expect(auth.isAuthenticated).toBe(false)
+    expect(localStorage.getItem('auth_token')).toBeNull()
+  })
 })

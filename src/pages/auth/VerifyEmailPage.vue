@@ -63,9 +63,14 @@ import { computed, onBeforeUnmount, ref } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { apiMessage } from '@/services/account'
+import { useQuasar } from 'quasar'
 const auth = useAuthStore(),
   router = useRouter(),
-  route = useRoute()
+  route = useRoute(),
+  q = useQuasar()
+// A password reset needs the new password, collected on its own page.
+if (auth.pendingChallenge?.purpose === 'password_reset')
+  router.replace('/forgot-password')
 const code = ref(''),
   error = ref(''),
   busy = ref(false),
@@ -81,7 +86,8 @@ const title = computed(
       login: 'Confirmez la connexion',
       two_factor: 'Confirmez votre choix',
       authorize_email_change: 'Confirmez le changement',
-      verify_email_change: 'Confirmez le nouvel e-mail'
+      verify_email_change: 'Confirmez le nouvel e-mail',
+      deactivate_account: 'Confirmez la désactivation'
     })[auth.pendingChallenge?.purpose] || 'Confirmez votre e-mail'
 )
 async function verify() {
@@ -90,6 +96,11 @@ async function verify() {
   try {
     const data = await auth.verifyOtp(code.value)
     code.value = ''
+    if (data.deactivated) {
+      q.notify({ type: 'info', message: data.message })
+      router.replace('/')
+      return
+    }
     if (data.requires_otp) {
       remaining.value = data.retry_after
       notice.value =

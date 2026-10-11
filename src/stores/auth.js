@@ -38,6 +38,10 @@ export const useAuthStore = defineStore('auth', {
       else sessionStorage.removeItem('otp_challenge')
     },
     acceptAuthResult(data) {
+      if (data.deactivated) {
+        this.clearSession()
+        return
+      }
       if (data.requires_otp) {
         this.setChallenge(data)
         return
@@ -60,8 +64,22 @@ export const useAuthStore = defineStore('auth', {
       const { data } = await api.post('/auth/otp/resend', {
         challenge_id: this.pendingChallenge?.challenge_id
       })
+      // Keep fields such as the masked destination if the server omits them.
+      this.setChallenge({ ...this.pendingChallenge, ...data })
+      return data
+    },
+    async forgotPassword(email) {
+      const { data } = await api.post('/auth/password/forgot', { email })
       this.setChallenge(data)
       return data
+    },
+    resetPassword(code, password, password_confirmation) {
+      return this.authenticate('/auth/password/reset', {
+        challenge_id: this.pendingChallenge?.challenge_id,
+        code,
+        password,
+        password_confirmation
+      })
     },
     setUser(user) {
       this.user = user
@@ -80,7 +98,11 @@ export const useAuthStore = defineStore('auth', {
       this.error = null
       try {
         const response = await api.post(path, data)
-        if (path === '/auth/login' || path === '/auth/register')
+        if (
+          ['/auth/login', '/auth/register', '/auth/password/reset'].includes(
+            path
+          )
+        )
           this.clearSession()
         this.acceptAuthResult(response.data)
         return response.data
@@ -96,8 +118,8 @@ export const useAuthStore = defineStore('auth', {
         this.loading = false
       }
     },
-    login(email, password) {
-      return this.authenticate('/auth/login', { email, password })
+    login(email, password, remember = false) {
+      return this.authenticate('/auth/login', { email, password, remember })
     },
     register(
       name,

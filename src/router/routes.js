@@ -66,6 +66,11 @@ const routes = [
         meta: { guestOnly: true }
       },
       {
+        path: 'forgot-password',
+        component: () => import('@/pages/auth/ForgotPasswordPage.vue'),
+        meta: { guestOnly: true }
+      },
+      {
         path: 'register',
         component: () => import('@/pages/auth/RegisterPage.vue'),
         meta: { guestOnly: true }
