@@ -52,7 +52,7 @@
           ></q-card
         >
         <q-card flat bordered class="workspace-card"
-          ><h3><q-icon name="inventory_2" /> Dépôt d’un build</h3
+          ><h3><q-icon name="archive" /> Dépôt d’un build</h3
           ><p
             >Vous déposez les fichiers de production. Chaque version est
             analysée, revue puis servie sur une origine isolée. Vous pouvez

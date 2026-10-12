@@ -166,7 +166,7 @@
               no-caps
               dense
               color="negative"
-              icon="inventory_2"
+              icon="archive"
               label="Archiver"
               :disable="busy"
               @click="archive"

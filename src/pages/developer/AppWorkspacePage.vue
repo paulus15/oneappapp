@@ -33,7 +33,7 @@
             flat
             no-caps
             color="primary"
-            icon="info_outline"
+            icon="info"
             :label="t('publication.journey.help')"
             @click="helpOpen = true"
           />
@@ -203,6 +203,7 @@
       <q-tabs
         v-model="tab"
         align="left"
+        inline-label
         outside-arrows
         mobile-arrows
         no-caps
@@ -994,12 +995,12 @@ const REQUEST_COLORS = {
   withdrawn: 'grey-7'
 }
 const tabs = [
-  { name: 'info', icon: 'description' },
+  { name: 'info', icon: 'article' },
   { name: 'media', icon: 'photo_library' },
-  { name: 'privacy', icon: 'shield' },
-  { name: 'version', icon: 'deployed_code' },
-  { name: 'submit', icon: 'send' },
-  { name: 'history', icon: 'history' }
+  { name: 'privacy', icon: 'privacy_tip' },
+  { name: 'version', icon: 'upload_file' },
+  { name: 'submit', icon: 'fact_check' },
+  { name: 'history', icon: 'timeline' }
 ]
 
 // Bottom of each form: one save button, and what saving means for a live app.

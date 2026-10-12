@@ -177,7 +177,7 @@ const workspaceNavigation = [
   },
   { label: 'Vue d’ensemble', icon: 'space_dashboard', to: '/developer' },
   { label: 'Mes applications', icon: 'apps', disabled: true },
-  { label: 'Builds & versions', icon: 'inventory_2', disabled: true },
+  { label: 'Builds & versions', icon: 'archive', disabled: true },
   { label: 'Statistiques', icon: 'insights', to: '/developer/stats' },
   { label: 'Avis et retours', icon: 'reviews', to: '/developer/reviews' },
   { label: 'PWA Lab', icon: 'science', to: '/developer/lab' },

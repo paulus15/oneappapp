@@ -153,7 +153,7 @@
                 flat
                 round
                 dense
-                icon="inventory_2"
+                icon="archive"
                 class="delete-btn"
                 aria-label="Archiver l'application"
                 @click="confirmDeleteApp(app)"

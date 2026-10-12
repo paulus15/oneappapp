@@ -40,7 +40,7 @@
             lazy-rules
             :rules="[val => (val && val.length > 0) || 'Mot de passe requis']"
           >
-            <template #prepend><q-icon name="lock_outline" /></template>
+            <template #prepend><q-icon name="lock" /></template>
             <template #append>
               <q-btn
                 flat

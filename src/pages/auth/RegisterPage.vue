@@ -50,7 +50,7 @@
             color="primary"
             required
             :rules="[val => (val && val.length >= 8) || 'Minimum 8 caractères']"
-            ><template #prepend><q-icon name="lock_outline" /></template
+            ><template #prepend><q-icon name="lock" /></template
           ></q-input>
 
           <q-input

@@ -205,7 +205,8 @@ export const pages = {
           'Compte : nom, adresse e-mail, pays de résidence déclaré, mot de passe (stocké sous forme chiffrée irréversible).',
           'Sécurité : codes de confirmation (stockés sous forme d’empreinte), sessions actives, adresse IP des actions d’administration.',
           'Développeurs : informations de profil, pièce d’identité (type, date d’expiration et fichier privé).',
-          'Usage : favoris, applications déclarées installées par appareil, avis, événements d’ouverture des applications.'
+          'Usage : favoris, applications déclarées installées par appareil, avis, événements d’ouverture des applications.',
+          'Consultations des fiches d’applications : une seule fois par compte et par application, avec sa date. Pour les visiteurs non connectés, une empreinte chiffrée de l’adresse IP (jamais l’adresse elle-même) évite de compter plusieurs fois la même visite.'
         ]
       },
       {
