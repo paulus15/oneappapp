@@ -96,10 +96,10 @@ Variantes négatives :
 
 | Suite                            | Commande              | Résultat                            |
 | -------------------------------- | --------------------- | ----------------------------------- |
-| Backend (SQLite en mémoire)      | `php artisan test`    | 111/111                             |
-| Backend (MySQL `oneapp_testing`) | `composer test:mysql` | 111/111                             |
-| Frontend unitaire                | `npm run test:unit`   | 20/20                               |
-| Bout en bout                     | `npm run test:e2e`    | 11/11, deux exécutions consécutives |
+| Backend (SQLite en mémoire)      | `php artisan test`    | 134/134                             |
+| Backend (MySQL `oneapp_testing`) | `composer test:mysql` | 134/134                             |
+| Frontend unitaire                | `npm run test:unit`   | 29/29 (dont parité des traductions) |
+| Bout en bout                     | `npm run test:e2e`    | 13/13                               |
 
 ### Lancer les tests de bout en bout
 

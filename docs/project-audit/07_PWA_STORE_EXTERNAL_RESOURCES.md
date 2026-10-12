@@ -60,7 +60,7 @@ Une réanalyse qui changerait le rapport d’une version approuvée/active renvo
 
 Pour les nouveaux rapports, la CSP part de `self`, conserve l’interdiction des objets et de l’encapsulation, et associe chaque origine uniquement à la directive de son usage identifié. Les WebSockets WSS alimentent seulement `connect-src`. Aucune étoile n’est ajoutée. Les origines privées, HTTP/WS et les références indéterminées ne sont pas autorisées automatiquement.
 
-La proposition est visible dans le rapport et devient celle du runtime après l’approbation de la version. Les anciennes versions approuvées sans nouveau rapport conservent leur CSP historique afin de ne pas modifier silencieusement une publication existante. Leur passage au nouveau mécanisme demande une nouvelle version analysée et approuvée.
+La proposition reste visible dans le rapport comme information. **Mise à jour du 12 octobre 2026** : elle n’est plus appliquée au runtime, car une liste déduite de l’analyse statique bloquait des applications réelles (polices, WebSockets, tuiles de carte construites à l’exécution). Les builds hébergés reçoivent désormais une CSP de compatibilité décrite dans [PWASTORE_BUILD_HOSTING.md](../PWASTORE_BUILD_HOSTING.md). Ancien texte : la proposition devenait celle du runtime après l’approbation de la version. Les anciennes versions approuvées sans nouveau rapport conservent leur CSP historique afin de ne pas modifier silencieusement une publication existante. Leur passage au nouveau mécanisme demande une nouvelle version analysée et approuvée.
 
 ### Frontend
 

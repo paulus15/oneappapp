@@ -106,7 +106,7 @@ php artisan config:cache
 ## 6. Vérifications
 
 1. `GET https://api.pwastore.example/api/platform` → `{"build_hosting": true, ...}`.
-2. Publier une application de test par build (dépôt, analyse, revue de la version et de l’application, déploiement, publication).
+2. Publier une application de test par build : dépôt et analyse, soumission, puis une seule approbation dans le dossier admin, qui déploie et publie.
 3. Ouvrir `https://pwa-<id>.pwastore-apps.example/` : la PWA s’affiche.
 4. `https://pwa-<id>.pwastore-apps.example/api/apps` → 404 (aucun accès à l’API depuis une origine d’exécution).
 5. Suspendre l’éditeur ou l’application : l’origine répond 404.
@@ -114,5 +114,5 @@ php artisan config:cache
 
 ## Limites connues
 
-- Pas d’analyse antivirus des archives : les contrôles portent sur la structure (chemins, liens symboliques, taux de compression, extensions exécutables, domaines externes non déclarés, fonctions sensibles). Un antivirus (ClamAV) peut être ajouté si l’infrastructure le permet.
+- Pas d’analyse antivirus des archives : les contrôles portent sur la structure (chemins, liens symboliques, taux de compression, extensions exécutables, fonctions sensibles ; les domaines externes sont détectés et présentés à l’administrateur, sans déclaration manuelle). Un antivirus (ClamAV) peut être ajouté si l’infrastructure le permet.
 - `Cache-Control: no-store` est appliqué pour l’instant à tous les fichiers servis ; un cache long sur les fichiers versionnés pourra être activé après mesure.

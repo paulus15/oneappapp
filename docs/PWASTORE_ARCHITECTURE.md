@@ -92,15 +92,18 @@ stateDiagram-v2
     in_review --> rejected : refus motivé
     rejected --> submitted : nouvelle soumission
     in_review --> approved : validation
-    approved --> published : publication (éditeur ou admin)
+    approved --> published : publication automatique à l'approbation
     published --> suspended : suspension (admin ou contrôle automatique)
     suspended --> in_review : réexamen
-    published --> submitted : fiche modifiée par l'éditeur
+    suspended --> published : mise à jour approuvée
+    submitted --> draft : demande retirée par l'éditeur
     published --> suspended : contenu distant changé (contrôle automatique)
     draft --> archived
     published --> archived : retrait par l'éditeur
     archived --> draft : réactivation
 ```
+
+Depuis le 12 octobre 2026, une application publiée **reste publiée** quand son éditeur la modifie : les changements attendent dans `pending_changes` et passent par une demande de publication de type « mise à jour » ([PWASTORE_PUBLICATION_WORKFLOW.md](PWASTORE_PUBLICATION_WORKFLOW.md)).
 
 Correspondance pour la migration additive des données existantes :
 

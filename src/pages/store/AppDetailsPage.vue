@@ -175,16 +175,13 @@
           <div
             class="text-caption text-blue-grey-300 text-uppercase tracking-wider text-weight-bold q-mb-xs"
           >
-            PWA Store Engine
+            Application
           </div>
 
           <div v-if="latestVersion" class="q-mb-md">
             <div class="text-subtitle2 text-white text-weight-bold">
               Version {{ latestVersion.version_number }}
             </div>
-            <div class="text-caption text-blue-grey-300"
-              >Format universel : .oap (ZIP)</div
-            >
           </div>
 
           <q-btn
