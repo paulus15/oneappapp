@@ -506,6 +506,7 @@ export default {
     afterPublication: 'Signals are accepted once the app is published.',
     installs: 'Confirmed installs',
     launches: 'Launches from the home screen',
+    recognized: 'PWA Store accounts recognized',
     privacy:
       'Only two events are measured (install, launch), with an anonymous device identifier. Nothing the user does inside the app is collected.'
   },

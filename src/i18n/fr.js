@@ -522,6 +522,7 @@ export default {
       'Les signaux seront acceptés dès que l’application sera publiée.',
     installs: 'Installations confirmées',
     launches: 'Ouvertures depuis l’écran d’accueil',
+    recognized: 'Comptes PWA Store reconnus',
     privacy:
       'Seuls deux événements sont mesurés (installation, ouverture), avec un identifiant anonyme de l’appareil. Rien de ce que l’utilisateur fait dans l’application n’est collecté.'
   },

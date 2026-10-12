@@ -2,6 +2,12 @@
 
 Les entrées les plus récentes sont en haut. Détails techniques et vérifications : journal de [PWASTORE_ROADMAP.md](PWASTORE_ROADMAP.md#journal).
 
+## 2026-10-12 (nuit) — Compte reconnu à l’ouverture, nettoyage des anciennes images
+
+- Ouverture depuis PWA Store : si la PWA porte le script de mesure, le lien reçoit une référence aléatoire à usage unique (10 min) que le script renvoie ; PWA Store reconnaît le compte sans le révéler à l’éditeur, qui voit seulement le nombre de comptes reconnus.
+- `php artisan pwa:normalize-media [--dry-run]` : ré-encode les anciennes icônes et captures (sans métadonnées), rend relatives les adresses `http://…/api/media/…`, met à jour fiches, modifications en attente et demandes ; les originaux restent pendant le délai de `pwa:purge-media`, avec une table de correspondance.
+- Déploiement VPS : workflow GitHub Actions et script `scripts/deploy-vps.sh` versionnés dans l’API.
+
 ## 2026-10-12 (soir) — Contenu de l’application, sécurité lots 1 et 2
 
 - Onglet « Contenu » : accès pour la vérification (identifiants de test chiffrés, consultation journalisée par l’administration), déclaration des annonces, questionnaire de classification du contenu avec âge calculé (non officiel). Les trois sont exigés avant soumission ; l’âge et les annonces apparaissent sur la fiche publique.

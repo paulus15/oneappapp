@@ -92,6 +92,14 @@
               : '—'
           }}</dd>
         </div>
+        <div>
+          <dt>{{ t('sdk.recognized') }}</dt>
+          <dd>{{
+            info.last_signal_at
+              ? Number(info.recognized_accounts || 0).toLocaleString(locale)
+              : '—'
+          }}</dd>
+        </div>
       </dl>
       <p class="text-caption text-muted">{{ t('sdk.privacy') }}</p>
     </template>
