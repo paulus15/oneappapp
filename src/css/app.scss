@@ -10,7 +10,14 @@
   --ui-shadow-sm: 0 8px 24px rgba(24, 24, 27, 0.06);
   --ui-shadow-md: 0 18px 48px rgba(24, 24, 27, 0.1);
   --ui-shadow-lg: 0 28px 80px rgba(24, 24, 27, 0.16);
-  --ui-ease: cubic-bezier(0.22, 1, 0.36, 1);
+  // Motion signature: one curve, three durations. "Settle" lands fast then rests, like an app
+  // icon placed on a home screen; "drop" adds the small rebound used when something is installed.
+  --motion-settle: cubic-bezier(0.16, 1, 0.3, 1);
+  --motion-drop: cubic-bezier(0.34, 1.36, 0.64, 1);
+  --motion-fast: 160ms;
+  --motion-base: 420ms;
+  --motion-hero: 900ms;
+  --ui-ease: var(--motion-settle);
 }
 
 *,
@@ -167,21 +174,6 @@ button,
 .q-notification {
   border-radius: var(--ui-radius-sm);
   box-shadow: var(--ui-shadow-md);
-}
-
-.q-page-container > .q-page {
-  animation: page-enter 0.48s var(--ui-ease) both;
-}
-
-@keyframes page-enter {
-  from {
-    opacity: 0;
-    transform: translateY(8px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
 }
 
 @media (hover: none) {
@@ -422,16 +414,12 @@ body .q-layout .q-btn.bg-primary {
   }
 }
 
-.motion-paused * {
-  animation-play-state: paused !important;
-}
-
 // Route transitions: short and subtle, removed entirely for reduced motion.
 .page-enter-active,
 .page-leave-active {
   transition:
-    opacity 0.18s ease,
-    transform 0.18s var(--ui-ease, ease);
+    opacity var(--motion-fast) var(--motion-settle),
+    transform var(--motion-base) var(--motion-settle);
 }
 .page-enter-from {
   opacity: 0;
@@ -447,5 +435,113 @@ body .q-layout .q-btn.bg-primary {
   }
   .page-enter-from {
     transform: none;
+  }
+}
+
+// Application tiles fill a grid like icons appearing on a home screen (see AppGrid).
+@keyframes pwa-tile-in {
+  from {
+    opacity: 0;
+    transform: translateY(14px) scale(0.94);
+  }
+}
+.motion-cascade:not(.is-in) > * {
+  opacity: 0;
+}
+.motion-cascade.is-in > * {
+  // "backwards" only: once landed, hover and press transforms work normally.
+  animation: pwa-tile-in var(--motion-base) var(--motion-drop) backwards;
+  animation-delay: calc(min(var(--i, 0), 12) * 45ms);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .motion-cascade:not(.is-in) > * {
+    opacity: 1;
+  }
+  .motion-cascade.is-in > * {
+    animation: none;
+  }
+}
+
+// Micro-interactions: short replies to an action, on the same curves and durations.
+@keyframes pwa-pop {
+  40% {
+    transform: scale(1.35);
+  }
+}
+.motion-pop .q-icon {
+  animation: pwa-pop var(--motion-base) var(--motion-drop);
+}
+@keyframes pwa-ring {
+  15% {
+    transform: rotate(14deg);
+  }
+  35% {
+    transform: rotate(-10deg);
+  }
+  55% {
+    transform: rotate(6deg);
+  }
+  75% {
+    transform: rotate(-3deg);
+  }
+}
+.motion-ring .q-icon {
+  transform-origin: 50% 10%;
+  animation: pwa-ring 700ms var(--motion-settle);
+}
+@keyframes pwa-launch {
+  0% {
+    transform: none;
+    opacity: 1;
+  }
+  60% {
+    transform: translate(6px, -18px) rotate(-8deg);
+    opacity: 0;
+  }
+  61% {
+    transform: translate(-4px, 12px);
+    opacity: 0;
+  }
+  100% {
+    transform: none;
+    opacity: 1;
+  }
+}
+.motion-launch .q-icon {
+  animation: pwa-launch 900ms var(--motion-settle) infinite;
+}
+@keyframes pwa-draw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .motion-pop .q-icon,
+  .motion-ring .q-icon,
+  .motion-launch .q-icon {
+    animation: none;
+  }
+}
+
+// Theme toggle: the sun sets as the moon rises.
+.theme-swap-enter-active,
+.theme-swap-leave-active {
+  transition:
+    transform var(--motion-base) var(--motion-drop),
+    opacity var(--motion-fast) var(--motion-settle);
+}
+.theme-swap-enter-from {
+  opacity: 0;
+  transform: rotate(-90deg) scale(0.6);
+}
+.theme-swap-leave-to {
+  opacity: 0;
+  transform: rotate(90deg) scale(0.6);
+}
+@media (prefers-reduced-motion: reduce) {
+  .theme-swap-enter-active,
+  .theme-swap-leave-active {
+    transition: none;
   }
 }

@@ -181,7 +181,9 @@
               v-if="application.status === 'approved'"
               no-caps
               color="positive"
+              icon="rocket_launch"
               label="Publier dans le Store"
+              :class="{ 'motion-launch': launching }"
               :disable="!auth.canSubmit || busy"
               @click="publish"
             />
@@ -394,6 +396,7 @@ const application = ref(null),
   error = ref('')
 const source = reactive({ source_type: 'build', external_url: '' })
 const { platform } = usePlatform()
+const launching = ref(false)
 const events = ref([])
 const readiness = ref(null),
   urlChecks = ref([]),
@@ -528,12 +531,15 @@ function publish() {
     title: 'Publier dans le Store ?',
     message: 'L’application sera visible par tous les visiteurs.',
     cancel: true
-  }).onOk(() =>
-    run(
+  }).onOk(async () => {
+    // The rocket takes off while the publication is sent.
+    launching.value = true
+    await run(
       () => accountApi.publishApp(application.value.id),
       'Application publiée.'
     )
-  )
+    launching.value = false
+  })
 }
 function archive() {
   q.dialog({

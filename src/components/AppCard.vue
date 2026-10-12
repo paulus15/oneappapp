@@ -35,19 +35,36 @@ defineProps({ app: { type: Object, required: true } })
   color: var(--text);
   text-decoration: none;
   transition:
-    transform 0.25s var(--ui-ease),
-    background 0.2s,
-    border-color 0.2s;
+    transform var(--motion-base) var(--motion-settle),
+    background var(--motion-fast) var(--motion-settle),
+    border-color var(--motion-fast) var(--motion-settle);
 }
 .app-card:hover,
 .app-card:focus-visible {
-  transform: translateY(-5px);
+  transform: translateY(-4px);
   background: var(--surface-high);
   border-color: color-mix(in srgb, var(--primary) 35%, transparent);
 }
+/* Press: the tile gives under the finger, like tapping an icon on a home screen. */
+.app-card:active {
+  transform: translateY(-1px) scale(0.97);
+  transition-duration: var(--motion-fast);
+}
+.app-card:hover .app-icon,
+.app-card:focus-visible .app-icon {
+  transform: translateY(-3px) scale(1.05);
+  box-shadow: 0 12px 24px rgba(2, 5, 20, 0.24);
+}
 @media (prefers-reduced-motion: reduce) {
+  .app-card,
+  .app-card .app-icon {
+    transition: none;
+  }
   .app-card:hover,
-  .app-card:focus-visible {
+  .app-card:focus-visible,
+  .app-card:active,
+  .app-card:hover .app-icon,
+  .app-card:focus-visible .app-icon {
     transform: none;
   }
 }
@@ -60,6 +77,9 @@ defineProps({ app: { type: Object, required: true } })
   color: var(--pwa-on-primary);
   border-radius: 12px;
   box-shadow: 0 8px 18px rgba(2, 5, 20, 0.18);
+  transition:
+    transform var(--motion-base) var(--motion-drop),
+    box-shadow var(--motion-base) var(--motion-settle);
 }
 h3 {
   max-width: 100%;

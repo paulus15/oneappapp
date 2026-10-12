@@ -4,6 +4,7 @@
     flat
     round
     icon="notifications_none"
+    :class="{ 'motion-ring': ringing }"
     :aria-label="`Notifications${store.unread ? `, ${store.unread} non lues` : ''}`"
     @click="open"
   >
@@ -59,7 +60,17 @@ import { timeAgo } from '@/utils/timeAgo'
 const auth = useAuthStore(),
   store = useNotificationsStore(),
   router = useRouter()
-const menu = ref(false)
+const menu = ref(false),
+  ringing = ref(false)
+// The bell answers a new notification with one small swing, never a loop.
+watch(
+  () => store.unread,
+  (now, before) => {
+    if (now <= (before ?? 0)) return
+    ringing.value = true
+    setTimeout(() => (ringing.value = false), 720)
+  }
+)
 const ago = timeAgo
 
 async function open() {

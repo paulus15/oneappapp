@@ -43,7 +43,7 @@
       <div class="kpis">
         <div v-for="kpi in kpis" :key="kpi.label" class="kpi workspace-card">
           <span>{{ kpi.label }}</span>
-          <strong>{{ kpi.value }}</strong>
+          <strong v-count-up="kpi.value" />
           <small v-if="kpi.hint">{{ kpi.hint }}</small>
         </div>
       </div>

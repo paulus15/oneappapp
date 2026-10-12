@@ -81,8 +81,9 @@
               flat
               no-caps
               color="primary"
-              icon="favorite_border"
-              label="Ajouter aux favoris"
+              :icon="favorited ? 'favorite' : 'favorite_border'"
+              :label="favorited ? 'Dans vos favoris' : 'Ajouter aux favoris'"
+              :class="{ 'motion-pop': popping }"
               @click="addFavorite"
             />
             <q-btn
@@ -397,6 +398,8 @@ const error = ref('')
 
 const extracting = ref(false)
 const similar = ref([])
+const favorited = ref(false),
+  popping = ref(false)
 
 const latestVersion = computed(() => {
   if (!app.value?.versions || app.value.versions.length === 0) return null
@@ -567,6 +570,9 @@ async function addFavorite() {
   }
   try {
     await api.put(`/favorites/${app.value.id}`)
+    favorited.value = true
+    popping.value = true
+    setTimeout(() => (popping.value = false), 450)
     $q.notify({ type: 'positive', message: 'Application ajoutée aux favoris.' })
   } catch (e) {
     $q.notify({

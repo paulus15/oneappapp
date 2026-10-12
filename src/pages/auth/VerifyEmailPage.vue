@@ -38,6 +38,12 @@
             unelevated
             :loading="busy"
           />
+          <p v-if="confirmed" class="confirmed" role="status">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M5 12.5l4.2 4.2L19 7" />
+            </svg>
+            Code confirmé
+          </p>
           <q-btn
             flat
             no-caps
@@ -64,6 +70,7 @@ import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { apiMessage } from '@/services/account'
 import { useQuasar } from 'quasar'
+import { prefersReducedMotion } from '@/motion/signature'
 const auth = useAuthStore(),
   router = useRouter(),
   route = useRoute(),
@@ -75,6 +82,7 @@ const code = ref(''),
   error = ref(''),
   busy = ref(false),
   notice = ref(''),
+  confirmed = ref(false),
   remaining = ref(auth.pendingChallenge?.retry_after || 0)
 const timer = setInterval(() => {
   if (remaining.value > 0) remaining.value--
@@ -107,6 +115,9 @@ async function verify() {
         'Un nouveau code confirme maintenant votre nouvelle adresse e-mail.'
       return
     }
+    // A short confirmation stroke before leaving (skipped with reduced motion).
+    confirmed.value = true
+    if (!prefersReducedMotion()) await new Promise(r => setTimeout(r, 450))
     const target = route.query.redirect
     router.replace(
       typeof target === 'string' &&
@@ -142,3 +153,33 @@ function restart() {
   router.replace(auth.isAuthenticated ? '/account' : '/login')
 }
 </script>
+<style scoped>
+.confirmed {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  color: var(--q-positive);
+  font-weight: 700;
+}
+.confirmed svg {
+  width: 22px;
+  height: 22px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.confirmed path {
+  stroke-dasharray: 24;
+  stroke-dashoffset: 24;
+  animation: pwa-draw var(--motion-base) var(--motion-settle) forwards;
+}
+@media (prefers-reduced-motion: reduce) {
+  .confirmed path {
+    animation: none;
+    stroke-dashoffset: 0;
+  }
+}
+</style>

@@ -2,8 +2,18 @@
   <div v-if="loading" class="app-grid" aria-busy="true">
     <q-skeleton v-for="n in 6" :key="n" height="128px" class="skeleton" />
   </div>
-  <div v-else-if="apps.length" class="app-grid">
-    <AppCard v-for="app in cards" :key="app.id" :app="app" />
+  <div
+    v-else-if="apps.length"
+    ref="grid"
+    class="app-grid"
+    :class="{ 'motion-cascade': cascade, 'is-in': landed }"
+  >
+    <AppCard
+      v-for="(app, i) in cards"
+      :key="app.id"
+      :app="app"
+      :style="{ '--i': i }"
+    />
   </div>
   <div v-else class="empty-state glass-panel">
     <q-icon :name="emptyIcon" />
@@ -11,7 +21,8 @@
   </div>
 </template>
 <script setup>
-import { computed } from 'vue'
+import { computed, onBeforeUnmount, ref, watch } from 'vue'
+import { prefersReducedMotion } from '@/motion/signature'
 import AppCard from '@/components/AppCard.vue'
 import { toCard } from '@/utils/appCard'
 const props = defineProps({
@@ -21,6 +32,27 @@ const props = defineProps({
   emptyIcon: { type: String, default: 'apps' }
 })
 const cards = computed(() => props.apps.map(toCard))
+
+// Tiles fill in, in reading order, the first time the grid scrolls into view.
+const grid = ref(null),
+  landed = ref(false)
+const cascade =
+  !prefersReducedMotion() && typeof IntersectionObserver !== 'undefined'
+let observer
+watch(grid, el => {
+  observer?.disconnect()
+  if (!el || !cascade || landed.value) return
+  observer = new IntersectionObserver(
+    ([entry]) => {
+      if (!entry.isIntersecting) return
+      landed.value = true
+      observer.disconnect()
+    },
+    { rootMargin: '0px 0px -10% 0px' }
+  )
+  observer.observe(el)
+})
+onBeforeUnmount(() => observer?.disconnect())
 </script>
 <style scoped>
 .app-grid {

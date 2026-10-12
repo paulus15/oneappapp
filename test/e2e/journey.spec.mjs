@@ -244,3 +244,46 @@ test('another user reviews the app and the publisher replies', async ({
   expect(reviews.total).toBe(1)
   expect(reviews.data[0].reply.body).toBe('Merci pour votre retour !')
 })
+
+test('with full motion, the intro ends readable and tiles and counters land', async ({
+  browser,
+  request
+}) => {
+  const context = await browser.newContext({
+    locale: 'fr-FR',
+    reducedMotion: 'no-preference'
+  })
+  const page = await context.newPage()
+  await page.goto('http://127.0.0.1:9124/')
+  // The intro reveals the promise line by line and leaves it in place.
+  await expect(page.locator('.hero-panel')).not.toHaveClass(/hero-intro/)
+  await expect
+    .poll(() =>
+      page
+        .locator('.line-inner')
+        .first()
+        .evaluate(e => getComputedStyle(e).transform)
+    )
+    .toMatch(/^(none|matrix\(1, 0, 0, 1, 0, 0\))$/)
+  // The published app tile cascades in and ends fully visible.
+  const card = page.locator('a.app-card', { hasText: appName }).first()
+  await card.scrollIntoViewIfNeeded()
+  await expect
+    .poll(() => card.evaluate(e => getComputedStyle(e).opacity))
+    .toBe('1')
+
+  // Admin counters count up to the real value.
+  const token = await apiLogin(request, 'admin@e2e.test', 'Admin-pass-123')
+  const stats = await (
+    await request.get(`${API}/admin/stats`, {
+      headers: { Authorization: `Bearer ${token}` }
+    })
+  ).json()
+  await page.evaluate(t => localStorage.setItem('auth_token', t), token)
+  await page.goto('http://127.0.0.1:9124/admin')
+  const queue = page
+    .locator('.queue-card', { hasText: 'application(s) à examiner' })
+    .locator('strong')
+  await expect(queue).toHaveText(String(stats.queues.applications_to_review))
+  await context.close()
+})

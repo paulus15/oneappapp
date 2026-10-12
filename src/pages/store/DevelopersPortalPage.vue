@@ -1,5 +1,5 @@
 <template>
-  <q-page ref="motionRoot" class="workspace-page portal-page">
+  <q-page class="workspace-page portal-page">
     <header class="workspace-heading"
       ><span class="eyebrow">Portail développeur</span
       ><h1
@@ -26,7 +26,7 @@
       ></header
     >
 
-    <section data-reveal class="workspace-section">
+    <section class="workspace-section">
       <h2>Comment ça marche</h2>
       <ol class="steps">
         <li v-for="step in steps" :key="step.title">
@@ -39,7 +39,7 @@
       </ol>
     </section>
 
-    <section data-reveal class="workspace-section">
+    <section class="workspace-section">
       <h2>Deux façons de publier</h2>
       <div class="workspace-grid">
         <q-card flat bordered class="workspace-card"
@@ -66,7 +66,7 @@
       >
     </section>
 
-    <section data-reveal class="workspace-section">
+    <section class="workspace-section">
       <h2>Ce qu’il faut savoir</h2>
       <div class="workspace-grid">
         <q-card flat bordered class="workspace-card"
@@ -99,15 +99,12 @@
   </q-page>
 </template>
 <script setup>
-import { computed, ref } from 'vue'
+import { computed } from 'vue'
 import AppFooter from '@/components/AppFooter.vue'
-import { usePageMotion } from '@/composables/usePageMotion'
 import { useAuthStore } from '@/stores/auth'
 import { useWorkspaceAccess } from '@/composables/useWorkspaceAccess'
 
 const auth = useAuthStore()
-const motionRoot = ref(null)
-usePageMotion(motionRoot)
 const { isMobile } = useWorkspaceAccess()
 const cta = computed(() =>
   !auth.isAuthenticated
@@ -138,7 +135,7 @@ const steps = [
   {
     icon: 'add_box',
     title: 'Préparez et soumettez votre application',
-    text: 'Fiche, captures, puis URL HTTPS ou build. Vous pouvez préparer avant d’être vérifié.'
+    text: 'Fiche, captures, puis URL HTTPS ou build. La validation de votre profil est obligatoire avant toute création.'
   },
   {
     icon: 'rocket_launch',

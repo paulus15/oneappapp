@@ -22,7 +22,7 @@
           :key="queue.label"
           :to="queue.to"
           class="queue-card workspace-card"
-          ><strong>{{ queue.value }}</strong
+          ><strong v-count-up="queue.value"></strong
           ><span>{{ queue.label }}</span></router-link
         >
       </div>

@@ -1,16 +1,25 @@
 <template>
   <q-page class="home-page">
     <main ref="motionRoot" class="home-content">
-      <section class="hero-panel" aria-labelledby="hero-title">
+      <section
+        class="hero-panel"
+        :class="{ 'hero-intro': intro }"
+        aria-labelledby="hero-title"
+      >
         <div class="hero-orb hero-orb-one" />
         <div class="hero-orb hero-orb-two" />
         <div class="hero-copy">
           <span class="eyebrow"
             ><q-icon name="auto_awesome" /> La plateforme universelle</span
           >
-          <h1 id="hero-title"
-            >Une seule installation.<br />Toutes les plateformes.</h1
-          >
+          <h1 id="hero-title">
+            <span class="line"
+              ><span class="line-inner">Une seule installation.</span></span
+            >
+            <span class="line"
+              ><span class="line-inner">Toutes les plateformes.</span></span
+            >
+          </h1>
           <p>Découvrez, testez et utilisez des applications Web modernes.</p>
           <div class="hero-actions">
             <q-btn
@@ -45,17 +54,20 @@
           <span class="platform-badge web"><q-icon name="language" /></span>
           <span class="platform-badge apps"><q-icon name="apps" /></span>
           <span class="platform-badge windows"><q-icon name="window" /></span>
-          <div class="phone-card">
-            <span class="phone-speaker" />
-            <img
-              class="hero-brand-icon"
-              src="/brand/pwa-store-icon.png"
-              width="180"
-              height="180"
-              alt=""
-            />
-            <strong>PWA Store</strong>
-            <small>Installer partout.<br />Ouvrir instantanément.</small>
+          <div class="phone-wrap">
+            <div class="phone-card">
+              <span class="phone-speaker" />
+              <span class="install-ring" />
+              <img
+                class="hero-brand-icon"
+                src="/brand/pwa-store-icon.png"
+                width="180"
+                height="180"
+                alt=""
+              />
+              <strong>PWA Store</strong>
+              <small>Installer partout.<br />Ouvrir instantanément.</small>
+            </div>
           </div>
         </div>
         <div class="hero-dots" aria-hidden="true"><i /><i /><i /><i /></div>
@@ -219,7 +231,7 @@
               />
             </section>
 
-            <section data-reveal class="home-section">
+            <section class="home-section">
               <header class="section-heading">
                 <div>
                   <span class="section-kicker">Fraîchement publiées</span>
@@ -232,7 +244,6 @@
             <section
               v-for="collection in home?.collections || []"
               :key="collection.id"
-              data-reveal
               class="home-section"
             >
               <header class="section-heading">
@@ -250,7 +261,7 @@
               <AppGrid :apps="collection.applications.slice(0, 8)" />
             </section>
 
-            <section data-reveal class="home-section">
+            <section class="home-section">
               <header class="section-heading">
                 <div>
                   <span class="section-kicker">Mises à jour</span>
@@ -361,9 +372,9 @@
 import { useWorkspaceAccess } from '@/composables/useWorkspaceAccess'
 const { isMobile } = useWorkspaceAccess()
 import { ref, computed, onMounted, watch } from 'vue'
-import { usePageMotion } from '@/composables/usePageMotion'
+import { useHeroIntro } from '@/composables/useHeroIntro'
 const motionRoot = ref(null)
-usePageMotion(motionRoot)
+const { intro } = useHeroIntro(motionRoot)
 import { useRoute, useRouter } from 'vue-router'
 import AppIcon from '@/components/AppIcon.vue'
 import AppFooter from '@/components/AppFooter.vue'
@@ -687,7 +698,6 @@ const categories = [
   border: 1px solid var(--outline);
   border-radius: 10px;
   box-shadow: 0 8px 25px rgba(3, 7, 24, 0.2);
-  animation: float 4s ease-in-out infinite;
 }
 .platform-badge .q-icon {
   font-size: 20px;
@@ -701,28 +711,55 @@ const categories = [
   bottom: 40px;
   left: 4px;
   color: var(--text);
-  animation-delay: -1.4s;
 }
 .platform-badge.apps {
   top: 40px;
   right: 4px;
   color: var(--pwa-link);
-  animation-delay: -2.2s;
 }
 .platform-badge.windows {
   right: 12px;
   bottom: 40px;
   color: var(--pwa-platform-windows);
-  animation-delay: -0.7s;
 }
-@keyframes float {
-  0%,
-  100% {
-    transform: translateY(0) rotate(-2deg);
-  }
-  50% {
-    transform: translateY(-8px) rotate(2deg);
-  }
+/* Hero intro (useHeroIntro): first-paint state, motion layers. */
+.hero-copy h1 .line {
+  display: block;
+  overflow: hidden;
+  padding-bottom: 0.08em;
+  margin-bottom: -0.08em;
+}
+.hero-copy h1 .line-inner {
+  display: inline-block;
+}
+.phone-wrap {
+  position: absolute;
+  inset: 0;
+}
+.install-ring {
+  position: absolute;
+  top: 34%;
+  left: 50%;
+  width: 96px;
+  height: 96px;
+  margin: -48px 0 0 -48px;
+  border-radius: 28px;
+  border: 2px solid var(--pwa-secondary);
+  opacity: 0;
+  pointer-events: none;
+}
+.hero-intro
+  :is(
+    .eyebrow,
+    .hero-copy > p,
+    .hero-actions > *,
+    .phone-wrap,
+    .platform-badge
+  ) {
+  opacity: 0;
+}
+.hero-intro .line-inner {
+  transform: translateY(110%);
 }
 .search-notice {
   display: flex;
@@ -1520,7 +1557,6 @@ const categories = [
   color: var(--pwa-text);
   border: 1px solid rgba(8, 200, 248, 0.3);
   box-shadow: 0 14px 40px #075bff20;
-  animation: card-float 6s ease-in-out infinite;
 }
 .floating-app span {
   overflow: hidden;
@@ -1530,21 +1566,9 @@ const categories = [
 .floating-app:nth-child(2) {
   right: 0;
   top: 42%;
-  animation-delay: -2s;
 }
 .floating-app:nth-child(3) {
   left: 2%;
   bottom: 0;
-  animation-delay: -4s;
-}
-@keyframes card-float {
-  50% {
-    transform: translateY(-8px) rotate(1deg);
-  }
-}
-@media (max-width: 1023px), (prefers-reduced-motion: reduce) {
-  .floating-app {
-    animation: none;
-  }
 }
 </style>

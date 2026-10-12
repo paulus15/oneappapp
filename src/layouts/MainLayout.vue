@@ -147,7 +147,12 @@
             :title="isDark ? 'Thème clair' : 'Thème sombre'"
             @click="toggleTheme"
           >
-            <q-icon :name="isDark ? 'light_mode' : 'dark_mode'" />
+            <transition name="theme-swap" mode="out-in">
+              <q-icon
+                :key="isDark ? 'light' : 'dark'"
+                :name="isDark ? 'light_mode' : 'dark_mode'"
+              />
+            </transition>
           </button>
           <NotificationBell class="gt-xs" />
 
