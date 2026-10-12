@@ -133,10 +133,27 @@
           <button
             class="icon-action language-action gt-xs"
             type="button"
-            aria-label="Langue française"
+            :aria-label="t('language.change')"
+            :title="t('language.change')"
           >
             <q-icon name="language" />
-            <span>FR</span>
+            <span>{{ activeLocale.short }}</span>
+            <q-menu auto-close>
+              <q-list style="min-width: 150px">
+                <q-item
+                  v-for="l in LOCALES"
+                  :key="l.value"
+                  clickable
+                  :active="l.value === locale"
+                  role="menuitemradio"
+                  :aria-checked="l.value === locale"
+                  :lang="l.value"
+                  @click="setLocale(l.value)"
+                >
+                  <q-item-section>{{ l.label }}</q-item-section>
+                </q-item>
+              </q-list>
+            </q-menu>
           </button>
           <button
             class="icon-action"
@@ -213,7 +230,7 @@
         <q-list class="navigation-list">
           <q-item
             v-for="item in mainNavigation"
-            :key="item.label"
+            :key="item.key"
             clickable
             v-ripple
             :to="item.to"
@@ -224,7 +241,7 @@
             <q-item-section avatar>
               <span class="nav-icon"><q-icon :name="item.icon" /></span>
             </q-item-section>
-            <q-item-section>{{ item.label }}</q-item-section>
+            <q-item-section>{{ t(`nav.${item.key}`) }}</q-item-section>
             <q-item-section v-if="item.badge" side>
               <q-badge rounded :label="item.badge" class="nav-badge" />
             </q-item-section>
@@ -284,6 +301,21 @@
             icon="add_to_home_screen"
             label="Installer PWA Store"
             @click="promptInstallStore"
+          />
+        </div>
+
+        <!-- The header language button is hidden on phones. -->
+        <div class="drawer-language lt-sm">
+          <q-icon name="language" />
+          <q-btn-toggle
+            :model-value="locale"
+            :options="LOCALES.map(l => ({ label: l.short, value: l.value }))"
+            :aria-label="t('language.label')"
+            dense
+            unelevated
+            no-caps
+            toggle-color="primary"
+            @update:model-value="setLocale"
           />
         </div>
       </div>
@@ -348,6 +380,8 @@ import { useQuasar } from 'quasar'
 import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { api } from '@/boot/axios'
+import { useI18n } from 'vue-i18n'
+import { LOCALES, setLocale } from '@/i18n'
 
 const $q = useQuasar()
 const route = useRoute()
@@ -356,6 +390,10 @@ const authStore = useAuthStore()
 const leftDrawerOpen = ref(false)
 const search = ref('')
 const { isDark, toggleTheme } = useTheme()
+const { t, locale } = useI18n()
+const activeLocale = computed(
+  () => LOCALES.find(l => l.value === locale.value) || LOCALES[0]
+)
 
 const searchFocused = ref(false)
 const searchHistory = ref([])
@@ -366,12 +404,12 @@ const deferredInstallPrompt = ref(null)
 const canInstallStore = computed(() => !!deferredInstallPrompt.value)
 
 const mainNavigation = [
-  { label: 'Accueil', icon: 'home', to: '/' },
-  { label: 'Populaires', icon: 'apps', to: '/popular' },
-  { label: 'Recommandés', icon: 'auto_awesome', to: '/recommended' },
-  { label: 'Tendances', icon: 'trending_up', to: '/trending' },
-  { label: 'Catégories', icon: 'category', section: 'categories' },
-  { label: 'Entreprises', icon: 'business', section: 'business' }
+  { key: 'home', icon: 'home', to: '/' },
+  { key: 'popular', icon: 'apps', to: '/popular' },
+  { key: 'recommended', icon: 'auto_awesome', to: '/recommended' },
+  { key: 'trending', icon: 'trending_up', to: '/trending' },
+  { key: 'categories', icon: 'category', section: 'categories' },
+  { key: 'business', icon: 'business', section: 'business' }
 ]
 
 onMounted(() => {
@@ -850,6 +888,12 @@ async function promptInstallStore() {
   background: color-mix(in srgb, var(--primary) 13%, var(--surface));
   font-size: 9px;
   font-weight: 800;
+}
+.drawer-language {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 16px 16px;
 }
 .drawer-label {
   margin: 16px 12px 6px;

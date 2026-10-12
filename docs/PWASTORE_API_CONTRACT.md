@@ -7,6 +7,7 @@ Auth : `—` public · `U` compte connecté · `D` profil développeur · `A` ad
 
 ## Conventions
 
+- Langue : le front envoie `Accept-Language: fr|en` (choix mémorisé dans le navigateur) ; l'API répond avec `Content-Language`. Le français est la langue source et la valeur par défaut. Messages traduits : manques de soumission et blocages éditeur (`lang/en.json`) ; les autres messages restent en français pour l'instant.
 - Erreurs de validation : `422` avec `{ message, errors: { champ: [..] } }`.
 - Refus de droit : `403` avec `message` en français, lisible par l'utilisateur.
 - Conflit d'état (transition interdite, quota) : `409` avec `message`.
@@ -103,24 +104,24 @@ Auth : `—` public · `U` compte connecté · `D` profil développeur · `A` ad
 
 ## 5. Publication (développeur)
 
-| Méthode | Route                            | Auth | Statut | Notes                                                                                                                                             |
-| ------- | -------------------------------- | ---- | ------ | ------------------------------------------------------------------------------------------------------------------------------------------------- |
-| GET     | `/developer/apps`                | D    | E      |                                                                                                                                                   |
-| POST    | `/apps`                          | D    | E      | Brouillon, multipart médias                                                                                                                       |
-| PUT     | `/apps/{id}`                     | D    | E      | Modifier une app publiée la renvoie en revue                                                                                                      |
-| PUT     | `/apps/{application}/source`     | D    | E      | `source_type: url\|build, external_url?`                                                                                                          |
-| POST    | `/apps/{application}/check-url`  | D    | E      | Contrôle SSRF-sûr                                                                                                                                 |
-| GET     | `/apps/{application}/url-checks` | D    | E      | Historique des contrôles                                                                                                                          |
-| GET     | `/apps/{application}/readiness`  | D    | E      | `{ gaps[], blockers[], ready }` : ce qui manque à la fiche ou à la source, et les blocages de l'éditeur ; la soumission applique les mêmes règles |
-| POST    | `/versions`                      | D    | E      | Upload ZIP + analyse                                                                                                                              |
-| POST    | `/apps/{application}/submit`     | D    | E      |                                                                                                                                                   |
-| POST    | `/apps/{application}/publish`    | D    | E      | `approved → published`                                                                                                                            |
-| POST    | `/apps/{application}/archive`    | D    | E      | Retrait volontaire                                                                                                                                |
-| GET     | `/apps/{application}/events`     | D    | E      | Historique de publication                                                                                                                         |
-| POST    | `/versions/{version}/extract`    | D    | E      | Déploiement isolé d'une version approuvée (rollback inclus)                                                                                       |
-| GET     | `/analytics/summary/{app_id}`    | D/A  | E      |                                                                                                                                                   |
-| POST    | `/analytics/events`              | U    | E\*    | Restreindre aux apps publiées + throttle (D2)                                                                                                     |
-| POST    | `/push-notifications`            | D    | E\*    | Désactivé (410) jusqu'à intégration réelle (D1)                                                                                                   |
+| Méthode | Route                            | Auth | Statut | Notes                                                                                                                                                                            |
+| ------- | -------------------------------- | ---- | ------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| GET     | `/developer/apps`                | D    | E      |                                                                                                                                                                                  |
+| POST    | `/apps`                          | D    | E      | Brouillon, multipart médias                                                                                                                                                      |
+| PUT     | `/apps/{id}`                     | D    | E      | Modifier une app publiée la renvoie en revue                                                                                                                                     |
+| PUT     | `/apps/{application}/source`     | D    | E      | `source_type: url\|build, external_url?`                                                                                                                                         |
+| POST    | `/apps/{application}/check-url`  | D    | E      | Contrôle SSRF-sûr                                                                                                                                                                |
+| GET     | `/apps/{application}/url-checks` | D    | E      | Historique des contrôles                                                                                                                                                         |
+| GET     | `/apps/{application}/readiness`  | D    | E      | `{ gaps[], listing_gaps[], source_gaps[], blockers[], ready }` : ce qui manque à la fiche ou à la source, et les blocages de l'éditeur ; la soumission applique les mêmes règles |
+| POST    | `/versions`                      | D    | E      | Upload ZIP + analyse                                                                                                                                                             |
+| POST    | `/apps/{application}/submit`     | D    | E      |                                                                                                                                                                                  |
+| POST    | `/apps/{application}/publish`    | D    | E      | `approved → published`                                                                                                                                                           |
+| POST    | `/apps/{application}/archive`    | D    | E      | Retrait volontaire                                                                                                                                                               |
+| GET     | `/apps/{application}/events`     | D    | E      | Historique de publication                                                                                                                                                        |
+| POST    | `/versions/{version}/extract`    | D    | E      | Déploiement isolé d'une version approuvée (rollback inclus)                                                                                                                      |
+| GET     | `/analytics/summary/{app_id}`    | D/A  | E      |                                                                                                                                                                                  |
+| POST    | `/analytics/events`              | U    | E\*    | Restreindre aux apps publiées + throttle (D2)                                                                                                                                    |
+| POST    | `/push-notifications`            | D    | E\*    | Désactivé (410) jusqu'à intégration réelle (D1)                                                                                                                                  |
 
 ## 6. PWA Lab
 

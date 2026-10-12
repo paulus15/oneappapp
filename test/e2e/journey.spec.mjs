@@ -144,6 +144,31 @@ test('the developer lists a real PWA by URL and submits it', async ({
   })
   await expect(page.getByText('Manifeste trouvé').first()).toBeVisible()
 
+  // The help explains the journey; the preview step is ticked once the listing is seen.
+  await page.getByRole('button', { name: 'Comment ça marche ?' }).click()
+  await expect(
+    page.getByText('Comment publier mon application ?')
+  ).toBeVisible()
+  await page.getByRole('button', { name: 'J’ai compris' }).click()
+  const previewStep = page.locator('.journey li', {
+    hasText: 'Prévisualiser la fiche'
+  })
+  await expect(previewStep).not.toHaveClass(/done/)
+  await previewStep.getByRole('button', { name: 'Aperçu' }).click()
+  await expect(page.getByText('Aperçu de la fiche publique')).toBeVisible()
+  await page.keyboard.press('Escape')
+  await expect(previewStep).toHaveClass(/done/)
+
+  // Switching to English also translates the server's messages; the choice is remembered.
+  await page.getByRole('button', { name: 'Changer de langue' }).click()
+  await page.getByRole('menuitemradio', { name: 'English' }).click()
+  await expect(page.getByText('Publishing journey')).toBeVisible()
+  await page.reload()
+  await expect(page.getByText('Publishing journey')).toBeVisible()
+  await page.getByRole('button', { name: 'Change language' }).click()
+  await page.getByRole('menuitemradio', { name: 'Français' }).click()
+  await expect(page.getByText('Parcours de publication')).toBeVisible()
+
   await page.getByRole('button', { name: 'Soumettre à la revue' }).click()
   await expect(notice(page, 'Application soumise à revue.')).toBeVisible()
   await expect(page.getByText('Soumise').first()).toBeVisible()

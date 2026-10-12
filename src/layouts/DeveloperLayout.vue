@@ -46,6 +46,7 @@
           "
           @click="toggleTheme"
         />
+        <LanguageSwitcher />
         <NotificationBell />
 
         <q-btn flat no-caps class="developer-profile">
@@ -152,6 +153,7 @@
 
 <script setup>
 import NotificationBell from '@/components/NotificationBell.vue'
+import LanguageSwitcher from '@/components/LanguageSwitcher.vue'
 import BrandLogo from '@/components/BrandLogo.vue'
 import { useTheme } from '@/composables/useTheme'
 import { computed, ref } from 'vue'

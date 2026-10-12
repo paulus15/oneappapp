@@ -28,6 +28,7 @@
               class="auth-theme-toggle"
               @click="toggleTheme"
             />
+            <LanguageSwitcher />
           </div>
         </header>
         <aside class="auth-story" aria-label="Présentation PWA Store">
@@ -68,6 +69,7 @@
 </template>
 
 <script setup>
+import LanguageSwitcher from '@/components/LanguageSwitcher.vue'
 import BrandLogo from '@/components/BrandLogo.vue'
 import { useTheme } from '@/composables/useTheme'
 

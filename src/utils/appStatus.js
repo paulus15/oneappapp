@@ -1,3 +1,5 @@
+import { i18n } from '@/i18n'
+
 // Mirrors App\Services\ApplicationLifecycle on the server; the server stays the authority.
 export const APP_STATUS = {
   draft: { label: 'Brouillon', color: 'grey-7' },
@@ -11,7 +13,10 @@ export const APP_STATUS = {
   archived: { label: 'Archivée', color: 'blue-grey-6' }
 }
 
-export const statusLabel = status => APP_STATUS[status]?.label || status
+const t = (key, fallback) =>
+  i18n.global.te(key) ? i18n.global.t(key) : fallback
+export const statusLabel = status =>
+  t(`status.${status}`, APP_STATUS[status]?.label || status)
 export const statusColor = status => APP_STATUS[status]?.color || 'grey-7'
 
 // Moderation decisions an administrator can take from each state.
@@ -38,7 +43,10 @@ export function adminDecisions(status) {
   return (ADMIN_FLOW[status] || []).map(to => ({
     to,
     ...DECISIONS[to],
-    label: status === 'suspended' ? 'Réexaminer' : DECISIONS[to].label
+    label:
+      status === 'suspended'
+        ? t('decision.reexamine', 'Réexaminer')
+        : t(`decision.${to}`, DECISIONS[to].label)
   }))
 }
 

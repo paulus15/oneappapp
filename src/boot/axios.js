@@ -2,6 +2,7 @@ import { boot } from 'quasar/wrappers'
 import axios from 'axios'
 import { useAuthStore } from '@/stores/auth'
 import { API_BASE_URL } from '@/utils/media'
+import { currentLocale } from '@/i18n'
 
 // Create an axios instance
 const api = axios.create({
@@ -20,6 +21,8 @@ export default boot(({ app, router }) => {
       if (token) {
         config.headers.Authorization = `Bearer ${token}`
       }
+      // Server messages (requirements, blockers) follow the language chosen in the store.
+      config.headers['Accept-Language'] = currentLocale()
       // With the JSON default, axios would serialise FormData to JSON and drop the files:
       // let the browser set multipart/form-data with its boundary instead.
       if (config.data instanceof FormData) config.headers.setContentType(false)
