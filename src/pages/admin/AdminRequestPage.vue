@@ -260,6 +260,11 @@
                 v-model="acknowledge"
                 :label="t('requests.dossier.acknowledge')"
               />
+              <q-checkbox
+                v-if="dossier.application.status === 'suspended'"
+                v-model="liftSuspension"
+                :label="t('requests.dossier.liftSuspension')"
+              />
               <q-banner
                 v-if="dossier.resources.correction_requested"
                 class="workspace-alert"
@@ -289,7 +294,9 @@
                   :label="t('requests.dossier.approve')"
                   :disable="
                     busy ||
-                    (!!version?.dangerous_findings?.length && !acknowledge)
+                    (!!version?.dangerous_findings?.length && !acknowledge) ||
+                    (dossier.application.status === 'suspended' &&
+                      !liftSuspension)
                   "
                   @click="decide('approved')"
                 />
@@ -413,7 +420,8 @@ const dossier = ref(null),
   error = ref(''),
   reason = ref(''),
   note = ref(''),
-  acknowledge = ref(false)
+  acknowledge = ref(false),
+  liftSuspension = ref(false)
 
 const request = computed(() => dossier.value.request)
 const snapshot = computed(() => request.value.snapshot || {})
@@ -561,7 +569,8 @@ function decide(decision) {
       const { data } = await adminApi.decideRequest(request.value.id, {
         decision,
         reason: reason.value.trim() || null,
-        acknowledge_findings: acknowledge.value
+        acknowledge_findings: acknowledge.value,
+        lift_suspension: liftSuspension.value
       })
       q.notify({
         type: 'positive',

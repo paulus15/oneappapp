@@ -326,7 +326,8 @@ export default {
     changes_requested: 'Demander une correction',
     rejected: 'Refuser',
     suspended: 'Suspendre',
-    reexamine: 'Réexaminer'
+    reexamine: 'Réexaminer',
+    reinstate: 'Rétablir'
   },
   publication: {
     eyebrow: 'Publication et versions',
@@ -906,6 +907,8 @@ export default {
         'Aucune autre application | {n} autre application | {n} autres applications',
       decision: 'Décision',
       takeOver: 'Prendre en charge',
+      liftSuspension:
+        'L’application est suspendue : l’approbation lève la suspension et la remet en ligne.',
       acknowledge:
         'J’ai examiné les fonctions sensibles et je les juge légitimes.',
       resourceCorrections:

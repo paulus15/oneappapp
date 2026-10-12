@@ -129,7 +129,8 @@ test('a build is analysed automatically and reviewed without manual declaration'
         identifier: `io.acme.e2e${stamp}`,
         description: 'Une boutique hors ligne qui synchronise ses commandes.',
         category_id: categories[0].id,
-        icon_url: 'https://squoosh.app/c/icon-large-maskable-c2078ced.png'
+        // External icon addresses are refused: icons are uploaded files.
+        icon_url: null
       }
     })
   ).json()

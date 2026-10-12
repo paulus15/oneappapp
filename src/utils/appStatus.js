@@ -101,6 +101,14 @@ const DECISIONS = {
     },
     icon: 'pause_circle',
     reason: true
+  },
+  // A suspended app is put back online directly, with a reason (or through a re-examination request).
+  published: {
+    get label() {
+      return ui('Rétablir')
+    },
+    icon: 'restore',
+    reason: true
   }
 }
 const ADMIN_FLOW = {
@@ -108,7 +116,7 @@ const ADMIN_FLOW = {
   in_review: ['approved', 'changes_requested', 'rejected'],
   approved: ['changes_requested', 'suspended'],
   published: ['suspended'],
-  suspended: ['in_review']
+  suspended: ['published']
 }
 
 export function adminDecisions(status) {
@@ -117,7 +125,7 @@ export function adminDecisions(status) {
     ...DECISIONS[to],
     label:
       status === 'suspended'
-        ? t('decision.reexamine', 'Réexaminer')
+        ? t('decision.reinstate', 'Rétablir')
         : t(`decision.${to}`, DECISIONS[to].label)
   }))
 }

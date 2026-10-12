@@ -89,7 +89,26 @@ Date : 12 octobre 2026. Revue en **lecture seule** menée par cinq agents, chacu
 - **Traductions du front** : 666 clés en français et en anglais, aucune manquante ; 1 059 appels de la couche `ui()` couverts.
 - **Aucun secret versionné** dans les dépôts.
 
-## 5. Plan de correction proposé
+## 5. Suivi des corrections
+
+**Lot 1 — corrigé le 12 octobre 2026** (tests `SecurityLotOneTest`, `UrlMonitoringTest`, suites complètes vertes : backend 157/157 sur SQLite et MySQL, front 45/45, bout en bout 13/13) :
+
+| ID  | Correction appliquée                                                                                                                                                                                              |
+| --- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| H1  | Limite de fréquence, e-mail vérifié exigé, 10 appareils max par compte et par app, téléchargements et classements comptés par **compte distinct**                                                                 |
+| H2  | Empreinte limitée à l’identité du manifeste (nom, icônes, adresse de départ, portée) ; un changement est signalé aux modérateurs, plus de suspension automatique ; seule l’indisponibilité répétée suspend encore |
+| H3  | Une app suspendue peut demander un réexamen sans modification                                                                                                                                                     |
+| H4  | « En examen » impossible sans demande ouverte ; une app suspendue est rétablie directement (avec motif) ou via un réexamen                                                                                        |
+| M1  | Champs internes masqués par défaut sur le modèle, révélés seulement au développeur et aux modérateurs ; intentions d’installation limitées aux champs publics, contenu borné et limité en fréquence               |
+| M2  | Détails de vérification du profil (modérateur, champs manquants) ajoutés uniquement pour le développeur et les vérificateurs                                                                                      |
+| M3  | Contrôles par permission `apps.moderate` au lieu du rôle                                                                                                                                                          |
+| M4  | Une version n’est plus approuvée hors dossier ; seule une version approuvée par une demande peut être mise en ligne                                                                                               |
+| M5  | Archiver retire la demande ouverte ; l’approbation ne se dit « en ligne » que si l’app l’est vraiment                                                                                                             |
+| M6  | Lever une suspension par l’approbation d’une demande exige une confirmation explicite, journalisée                                                                                                                |
+| M7  | La notification d’une mise à jour approuvée est envoyée après la mise en ligne, avec le bon message en cas d’échec                                                                                                |
+| M8  | Seules les icônes déposées sont acceptées ; limites de fréquence sur la création et la modification d’app                                                                                                         |
+
+## 6. Plan de correction proposé
 
 1. **Lot sécurité / publication (immédiat)** : H1, H2, H3, H4, M1, M2, M3, M4, M5, M6, M7, M8.
 2. **Lot médias et données (avant lancement)** : H5, H6, H7, H9, M9, M10, M11, M14, M15.

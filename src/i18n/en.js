@@ -320,7 +320,8 @@ export default {
     changes_requested: 'Request changes',
     rejected: 'Reject',
     suspended: 'Suspend',
-    reexamine: 'Review again'
+    reexamine: 'Review again',
+    reinstate: 'Reinstate'
   },
   publication: {
     eyebrow: 'Publishing and versions',
@@ -886,6 +887,8 @@ export default {
       otherApps: 'No other app | {n} other app | {n} other apps',
       decision: 'Decision',
       takeOver: 'Take over',
+      liftSuspension:
+        'The app is suspended: approving lifts the suspension and puts it back online.',
       acknowledge:
         'I have reviewed the sensitive functions and consider them legitimate.',
       resourceCorrections:

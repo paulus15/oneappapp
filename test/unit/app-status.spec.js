@@ -11,7 +11,7 @@ describe('application status helpers', () => {
     expect(adminDecisions('draft')).toEqual([])
     expect(adminDecisions('published').map(d => d.to)).toEqual(['suspended'])
     expect(adminDecisions('suspended')).toEqual([
-      expect.objectContaining({ to: 'in_review', label: 'Réexaminer' })
+      expect.objectContaining({ to: 'published', label: 'Rétablir' })
     ])
     expect(
       adminDecisions('submitted').find(d => d.to === 'in_review').reason
