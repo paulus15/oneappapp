@@ -47,8 +47,13 @@ export default defineConfig((/* ctx */) => {
 
       vueRouterMode: 'history', // available values: 'hash', 'history'
 
-      // API address baked in at build time: VITE_API_URL=https://api.example/api npm run build
-      env: { API_URL: process.env.VITE_API_URL || '' }
+      // API address, replaced in the code in dev and build: VITE_API_URL=https://api.example/api
+      // (Quasar 3 only exposes QCLI_-prefixed .env values, so it is defined explicitly here).
+      define: {
+        'import.meta.env.PWA_API_URL': JSON.stringify(
+          process.env.VITE_API_URL || ''
+        )
+      }
       // vueRouterBase,
       // vueDevtools,
 

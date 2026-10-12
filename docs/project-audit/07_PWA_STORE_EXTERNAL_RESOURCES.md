@@ -102,7 +102,7 @@ Travail repris, audité contre le cahier des charges et complété.
 - Les noms réservés à la documentation (`example.com`, `exemple.com`, `*.example`) sont classés `placeholder`, risque `info` ; les noms `*.test` sont traités comme non publics.
 - `domain_count` et `detected_domains` excluent ces références informatives.
 - Interface : libellés des nouvelles catégories, filtre « Information », tri des ressources par risque (élevé d'abord) ; récapitulatif après import du premier build (« N domaine(s) externe(s) détecté(s) automatiquement… »).
-- Régression corrigée : `src/utils/media.js` lit de nouveau `process.env.API_URL`, remplacé par Quasar au build (sans quoi `VITE_API_URL` est ignoré et l'application appelle `oneapp.test` en production) ; le test `media.spec.js` simule ce remplacement.
+- Adresse de l’API : `src/utils/media.js` lit `import.meta.env.PWA_API_URL`, défini dans `quasar.config.js` (`build.define`) à partir de `VITE_API_URL`, en développement comme au build. Une première correction via `process.env.API_URL` provoquait `ReferenceError: process is not defined` en `quasar dev` : Quasar 3 n’expose pas `build.env` sous cette forme.
 - Fichiers de cache d'outil (`agentdb.rvf*`) retirés du dépôt et ignorés.
 
 **Tests**
