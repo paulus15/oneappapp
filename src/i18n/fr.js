@@ -504,6 +504,36 @@ export default {
     newVersion: 'Nouvelle version'
   },
   sdk: {
+    recapUnchecked:
+      'Script de mesure des installations : pas encore vérifié (facultatif)',
+    recapAction: 'Vérifier',
+    check: {
+      button: 'Vérifier mon site',
+      at: 'Dernière vérification : {date}',
+      csp: 'La politique de sécurité de votre site bloque le script ({directives}). Ajoutez {host} à ces directives.',
+      status: {
+        connected: 'Script connecté à votre PWA',
+        missing: 'Script introuvable sur votre site',
+        wrong_key: 'Script présent, mais avec la clé d’une autre application',
+        wrong_host:
+          'Script présent, mais il pointe vers une autre adresse de PWA Store',
+        unreachable: 'Votre site n’a pas pu être consulté',
+        no_url: 'Aucune adresse à vérifier'
+      },
+      help: {
+        connected:
+          'La ligne a été trouvée sur {url} avec la bonne clé. Les installations seront comptées dès qu’un utilisateur installera ou ouvrira l’application.',
+        missing:
+          'Aucune ligne de mesure trouvée sur {url}. Collez-la dans index.html, mettez votre site en ligne, puis vérifiez à nouveau. Un script ajouté par JavaScript après le chargement ne peut pas être détecté.',
+        wrong_key:
+          'La ligne trouvée sur {url} utilise une autre clé. Remplacez-la par celle ci-dessus.',
+        wrong_host:
+          'La ligne trouvée ({found}) ne pointe pas vers l’adresse officielle de PWA Store. Remplacez-la par celle ci-dessus.',
+        unreachable:
+          'PWA Store n’a pas pu ouvrir {url}. Vérifiez que l’adresse est publique et en HTTPS, puis réessayez.',
+        no_url: 'Indiquez d’abord le lien de votre PWA.'
+      }
+    },
     title: 'Mesure des installations',
     intro:
       'Ajoutez cette ligne à votre PWA pour que PWA Store confirme les installations et les ouvertures de votre application. Sans elle, aucune installation ne peut être vérifiée.',

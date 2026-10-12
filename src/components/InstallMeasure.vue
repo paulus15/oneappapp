@@ -24,6 +24,49 @@
         t('sdk.origins', { origins: info.origins.join(', ') || '—' })
       }}</p>
       <p class="text-caption text-muted">{{ t('sdk.csp', { host: host }) }}</p>
+      <!-- Checked from PWA Store: is the line really on the developer's site? -->
+      <div class="sdk-check">
+        <q-btn
+          outline
+          no-caps
+          color="primary"
+          icon="travel_explore"
+          :label="t('sdk.check.button')"
+          :loading="checking"
+          @click="check"
+        />
+        <template v-if="info.check">
+          <div class="sdk-status">
+            <q-icon
+              :name="CHECK_ICONS[info.check.status] || 'help'"
+              :color="
+                info.check.status === 'connected' ? 'positive' : 'orange-8'
+              "
+              size="22px"
+            />
+            <span>{{ t(`sdk.check.status.${info.check.status}`) }}</span>
+          </div>
+          <p class="text-caption text-muted">{{
+            t(`sdk.check.help.${info.check.status}`, {
+              url: info.check.url || '—',
+              found: info.check.found_src || '—'
+            })
+          }}</p>
+          <p
+            v-if="info.check.csp_blocks?.length"
+            class="text-caption text-negative"
+            >{{
+              t('sdk.check.csp', {
+                directives: info.check.csp_blocks.join(', '),
+                host
+              })
+            }}</p
+          >
+          <p class="text-caption text-muted">{{
+            t('sdk.check.at', { date: formatDate(info.check.checked_at) })
+          }}</p>
+        </template>
+      </div>
       <div class="sdk-status" :class="{ ok: info.last_signal_at }">
         <q-icon
           :name="info.last_signal_at ? 'check_circle' : 'hourglass_empty'"
@@ -62,6 +105,15 @@ const props = defineProps({
   published: { type: Boolean, default: false }
 })
 const { t, locale } = useI18n()
+const CHECK_ICONS = {
+  connected: 'check_circle',
+  missing: 'link_off',
+  wrong_key: 'key_off',
+  wrong_host: 'dns',
+  unreachable: 'cloud_off',
+  no_url: 'link_off'
+}
+const checking = ref(false)
 const info = ref(null),
   loading = ref(true),
   error = ref(''),
@@ -75,6 +127,17 @@ const host = computed(() => {
 })
 const formatDate = value => new Date(value).toLocaleString(locale.value)
 
+async function check() {
+  checking.value = true
+  error.value = ''
+  try {
+    info.value = (await accountApi.checkInstallSignals(props.appId)).data
+  } catch (e) {
+    error.value = apiMessage(e)
+  } finally {
+    checking.value = false
+  }
+}
 async function copy() {
   try {
     await navigator.clipboard.writeText(info.value.snippet)
@@ -118,6 +181,15 @@ onMounted(async () => {
   min-width: 0;
   font-size: 13px;
   overflow-wrap: anywhere;
+}
+.sdk-check {
+  margin: 12px 0;
+  padding: 12px;
+  border-radius: 12px;
+  border: 1px solid var(--outline);
+}
+.sdk-check p {
+  margin: 4px 0 0;
 }
 .sdk-status {
   display: flex;

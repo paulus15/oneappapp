@@ -27,6 +27,7 @@ export const accountApi = {
   submitApp: (id, data = {}) => api.post(`/apps/${id}/submit`, data),
   withdrawApp: id => api.post(`/apps/${id}/withdraw`),
   installSignals: id => api.get(`/apps/${id}/install-signals`),
+  checkInstallSignals: id => api.post(`/apps/${id}/install-signals/check`),
   appRequests: id => api.get(`/apps/${id}/requests`),
   discardChanges: id => api.delete(`/apps/${id}/pending-changes`),
   createApp: data => api.post('/apps', data),

@@ -89,7 +89,7 @@ L’adresse de l’API est fixée à la construction ; elle sert aussi à la pol
 
 ```bash
 npm ci
-VITE_API_URL=https://api.pwastore.example/api npm run build:pwa
+VITE_API_URL=https://pwastore.online/api npm run build:pwa
 ```
 
 Déployer le contenu de `dist/pwa/` sur un hébergement statique HTTPS avec :
@@ -132,3 +132,14 @@ php artisan up
 ```
 
 Puis redéployer le frontend construit avec la même `VITE_API_URL`.
+
+## Adresses (local et production)
+
+| Variable                                                                                 | Local                                         | Production                                    |
+| ---------------------------------------------------------------------------------------- | --------------------------------------------- | --------------------------------------------- |
+| Backend `APP_URL`                                                                        | `https://oneapp.test`                         | `https://pwastore.online`                     |
+| Backend `PWA_PUBLIC_API_URL` (ligne de mesure des installations donnée aux développeurs) | `https://oneapp.test/api`                     | `https://pwastore.online/api`                 |
+| Frontend `VITE_API_URL` (au build)                                                       | `https://oneapp.test/api` (valeur par défaut) | `https://pwastore.online/api`                 |
+| Backend `PWA_RUNTIME_DOMAIN` (builds ZIP, domaine distinct)                              | `oneapp-pwa.test`                             | un domaine séparé, ex. `pwastore-apps.online` |
+
+Changer `PWA_PUBLIC_API_URL` après la mise en production oblige les développeurs à recoller la ligne de mesure : la vérification « Vérifier mon site » signale alors « une autre adresse de PWA Store ».

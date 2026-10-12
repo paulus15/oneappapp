@@ -819,6 +819,35 @@
                   <q-icon name="info" color="grey-7" />
                   <span>{{ t('workspace.recap.nothing') }}</span>
                 </li>
+                <!-- Informative only: the measurement line never blocks a submission. -->
+                <li v-if="app.source_type === 'url'" class="gap">
+                  <q-icon
+                    :name="
+                      app.sdk_check?.status === 'connected'
+                        ? 'check_circle'
+                        : 'insights'
+                    "
+                    :color="
+                      app.sdk_check?.status === 'connected'
+                        ? 'positive'
+                        : 'grey-7'
+                    "
+                  />
+                  <span>{{
+                    app.sdk_check
+                      ? t(`sdk.check.status.${app.sdk_check.status}`)
+                      : t('sdk.recapUnchecked')
+                  }}</span>
+                  <q-btn
+                    v-if="app.sdk_check?.status !== 'connected'"
+                    flat
+                    dense
+                    no-caps
+                    color="primary"
+                    :label="t('sdk.recapAction')"
+                    @click="tab = 'version'"
+                  />
+                </li>
                 <li v-if="readiness?.ready" class="ok">
                   <q-icon name="check_circle" color="positive" />
                   <span>{{ t('workspace.recap.allGood') }}</span>

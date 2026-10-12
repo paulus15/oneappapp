@@ -497,6 +497,34 @@ export default {
     newVersion: 'New version'
   },
   sdk: {
+    recapUnchecked: 'Install measurement script: not checked yet (optional)',
+    recapAction: 'Check',
+    check: {
+      button: 'Check my site',
+      at: 'Last check: {date}',
+      csp: 'Your site’s security policy blocks the script ({directives}). Add {host} to these directives.',
+      status: {
+        connected: 'Script connected to your PWA',
+        missing: 'Script not found on your site',
+        wrong_key: 'Script found, but with another app’s key',
+        wrong_host: 'Script found, but it points to another PWA Store address',
+        unreachable: 'Your site could not be reached',
+        no_url: 'No address to check'
+      },
+      help: {
+        connected:
+          'The line was found on {url} with the right key. Installs will be counted as soon as someone installs or opens the app.',
+        missing:
+          'No measurement line was found on {url}. Paste it into index.html, put your site online, then check again. A script added by JavaScript after loading cannot be detected.',
+        wrong_key:
+          'The line found on {url} uses another key. Replace it with the one above.',
+        wrong_host:
+          'The line found ({found}) does not point to the official PWA Store address. Replace it with the one above.',
+        unreachable:
+          'PWA Store could not open {url}. Check that the address is public and uses HTTPS, then try again.',
+        no_url: 'Enter the link to your PWA first.'
+      }
+    },
     title: 'Install measurement',
     intro:
       'Add this line to your PWA so PWA Store can confirm installs and launches of your app. Without it, no install can be verified.',
