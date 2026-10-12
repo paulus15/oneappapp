@@ -17,11 +17,13 @@
         ><q-icon name="star" />{{ app.rating }}</span
       >
       <span v-else class="rating new">Nouveau</span>
+      <HostingBadge :source-type="app.sourceType" compact :focusable="false" />
     </div>
   </router-link>
 </template>
 <script setup>
 import AppIcon from '@/components/AppIcon.vue'
+import HostingBadge from '@/components/HostingBadge.vue'
 defineProps({ app: { type: Object, required: true } })
 </script>
 <style scoped>

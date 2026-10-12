@@ -106,75 +106,117 @@ test('an administrator verifies the developer profile', async ({
   await expect(notice(page, 'Décision enregistrée.')).toBeVisible()
 })
 
-test('the developer lists a real PWA by URL and submits it', async ({
+/** Opens a workspace tab and waits for the panel transition to end. */
+async function openTab(page, name) {
+  await page.getByRole('tab', { name }).click()
+  await expect(page.locator('.q-tab-panel:visible')).toHaveCount(1)
+}
+
+/** A real PNG of the given size, drawn by the browser (icons and screenshots are checked server-side). */
+async function png(page, width, height, name) {
+  const data = await page.evaluate(
+    ([w, h]) => {
+      const canvas = document.createElement('canvas')
+      canvas.width = w
+      canvas.height = h
+      const ctx = canvas.getContext('2d')
+      ctx.fillStyle = '#075BFF'
+      ctx.fillRect(0, 0, w, h)
+      ctx.fillStyle = '#08C8F8'
+      ctx.fillRect(w / 4, h / 4, w / 2, h / 2)
+      return canvas.toDataURL('image/png').split(',')[1]
+    },
+    [width, height]
+  )
+  return { name, mimeType: 'image/png', buffer: Buffer.from(data, 'base64') }
+}
+
+test('the developer prepares a PWA listed by URL and submits it', async ({
   page,
   request
 }) => {
-  const token = await apiLogin(request, dev.email, dev.password)
-  const headers = {
-    Authorization: `Bearer ${token}`,
-    Accept: 'application/json'
-  }
-  const categories = await (await request.get(`${API}/categories`)).json()
-  // The 1100-line creation form is covered by the API here; the publication steps use the UI.
-  const created = await request.post(`${API}/apps`, {
-    headers,
-    data: {
-      name: appName,
-      identifier: `app.squoosh.e2e${stamp}`,
-      description:
-        'Compressez vos images directement dans le navigateur, sans envoi de fichier.',
-      short_description: 'Compression d’images hors ligne',
-      category_id: categories[0].id,
-      icon_url: 'https://squoosh.app/c/icon-large-maskable-c2078ced.png'
-    }
-  })
-  expect(created.status()).toBe(201)
-  appId = (await created.json()).id
+  await useSession(page, await apiLogin(request, dev.email, dev.password))
+  // 1. A draft needs only a name and how the app is provided.
+  await page.goto('/developer/apps/create')
+  await page.getByLabel('Nom de l’application').fill(appName)
+  await page.getByText('Indiquer le lien de ma PWA déjà en ligne').click()
+  await expect(page.getByText('Hébergée par l’éditeur').first()).toBeVisible()
+  await page.getByLabel('Lien HTTPS de votre PWA').fill('https://squoosh.app/')
+  await page.getByRole('button', { name: 'Créer le brouillon' }).click()
+  await expect(page).toHaveURL(/\/developer\/apps\/\d+/)
+  appId = Number(page.url().match(/apps\/(\d+)/)[1])
 
-  await useSession(page, token)
-  await page.goto(`/developer/apps/${appId}/publication`)
-  await page.getByText('PWA hébergée sur mon site').click()
-  await page.getByLabel('Adresse HTTPS de la PWA').fill('https://squoosh.app/')
-  await page.getByRole('button', { name: 'Enregistrer le mode' }).click()
-  await expect(notice(page, 'Mode de distribution enregistré.')).toBeVisible()
-  await page.getByRole('button', { name: 'Contrôler l’URL' }).click()
-  await expect(notice(page, 'Contrôle de l’URL réussi.')).toBeVisible({
-    timeout: 30_000
-  })
-  await expect(page.getByText('Manifeste trouvé').first()).toBeVisible()
+  // 2. Details: every field is saved as a draft.
+  await page
+    .getByLabel('Description courte')
+    .fill('Compression d’images hors ligne')
+  await page
+    .getByLabel('Description complète')
+    .fill(
+      'Compressez vos images directement dans le navigateur, sans envoi de fichier.'
+    )
+  await page.getByLabel('Catégorie', { exact: true }).click()
+  await page.getByRole('option').first().click()
+  await page.getByLabel('Langues de l’application').click()
+  await page.getByRole('option', { name: 'Français' }).click()
+  await page.keyboard.press('Escape')
+  await page
+    .getByLabel('Lien officiel de votre PWA')
+    .fill('https://squoosh.app/')
+  await page.getByLabel('E-mail de contact').fill('studio-awa@e2e.test')
+  await page.getByRole('button', { name: 'Enregistrer' }).click()
+  await expect(notice(page, 'Brouillon enregistré.')).toBeVisible()
 
-  // The help explains the journey; the preview step is ticked once the listing is seen.
+  // 3. Images: an uploaded icon and a screenshot.
+  await openTab(page, /Images/)
+  const files = page.locator('.q-tab-panel:visible input[type=file]')
+  await files.nth(0).setInputFiles(await png(page, 512, 512, 'icon.png'))
+  await files.nth(1).setInputFiles(await png(page, 540, 960, 'screen.png'))
+  await page.getByRole('button', { name: 'Enregistrer' }).click()
+  await expect(notice(page, 'Brouillon enregistré.')).toBeVisible()
+
+  // 4. Privacy.
+  await openTab(page, /Confidentialité/)
+  await page
+    .getByLabel('Politique de confidentialité')
+    .fill('https://squoosh.app/privacy')
+  await page.getByText('Aucune donnée').click()
+  await page.getByRole('button', { name: 'Enregistrer' }).click()
+  await expect(notice(page, 'Brouillon enregistré.')).toBeVisible()
+
+  // 5. Summary: nothing missing; the help explains the journey.
+  await openTab(page, /Récapitulatif/)
+  await expect(page.getByText('Tout est prêt.')).toBeVisible()
   await page.getByRole('button', { name: 'Comment ça marche ?' }).click()
   await expect(
     page.getByText('Comment publier mon application ?')
   ).toBeVisible()
   await page.getByRole('button', { name: 'J’ai compris' }).click()
-  const previewStep = page.locator('.journey li', {
-    hasText: 'Prévisualiser la fiche'
-  })
-  await expect(previewStep).not.toHaveClass(/done/)
-  await previewStep.getByRole('button', { name: 'Aperçu' }).click()
-  await expect(page.getByText('Aperçu de la fiche publique')).toBeVisible()
-  await page.keyboard.press('Escape')
-  await expect(previewStep).toHaveClass(/done/)
 
-  // Switching to English also translates the server's messages; the choice is remembered.
+  // English also translates the server's messages; the choice is remembered.
   await page.getByRole('button', { name: 'Changer de langue' }).click()
   await page.getByRole('menuitemradio', { name: 'English' }).click()
-  await expect(page.getByText('Publishing journey')).toBeVisible()
+  await expect(page.getByText('Ready for review?')).toBeVisible()
   await page.reload()
-  await expect(page.getByText('Publishing journey')).toBeVisible()
+  await expect(page.getByText('Ready for review?')).toBeVisible()
   await page.getByRole('button', { name: 'Change language' }).click()
   await page.getByRole('menuitemradio', { name: 'Français' }).click()
-  await expect(page.getByText('Parcours de publication')).toBeVisible()
+  await expect(page.getByText('Prête pour la validation ?')).toBeVisible()
 
-  await page.getByRole('button', { name: 'Soumettre à la revue' }).click()
-  await expect(notice(page, 'Application soumise à revue.')).toBeVisible()
-  await expect(page.getByText('Soumise').first()).toBeVisible()
+  // 6. One button submits; the dossier is then locked.
+  await page.getByRole('button', { name: 'Soumettre à validation' }).click()
+  await page
+    .locator('.q-dialog')
+    .last()
+    .getByRole('button', { name: 'Soumettre à validation' })
+    .click()
+  await expect(notice(page, 'Demande envoyée')).toBeVisible({ timeout: 30_000 })
+  await expect(
+    page.getByText(/Elle attend d’être examinée/).first()
+  ).toBeVisible()
 })
 
-test('an administrator approves the application, which is still not public', async ({
+test('an administrator approves the dossier, which publishes the app', async ({
   page,
   request
 }) => {
@@ -182,27 +224,29 @@ test('an administrator approves the application, which is still not public', asy
     page,
     await apiLogin(request, 'admin@e2e.test', 'Admin-pass-123')
   )
-  await page.goto('/admin/apps')
+  await page.goto('/admin/requests')
   await page.getByText(appName).click()
-  await page.getByRole('button', { name: 'Approuver' }).click()
-  await answerDialog(page, 'Conforme aux règles de publication')
-  await expect(notice(page, /Décision enregistrée/)).toBeVisible()
+  await expect(page.getByText('Profil vérifié')).toBeVisible()
+  await expect(
+    page.getByText('Compressez vos images directement')
+  ).toBeVisible()
+  await page.getByRole('button', { name: 'Approuver et publier' }).click()
+  await page
+    .locator('.q-dialog')
+    .last()
+    .getByRole('button', { name: 'Approuver et publier' })
+    .click()
+  await expect(
+    notice(page, 'Approuvée : l’application est en ligne.')
+  ).toBeVisible()
 
   const list = await (await request.get(`${API}/apps`)).json()
-  expect(list.data.map(a => a.id)).not.toContain(appId)
+  expect(list.data.map(a => a.id)).toContain(appId)
 })
 
-test('the developer publishes and the app appears in the Store', async ({
-  page,
-  request,
+test('the published app appears in the Store with its hosting badge', async ({
   browser
 }) => {
-  await useSession(page, await apiLogin(request, dev.email, dev.password))
-  await page.goto(`/developer/apps/${appId}/publication`)
-  await page.getByRole('button', { name: 'Publier dans le Store' }).click()
-  await answerDialog(page)
-  await expect(notice(page, 'Application publiée.')).toBeVisible()
-
   const visitor = await browser.newContext({
     locale: 'fr-FR',
     reducedMotion: 'reduce'
@@ -214,6 +258,11 @@ test('the developer publishes and the app appears in the Store', async ({
   await card.click()
   await expect(guest).toHaveURL(new RegExp(`/apps/${appId}$`))
   await expect(guest.getByRole('link', { name: 'Studio Awa' })).toBeVisible()
+  const badge = guest.getByRole('img', { name: /Hébergée par l’éditeur/ })
+  await badge.hover()
+  await expect(
+    guest.getByText(/fonctionne sur le site de son éditeur/)
+  ).toBeVisible()
   await visitor.close()
 })
 
@@ -307,7 +356,7 @@ test('with full motion, the intro ends readable and tiles and counters land', as
   await page.evaluate(t => localStorage.setItem('auth_token', t), token)
   await page.goto('http://127.0.0.1:9124/admin')
   const queue = page
-    .locator('.queue-card', { hasText: 'application(s) à examiner' })
+    .locator('.queue-card', { hasText: 'demande(s) de publication à examiner' })
     .locator('strong')
   await expect(queue).toHaveText(String(stats.queues.applications_to_review))
   await context.close()

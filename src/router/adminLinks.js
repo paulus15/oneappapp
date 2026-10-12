@@ -2,6 +2,12 @@
 export const adminLinks = [
   { to: '/admin', label: 'Tableau de bord', icon: 'space_dashboard' },
   {
+    to: '/admin/requests',
+    label: 'Demandes de publication',
+    icon: 'fact_check',
+    permission: 'apps.moderate'
+  },
+  {
     to: '/admin/apps',
     label: 'Applications',
     icon: 'apps',

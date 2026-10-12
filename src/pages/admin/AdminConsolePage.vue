@@ -123,12 +123,23 @@
               }}</q-badge>
             </div>
             <q-btn
+              v-if="selectedApp.open_request_id"
+              unelevated
+              dense
+              no-caps
+              color="primary"
+              icon="fact_check"
+              :label="t('requests.openDossier')"
+              :to="`/admin/requests/${selectedApp.open_request_id}`"
+            />
+            <q-btn
+              v-else-if="selectedApp.status === 'published'"
               flat
               dense
               no-caps
-              icon="open_in_new"
-              label="Fiche détaillée"
-              :to="`/developer/apps/${selectedApp.id}/publication`"
+              icon="storefront"
+              :label="t('workspace.viewInStore')"
+              :to="`/apps/${selectedApp.id}`"
             />
           </div>
           <p v-if="selectedApp.moderation_reason" class="text-caption"
@@ -137,7 +148,9 @@
 
           <div class="workspace-actions q-mb-md">
             <q-btn
-              v-for="decision in adminDecisions(selectedApp.status)"
+              v-for="decision in selectedApp.open_request_id
+                ? []
+                : adminDecisions(selectedApp.status)"
               :key="decision.to"
               outline
               no-caps
@@ -248,6 +261,7 @@
 </template>
 
 <script setup>
+import { useI18n } from 'vue-i18n'
 import { computed, onMounted, reactive, ref } from 'vue'
 import { useQuasar } from 'quasar'
 import AppIcon from '@/components/AppIcon.vue'
@@ -262,6 +276,7 @@ import {
   statusLabel
 } from '@/utils/appStatus'
 
+const { t } = useI18n()
 const $q = useQuasar(),
   auth = useAuthStore()
 const apps = ref([]),

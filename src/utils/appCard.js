@@ -11,6 +11,7 @@ export function toCard(app) {
     color: category?.color || 'var(--pwa-primary)',
     icon: category?.icon || 'widgets',
     iconUrl: app.icon_url || '',
+    sourceType: app.source_type || 'build',
     publisher: app.developer?.developer_profile?.public_name || '',
     price: Number(app.price || 0),
     downloads: Number(app.downloads_count || 0),

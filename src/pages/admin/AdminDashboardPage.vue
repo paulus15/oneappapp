@@ -89,9 +89,9 @@ const queues = computed(() => [
     to: '/admin/developers'
   },
   {
-    label: 'application(s) à examiner',
+    label: 'demande(s) de publication à examiner',
     value: stats.value.queues.applications_to_review,
-    to: '/admin/apps'
+    to: '/admin/requests'
   },
   {
     label: 'signalement(s) à traiter',
@@ -101,7 +101,7 @@ const queues = computed(() => [
   {
     label: 'version(s) analysée(s) en attente de revue',
     value: stats.value.queues.versions_to_review,
-    to: '/admin/apps'
+    to: '/admin/requests'
   }
 ])
 async function load() {

@@ -2,6 +2,13 @@ import { api } from '@/boot/axios'
 
 export const adminApi = {
   stats: () => api.get('/admin/stats'),
+  requests: params => api.get('/admin/publication-requests', { params }),
+  request: id => api.get(`/admin/publication-requests/${id}`),
+  startRequest: id => api.post(`/admin/publication-requests/${id}/start`),
+  decideRequest: (id, data) =>
+    api.post(`/admin/publication-requests/${id}/decide`, data),
+  noteRequest: (id, internal_note) =>
+    api.put(`/admin/publication-requests/${id}/note`, { internal_note }),
   apps: params => api.get('/admin/apps', { params }),
   review: (id, data) => api.post(`/admin/apps/${id}/review`, data),
   archive: (id, reason) => api.delete(`/apps/${id}`, { data: { reason } }),

@@ -26,7 +26,7 @@ CSS : `src/css/app.scss`. GSAP : `src/motion/signature.js` (`loadGsap()` charge 
 | Code OTP accepté                              | `VerifyEmailPage.vue`                                | Un trait de validation se dessine avant de continuer                                                    |
 | Nouvelle notification                         | `NotificationBell.vue` (`.motion-ring`)              | La cloche oscille une fois                                                                              |
 | Thème                                         | `MainLayout.vue` (`theme-swap`)                      | Le soleil se couche pendant que la lune se lève                                                         |
-| Publication                                   | `PublicationPage.vue` (`.motion-launch`)             | La fusée décolle pendant l’envoi                                                                        |
+| Publication                                   | `AppWorkspacePage.vue` (`.motion-launch`)            | La fusée décolle pendant l’envoi                                                                        |
 | Changement de page                            | `app.scss` (`page-*`)                                | Fondu court, sans effet de scène                                                                        |
 
 ## Règles

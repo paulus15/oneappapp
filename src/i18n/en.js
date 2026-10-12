@@ -12,6 +12,8 @@ export default {
     business: 'Business'
   },
   common: {
+    cancel: 'Cancel',
+    megabytes: '{n} MB',
     close: 'Close',
     retry: 'Retry',
     gotIt: 'Got it'
@@ -64,35 +66,39 @@ export default {
       steps: [
         {
           title: 'First: your profile',
-          text: 'Your email address must be confirmed. Your developer profile must be complete, with a valid identity document, and verified by an administrator. Until then, you cannot submit.'
+          text: 'Your email address must be confirmed. Your developer profile must be complete, with a valid identity document, and verified by an administrator.'
         },
         {
-          title: '1. Complete the listing',
-          text: 'Choose a category, add an icon and write a description of at least 30 characters. This is what visitors will see.'
+          title: '1. Create the draft',
+          text: 'Name your app and choose how to provide it: by uploading its files (ZIP) or by giving the link to your PWA, already online. Nothing is published at this stage.'
         },
         {
-          title: '2. Provide the app',
-          text: 'Two options. ZIP build: you upload the production folder (index.html, manifest, service worker) and we analyse it right away. URL: your PWA is already online; click “Check the URL” (the check must be less than 24 h old).'
+          title: '2. Complete the listing',
+          text: 'In the Details, Images and Privacy tabs, fill in everything: descriptions, category, languages, official link to your PWA, contact email, icon, screenshots, privacy policy and data collected. Each tab is saved as a draft; an orange dot shows what is missing.'
+        },
+        {
+          title: '3. Provide the app',
+          text: 'Version tab. ZIP: upload the production folder; it is analysed right away. Link: your address is checked automatically when you submit.'
         },
         {
           title: 'What does the analysis result mean?',
-          text: '“Analysis passed”: all good. “To be reviewed”: we found sensitive functions, often inside well-known libraries such as Quasar or SweetAlert. This does not block you: you can submit and an administrator will check them. A build with real errors is refused on upload, with the reason.'
+          text: '“Ready to submit”: all good. If sensitive functions are reported, often inside well-known libraries such as Quasar or SweetAlert, this does not block you: an administrator will review them. A file with real errors is refused on upload, with the reason.'
         },
         {
-          title: '3. Preview the listing',
-          text: 'Click “Preview” to see your listing as a visitor. The step is ticked as soon as you open it. If you edit the listing afterwards, look at the preview again.'
+          title: '4. Review and submit',
+          text: 'The Summary tab shows your listing as visitors will see it and lists what is missing. When everything is ready, click “Submit for review”. During the review your submission is locked; you can withdraw it to make changes.'
         },
         {
-          title: '4. Submit for review',
-          text: 'Click “Submit for review”. The listing is locked during the review.'
+          title: '5. The decision',
+          text: 'An administrator reviews your whole submission. If they approve it, your app is published automatically. If they request changes, their message appears at the top of the page: fix it, then submit again. Every decision is kept in the Tracking tab.'
         },
         {
-          title: '5. The review',
-          text: 'An administrator reviews the app, then each build separately. They can approve, request changes (you fix them and submit again) or reject. Every decision is explained and you get a notification.'
+          title: '6. After publication',
+          text: 'To change the listing or ship a new version, make your changes then submit the update. Your app stays online as it was approved; the changes appear as soon as they are approved.'
         },
         {
-          title: '6. Publish',
-          text: 'An approved app is not visible yet. Click “Publish to the Store” when you are ready: for a build, the latest approved version is put online automatically on its own address. The app then opens on its own, in a new tab, and can be installed like a real app. “Publish this version” is then used to replace the online version.'
+          title: 'Store badges',
+          text: '“Hosted by PWA Store”: the files were uploaded, analysed and are served by PWA Store. “Hosted by the publisher”: the app runs on your own website. Hover a badge to read its explanation.'
         }
       ],
       footer:
@@ -201,6 +207,344 @@ export default {
       crashes: '{n} crash(es) reported',
       ratio: 'Ratio: {n}',
       note: 'Totals come from received events. Missing data does not prove there is no usage or error.'
+    }
+  },
+  console: {
+    open: 'Open',
+    newVersion: 'New version'
+  },
+  hosting: {
+    build: {
+      label: 'Hosted by PWA Store',
+      help: 'This app’s code was uploaded to PWA Store, analysed and approved. PWA Store serves it from its own address, kept separate from the Store.'
+    },
+    url: {
+      label: 'Hosted by the publisher',
+      help: 'This app runs on its publisher’s website. PWA Store checked its address and listing, but its content can change without a new analysis.'
+    }
+  },
+  newApp: {
+    eyebrow: 'New app',
+    title: 'Create an app',
+    intro:
+      'Start with the essentials. You will complete the listing, images and version at your own pace: everything is saved as a draft.',
+    name: 'App name',
+    nameRequired: 'Enter your app’s name.',
+    category: 'Category (you can change it later)',
+    sourceTitle: 'How will you provide your app?',
+    source: {
+      build: 'Upload my app’s files (ZIP)',
+      url: 'Link to my PWA, already online'
+    },
+    sourceHelp: {
+      build:
+        'You upload your app’s production folder. PWA Store analyses it, then hosts it at a dedicated address.',
+      url: 'Your app stays on your website. PWA Store checks its address and lists it in the Store.'
+    },
+    url: 'HTTPS link to your PWA',
+    urlHint: 'Example: https://myapp.com',
+    urlRequired: 'Enter an address starting with https://',
+    create: 'Create the draft',
+    draftNote:
+      'Nothing is published at this stage. You will submit your app when it is ready.'
+  },
+  builder: {
+    versionNumber: 'Version number',
+    versionHint: 'Example: 1.0.0',
+    versionRequired: 'Enter a version number.',
+    zip: 'Your app’s ZIP file',
+    zipHint: 'The production folder (with index.html), compressed as a ZIP.',
+    zipRequired: 'Choose a ZIP file.',
+    releaseNotes: 'What’s new in this version (optional)',
+    permissions: 'Permissions the app asks for',
+    permission: {
+      camera: 'Camera',
+      location: 'Location',
+      notifications: 'Notifications',
+      contacts: 'Contacts',
+      storage: 'Storage',
+      audio: 'Microphone'
+    },
+    uploading: 'Uploading',
+    refused: 'This file could not be accepted:',
+    warnings: 'Things to check',
+    submit: 'Upload and analyse',
+    done: 'Version analysed. No external domain found. | Version analysed. {n} external domain found. | Version analysed. {n} external domains found.',
+    missingTitle: 'PWA files missing',
+    missingMessage:
+      'Your ZIP has no manifest or service worker. PWA Store can generate them so your app can be installed. Continue this way?',
+    missingCancel: 'No, cancel the upload',
+    missingOk: 'Yes, generate them'
+  },
+  workspace: {
+    eyebrow: 'My app',
+    iconAlt: '{name} icon',
+    viewInStore: 'View in the Store',
+    more: 'More actions',
+    restore: 'Restore as draft',
+    archive: 'Archive the app',
+    stats: 'Statistics',
+    banner: {
+      open: {
+        pending:
+          'Your request was sent on {date}. It is waiting to be reviewed.',
+        in_review: 'Your request, sent on {date}, is being reviewed.'
+      },
+      openLocked:
+        'During the review, the app cannot be edited. Withdraw your request if you need to change something.',
+      changes_requested: 'Changes are requested:',
+      rejected: 'Your request was rejected:',
+      fixThenSubmit:
+        'Fix what is mentioned, then submit again from the “Summary” tab.',
+      pending: 'You have unpublished changes.',
+      pendingHelp:
+        'Your app stays online as it was approved. The changes will appear once approved.',
+      approved: 'Your app is approved.',
+      approvedHelp:
+        'It could not be put online automatically. You can publish it now.',
+      suspended: 'Your app is suspended:'
+    },
+    withdraw: 'Withdraw my request',
+    discard: 'Discard my changes',
+    reviewAndSubmit: 'Review and submit',
+    publishNow: 'Publish now',
+    tab: {
+      info: 'Details',
+      media: 'Images',
+      privacy: 'Privacy',
+      version: 'Version',
+      submit: 'Summary',
+      history: 'Tracking'
+    },
+    missing:
+      '{n} item to complete | {n} item to complete | {n} items to complete',
+    field: {
+      name: 'App name',
+      shortDescription: 'Short description',
+      description: 'Full description',
+      category: 'Category',
+      subcategory: 'Subcategory (optional)',
+      languages: 'App languages',
+      countries: 'Available countries',
+      officialUrl: 'Official link to your PWA',
+      contactEmail: 'Contact email',
+      supportUrl: 'Support page (optional)',
+      termsUrl: 'Terms of use (optional)',
+      compatibility: 'Supported devices and features',
+      icon: 'Icon',
+      screenshots: 'Screenshots',
+      privacyUrl: 'Privacy policy',
+      dataCollected: 'Data collected'
+    },
+    hint: {
+      shortDescription: 'One appealing sentence, shown under the name.',
+      description:
+        'At least 30 characters: what the app does, who it is for, what makes it good.',
+      languages: 'The languages the app can be used in.',
+      countries: 'Leave empty to make it available in every country.',
+      officialUrl: 'The official address of your PWA or of its website.',
+      contactEmail: 'So that users and PWA Store can reach you.',
+      icon: 'Square image of at least 192 × 192 pixels, PNG, JPG or WebP (1 MB max).',
+      screens: 'Show your app in action. PNG, JPG or WebP, 5 MB max per image.',
+      privacyUrl: 'The page explaining how you use your users’ data.',
+      dataCollected:
+        'Tick everything your app collects. This is shown on its listing.'
+    },
+    compatibility: {
+      mobile: 'Phone',
+      tablet: 'Tablet',
+      desktop: 'Computer',
+      offline: 'Works offline',
+      dark_mode: 'Dark mode'
+    },
+    chooseIcon: 'Choose an icon',
+    screens: {
+      mobile: 'Phone screenshots',
+      tablet: 'Tablet screenshots (optional)'
+    },
+    removeScreen: 'Remove this screenshot',
+    addScreens: 'Add screenshots',
+    data: {
+      none: 'No data',
+      account: 'Account (name, username)',
+      contact: 'Contact details (email, phone)',
+      location: 'Location',
+      health: 'Health',
+      payment: 'Payment',
+      photos: 'Photos and files',
+      analytics: 'Usage statistics',
+      advertising: 'Advertising'
+    },
+    source: {
+      title: 'How your app is provided',
+      save: 'Save this choice',
+      fixed: 'This choice cannot be changed after the first submission.',
+      check: 'Check my link now',
+      checkAuto: 'The link is checked automatically at every submission.'
+    },
+    build: {
+      newVersion: 'Upload a version',
+      newVersionHelp:
+        'Each upload creates a new version, analysed right away. It is reviewed with your next request; the online version stays available meanwhile.',
+      versions: 'Your versions',
+      putOnline: 'Put this version back online'
+    },
+    versionState: {
+      draft: 'Draft',
+      analysing: 'Being analysed',
+      ready: 'Ready to submit',
+      submitted: 'Submitted',
+      in_review: 'In review',
+      approved: 'Approved',
+      rejected: 'Rejected',
+      deployed: 'Online'
+    },
+    recap: {
+      preview: 'Listing preview',
+      availability: 'Availability',
+      countries:
+        'Available in {n} country | Available in {n} country | Available in {n} countries',
+      allCountries: 'All countries',
+      source: 'App provided',
+      version: 'Version {number} · {domains} external domain(s)',
+      title: 'Ready for review?',
+      updateTitle: 'Submit the update',
+      intro:
+        'Check your submission. Once sent, an administrator reviews it and makes a decision.',
+      updateIntro:
+        'Your app stays online during the review. The changes appear as soon as they are approved.',
+      changes: 'What changes',
+      checks: 'Checks',
+      nothing: 'Nothing to submit for now.',
+      allGood: 'Everything is ready.',
+      complete: 'Complete: {section}',
+      afterSubmit:
+        'As soon as it is approved, your app is published automatically.'
+    },
+    submit: 'Submit for review',
+    history: {
+      requests: 'Your requests',
+      noRequest: 'No request sent yet.',
+      sent: 'Sent on {date}',
+      decided: 'decided on {date}'
+    },
+    event: {
+      update_submitted: 'Update submitted',
+      update_withdrawn: 'Update withdrawn',
+      update_approved: 'Update approved',
+      update_changes_requested: 'Changes requested on the update',
+      update_rejected: 'Update rejected',
+      deployed: 'Version put online',
+      version_approved: 'Version approved',
+      version_rejected: 'Version rejected'
+    },
+    save: 'Save',
+    saveLive: 'Your changes will wait until they are approved.',
+    saveDraft: 'Saved as a draft, nothing is published.',
+    saved: 'Draft saved.',
+    savedLive: 'Changes saved. They will appear once approved.',
+    fileRejected: 'This file is not suitable (format or size).',
+    confirmSubmit: {
+      title: 'Submit for review?',
+      message:
+        'Your submission will be sent to the administrators. You cannot edit it during the review, unless you withdraw your request.'
+    },
+    submitted: 'Request sent. You will be notified of the decision.',
+    confirmWithdraw: {
+      title: 'Withdraw your request?',
+      message:
+        'It will not be reviewed. You can edit your app and submit it again.'
+    },
+    withdrawn: 'Request withdrawn.',
+    confirmDiscard: {
+      title: 'Discard your changes?',
+      message: 'The listing goes back to the version currently published.'
+    },
+    discarded: 'Changes discarded.'
+  },
+  requests: {
+    openDossier: 'Open the dossier',
+    eyebrow: 'Administration',
+    title: 'Publication requests',
+    intro:
+      'Submissions prepared by developers, oldest first. You approve, request changes or reject.',
+    open: 'To handle',
+    decided: 'Decided',
+    emptyOpen: 'No request waiting. All caught up.',
+    emptyDecided: 'No decision yet.',
+    waiting: 'Waiting {time}',
+    kind: { initial: 'First publication', update: 'Update' },
+    status: {
+      pending: 'Waiting',
+      in_review: 'In review',
+      approved: 'Approved',
+      changes_requested: 'Changes requested',
+      rejected: 'Rejected',
+      withdrawn: 'Withdrawn'
+    },
+    alert: {
+      quarantined: 'Sensitive functions found in the build',
+      highRisk:
+        '{n} high-risk external resource | {n} high-risk external resource | {n} high-risk external resources',
+      unverified: 'Developer not verified'
+    },
+    backToQueue: 'Back to requests',
+    dossier: {
+      listing: 'Submitted listing',
+      changed: 'Changed: {fields}',
+      before: 'Before: {value}',
+      source: 'App provided',
+      urlChecked: 'Link checked on {date}',
+      sensitive: 'Sensitive functions found',
+      noVersion: 'No new version in this request.',
+      developer: 'Developer',
+      verified: 'Verified profile',
+      notVerified: 'Profile not verified',
+      otherApps: 'No other app | {n} other app | {n} other apps',
+      decision: 'Decision',
+      takeOver: 'Take over',
+      acknowledge:
+        'I have reviewed the sensitive functions and consider them legitimate.',
+      resourceCorrections:
+        '{n} requested correction on external resources is still to review. | {n} requested correction on external resources is still to review. | {n} requested corrections on external resources are still to review.',
+      reason: 'Reason',
+      reasonHint: 'Optional to approve, required to request changes or reject.',
+      approve: 'Approve and publish',
+      requestChanges: 'Request changes',
+      reject: 'Reject',
+      approveNote:
+        'Approving validates the app and its version, then publishes them right away.',
+      notes: 'Internal notes',
+      notesHint: 'Visible to administrators only.',
+      noteSaved: 'Note saved.',
+      history: 'History',
+      firstRequest: 'First request for this app.',
+      screens: 'No screenshot | {n} screenshot | {n} screenshots'
+    },
+    confirm: {
+      approved: {
+        title: 'Approve and publish?',
+        message: 'The app will be visible in the Store right away.',
+        ok: 'Approve and publish'
+      },
+      changes_requested: {
+        title: 'Request changes?',
+        message: 'The developer will receive your reason and can submit again.',
+        ok: 'Send the request'
+      },
+      rejected: {
+        title: 'Reject this request?',
+        message:
+          'The developer will receive your reason. The decision is kept in the history.',
+        ok: 'Reject'
+      }
+    },
+    done: {
+      online: 'Approved: the app is online.',
+      approvedOffline:
+        'Approved. It could not be put online automatically; the developer has been notified.',
+      changes_requested: 'Change request sent.',
+      rejected: 'Request rejected.'
     }
   }
 }

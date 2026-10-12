@@ -54,6 +54,7 @@
                 <q-badge color="blue-grey-9" class="q-py-xs q-px-sm">
                   {{ app.category }}
                 </q-badge>
+                <HostingBadge :source-type="app.source_type" />
                 <q-badge
                   v-if="app.languages?.length"
                   color="blue-grey-7"
@@ -378,6 +379,7 @@
 </template>
 
 <script setup>
+import HostingBadge from '@/components/HostingBadge.vue'
 import { deviceIdentity, devicePlatform } from '@/utils/device'
 import { useWorkspaceAccess } from '@/composables/useWorkspaceAccess'
 const { isMobile } = useWorkspaceAccess()

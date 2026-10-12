@@ -102,6 +102,24 @@ const routes = [
         meta: { requiresAuth: true, adminOnly: true }
       },
       {
+        path: 'admin/requests',
+        component: () => import('@/pages/admin/AdminRequestsPage.vue'),
+        meta: {
+          requiresAuth: true,
+          adminOnly: true,
+          permission: 'apps.moderate'
+        }
+      },
+      {
+        path: 'admin/requests/:id',
+        component: () => import('@/pages/admin/AdminRequestPage.vue'),
+        meta: {
+          requiresAuth: true,
+          adminOnly: true,
+          permission: 'apps.moderate'
+        }
+      },
+      {
         path: 'admin/apps',
         component: () => import('@/pages/admin/AdminConsolePage.vue'),
         meta: {
@@ -214,9 +232,21 @@ const routes = [
         meta: { requiresAuth: true, developerOnly: true }
       },
       {
-        path: 'apps/:id/publication',
-        component: () => import('@/pages/developer/PublicationPage.vue'),
+        path: 'apps/:id',
+        component: () => import('@/pages/developer/AppWorkspacePage.vue'),
         meta: { requiresAuth: true, developerOnly: true }
+      },
+      // Former addresses, still used by notifications and bookmarks.
+      {
+        path: 'apps/:id/publication',
+        redirect: to => ({
+          path: `/developer/apps/${to.params.id}`,
+          query: { tab: 'submit' }
+        })
+      },
+      {
+        path: 'apps/:id/edit',
+        redirect: to => `/developer/apps/${to.params.id}`
       },
       {
         path: '',
@@ -240,16 +270,7 @@ const routes = [
       },
       {
         path: 'apps/create',
-        component: () => import('@/pages/developer/CreateAppPage.vue'),
-        meta: {
-          requiresAuth: true,
-          developerOnly: true,
-          requiresValidatedDeveloper: true
-        }
-      },
-      {
-        path: 'apps/:id/edit',
-        component: () => import('@/pages/developer/EditAppPage.vue'),
+        component: () => import('@/pages/developer/NewAppPage.vue'),
         meta: {
           requiresAuth: true,
           developerOnly: true,

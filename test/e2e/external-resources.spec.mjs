@@ -162,7 +162,7 @@ test('a build is analysed automatically and reviewed without manual declaration'
 
   // The developer reads the automatic report.
   await useSession(page, devToken)
-  await page.goto(`/developer/apps/${app.id}/publication`)
+  await page.goto(`/developer/apps/${app.id}?tab=version`)
   const report = page.getByText('Ressources et domaines externes détectés')
   await expect(
     page.getByText('4 domaine(s) détecté(s) automatiquement')
@@ -177,7 +177,7 @@ test('a build is analysed automatically and reviewed without manual declaration'
 
   // An administrator reviews one resource with an internal note.
   await useSession(page, adminToken)
-  await page.goto(`/developer/apps/${app.id}/publication`)
+  await page.goto(`/developer/apps/${app.id}?tab=version`)
   await page.getByText('Ressources et domaines externes détectés').click()
   const card = page
     .locator('.resource-report .q-card', { hasText: 'live.acme-shop.io' })

@@ -62,7 +62,7 @@
             <div class="row justify-between items-start no-wrap q-mb-sm">
               <div
                 class="row items-center app-title-clickable cursor-pointer"
-                @click="$router.push(`/developer/apps/${app.id}/publication`)"
+                @click="$router.push(`/developer/apps/${app.id}`)"
               >
                 <q-avatar
                   size="44px"
@@ -112,6 +112,7 @@
               >
                 {{ statusLabel(app.status) }}
               </q-badge>
+              <HostingBadge :source-type="app.source_type" compact />
             </div>
 
             <div class="text-caption text-blue-grey-200 q-mb-md line-clamp-2">
@@ -130,21 +131,22 @@
               flat
               no-caps
               dense
-              icon="edit"
-              label="Modifier"
+              icon="open_in_new"
+              :label="t('console.open')"
               color="primary"
               class="text-caption text-weight-bold"
-              @click="$router.push(`/developer/apps/${app.id}/publication`)"
+              :to="`/developer/apps/${app.id}`"
             />
             <div class="row items-center gap-xs">
               <q-btn
+                v-if="app.source_type !== 'url'"
                 unelevated
                 no-caps
                 dense
                 icon="cloud_upload"
-                label="Nouveau build"
+                :label="t('console.newVersion')"
                 class="upload-btn q-px-sm"
-                @click="openUploadDialog(app)"
+                :to="`/developer/apps/${app.id}?tab=version`"
               />
               <q-btn
                 v-if="isAdmin"
@@ -161,113 +163,26 @@
         </q-card>
       </div>
     </div>
-
-    <!-- Upload Build Dialog -->
-    <q-dialog v-model="showUploadDialog" persistent>
-      <q-card class="dialog-card q-pa-md" style="width: 500px; max-width: 90vw">
-        <q-card-section class="row items-center q-pb-none">
-          <div class="text-h6 text-white text-weight-bold">
-            Uploader un build pour {{ selectedAppForUpload?.name }}
-          </div>
-          <q-space />
-          <q-btn flat round dense icon="close" v-close-popup />
-        </q-card-section>
-
-        <q-card-section>
-          <q-form @submit="uploadBuild" class="q-gutter-md">
-            <q-input
-              v-model="newVersion.version_number"
-              label="Numéro de version (ex: 1.0.0)"
-              filled
-              color="blue-grey-500"
-              required
-              :rules="[val => (val && val.length > 0) || 'Numéro requis']"
-            />
-
-            <q-file
-              v-model="newVersion.zip_file"
-              label="Sélectionner le fichier ZIP (.oap)"
-              filled
-              color="blue-grey-500"
-              accept=".zip"
-              required
-              :rules="[val => val || 'Fichier ZIP requis']"
-            >
-              <template v-slot:prepend>
-                <q-icon name="attach_file" />
-              </template>
-            </q-file>
-
-            <div class="text-subtitle2 text-blue-grey-300"
-              >Permissions requises par l'application :</div
-            >
-            <div class="row wrap q-gutter-sm">
-              <q-checkbox
-                v-for="perm in availablePermissions"
-                :key="perm"
-                v-model="newVersion.permissions_required"
-                :val="perm"
-                :label="perm"
-                color="primary"
-              />
-            </div>
-
-            <p class="text-caption"
-              >Les domaines et ressources externes seront détectés
-              automatiquement à l’import du ZIP et transmis à l’équipe de
-              validation. Aucune déclaration manuelle n’est nécessaire.</p
-            >
-
-            <div class="row justify-end q-gutter-sm">
-              <q-btn flat label="Annuler" v-close-popup />
-              <q-btn
-                label="Uploader & Signer"
-                type="submit"
-                color="blue-grey-600"
-                :loading="uploadingBuild"
-              />
-            </div>
-          </q-form>
-        </q-card-section>
-      </q-card>
-    </q-dialog>
   </q-page>
 </template>
 
 <script setup>
-import { useRouter } from 'vue-router'
-const router = useRouter()
 import { computed, ref, onMounted } from 'vue'
 import { api } from '@/boot/axios'
 import AppIcon from '@/components/AppIcon.vue'
+import HostingBadge from '@/components/HostingBadge.vue'
+import { useI18n } from 'vue-i18n'
 import { useQuasar } from 'quasar'
 import { useAuthStore } from '@/stores/auth'
 import { statusColor, statusLabel } from '@/utils/appStatus'
 
 const $q = useQuasar()
+const { t } = useI18n()
 const authStore = useAuthStore()
 const isAdmin = computed(() => authStore.user?.role === 'admin')
 
 const myApps = ref([])
 const loading = ref(true)
-
-const showUploadDialog = ref(false)
-const uploadingBuild = ref(false)
-const selectedAppForUpload = ref(null)
-const newVersion = ref({
-  version_number: '',
-  zip_file: null,
-  permissions_required: []
-})
-
-const availablePermissions = [
-  'camera',
-  'location',
-  'notifications',
-  'contacts',
-  'storage',
-  'audio'
-]
 
 async function fetchMyApps() {
   loading.value = true
@@ -279,122 +194,6 @@ async function fetchMyApps() {
   } finally {
     loading.value = false
   }
-}
-
-function openUploadDialog(app) {
-  selectedAppForUpload.value = app
-  newVersion.value = {
-    version_number: '',
-    zip_file: null,
-    permissions_required: []
-  }
-  showUploadDialog.value = true
-}
-
-async function uploadBuild(autoGenerate = false) {
-  const shouldGenerate = autoGenerate === true
-  uploadingBuild.value = true
-  try {
-    const formData = new FormData()
-    formData.append('application_id', selectedAppForUpload.value.id)
-    formData.append('version_number', newVersion.value.version_number)
-    formData.append('zip_file', newVersion.value.zip_file)
-    if (shouldGenerate) {
-      formData.append('auto_generate_pwa', 1)
-    }
-
-    newVersion.value.permissions_required.forEach((perm, index) => {
-      formData.append(`permissions_required[${index}]`, perm)
-    })
-
-    const { data: uploadedVersion } = await api.post('/versions', formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data'
-      }
-    })
-
-    $q.notify({
-      type: 'positive',
-      message: `${uploadedVersion.detected_domains?.length || 0} domaines détectés automatiquement. Consultez le rapport avant soumission.`
-    })
-    showUploadDialog.value = false
-    await fetchMyApps()
-    router.push(`/developer/apps/${selectedAppForUpload.value.id}/publication`)
-  } catch (err) {
-    if (err.response?.data?.error_code === 'MISSING_PWA_FILES') {
-      $q.dialog({
-        title: 'Fichiers PWA manquants',
-        message:
-          'Votre archive ne contient pas de fichier "manifest.json" ou de "service-worker.js".\n\nVoulez-vous que PWA Store génère automatiquement ces fichiers pour rendre votre application installable en tant que PWA ?',
-        cancel: {
-          label: "Annuler l'upload",
-          color: 'negative',
-          flat: true
-        },
-        ok: {
-          label: 'Oui, générer automatiquement',
-          color: 'primary'
-        },
-        persistent: true
-      })
-        .onOk(() => {
-          uploadBuild(true)
-        })
-        .onCancel(() => {
-          $q.notify({
-            type: 'warning',
-            message: 'Upload annulé par le développeur.'
-          })
-        })
-    } else if (err.response?.data?.error_code === 'PACKAGE_VALIDATION_FAILED') {
-      showValidationErrorDialog(err.response.data)
-    } else {
-      $q.notify({
-        type: 'negative',
-        message: err.response?.data?.message || "Erreur lors de l'upload"
-      })
-    }
-  } finally {
-    uploadingBuild.value = false
-  }
-}
-
-function showValidationErrorDialog(data) {
-  const analysis = data.analysis || {}
-  const sections = []
-
-  if (analysis.errors?.length) {
-    sections.push(
-      '<div class="text-negative text-weight-bold q-mb-xs">Erreurs bloquantes</div><ul class="q-mb-md">' +
-        analysis.errors.map(e => `<li>${escapeHtml(e)}</li>`).join('') +
-        '</ul>'
-    )
-  }
-  if (analysis.warnings?.length) {
-    sections.push(
-      '<div class="text-warning text-weight-bold q-mb-xs">Avertissements</div><ul class="q-mb-md">' +
-        analysis.warnings.map(w => `<li>${escapeHtml(w)}</li>`).join('') +
-        '</ul>'
-    )
-  }
-
-  const message =
-    `<div class="q-mb-md">${escapeHtml(data.message || 'Le package ne respecte pas les exigences de publication PWA Store.')}</div>` +
-    sections.join('')
-
-  $q.dialog({
-    title: 'Package rejeté',
-    message,
-    html: true,
-    ok: { label: 'Compris', color: 'primary' }
-  })
-}
-
-function escapeHtml(str) {
-  return String(str)
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
 }
 
 function confirmDeleteApp(app) {
@@ -418,29 +217,6 @@ async function deleteApp(app) {
       message: err.response?.data?.message || 'Erreur lors de la suppression'
     })
   }
-}
-
-function getVersionStatus(status) {
-  const normalizedStatus = String(status || 'unknown').toLowerCase()
-  const statuses = {
-    approved: { label: 'APPROUVÉE', color: 'green-7' },
-    published: { label: 'PUBLIÉE', color: 'green-7' },
-    active: { label: 'ACTIVE', color: 'green-7' },
-    pending: { label: 'EN ATTENTE', color: 'orange-7' },
-    processing: { label: 'EN TRAITEMENT', color: 'blue-7' },
-    draft: { label: 'BROUILLON', color: 'blue-grey-7' },
-    rejected: { label: 'REJETÉE', color: 'red-7' },
-    quarantined: { label: 'EN QUARANTAINE', color: 'red-7' },
-    inactive: { label: 'INACTIVE', color: 'blue-grey-7' },
-    unknown: { label: 'NON RENSEIGNÉ', color: 'blue-grey-7' }
-  }
-
-  return (
-    statuses[normalizedStatus] || {
-      label: normalizedStatus.replaceAll('_', ' ').toUpperCase(),
-      color: 'blue-grey-7'
-    }
-  )
 }
 
 onMounted(() => {
