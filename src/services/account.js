@@ -27,6 +27,8 @@ export const accountApi = {
   submitApp: (id, data = {}) => api.post(`/apps/${id}/submit`, data),
   withdrawApp: id => api.post(`/apps/${id}/withdraw`),
   installSignals: id => api.get(`/apps/${id}/install-signals`),
+  reviewAccess: id => api.get(`/apps/${id}/review-access`),
+  saveReviewAccess: (id, data) => api.put(`/apps/${id}/review-access`, data),
   developerRequests: (page = 1) =>
     api.get('/developer/requests', { params: { page } }),
   checkInstallSignals: id => api.post(`/apps/${id}/install-signals/check`),

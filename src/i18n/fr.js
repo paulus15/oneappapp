@@ -159,6 +159,7 @@ export default {
       reviews: '({n} avis) | ({n} avis) | ({n} avis)'
     },
     details: {
+      noAds: 'Aucune annonce',
       back: 'Retour au Store',
       backToStore: 'Retour au Store',
       unavailable: 'Cette application n’est pas disponible dans votre pays.',
@@ -179,6 +180,8 @@ export default {
       noDescription: 'L’éditeur n’a pas encore fourni de description.',
       information: 'Informations',
       info: {
+        rating: 'Classification',
+        ads: 'Annonces',
         version: 'Version',
         category: 'Catégorie',
         languages: 'Langues',
@@ -606,6 +609,105 @@ export default {
     empty: 'Aucune application hébergée sur votre site pour le moment.',
     open: 'Ouvrir'
   },
+  content: {
+    yes: 'Oui',
+    no: 'Non',
+    incomplete:
+      'Répondez à toutes les questions sur les annonces et la classification pour enregistrer.',
+    access: {
+      title: 'Accès pour la vérification',
+      intro:
+        'Si une partie de votre application nécessite une connexion ou un accès particulier, donnez à l’équipe de vérification de quoi la tester. Sans cela, la vérification peut être refusée.',
+      open: 'Toutes les fonctionnalités sont accessibles sans accès particulier',
+      restricted:
+        'Certaines fonctionnalités nécessitent une connexion ou un accès particulier',
+      instructions: 'Instructions d’accès',
+      instructionsHint:
+        'Expliquez comment accéder aux fonctionnalités limitées (étapes, code, rôle à choisir…).',
+      username: 'Nom d’utilisateur ou e-mail de test',
+      password: 'Mot de passe de test',
+      togglePassword: 'Afficher ou masquer le mot de passe',
+      other: 'Autres informations (facultatif)',
+      secure:
+        'Ces informations sont chiffrées et visibles uniquement par l’équipe de vérification. Chaque consultation est enregistrée. Utilisez un compte de test, jamais un compte personnel.',
+      saved: 'Accès pour la vérification enregistré.'
+    },
+    ads: {
+      title: 'Annonces',
+      intro:
+        'Dites-nous si votre application contient des annonces. Cela comprend les annonces diffusées par des réseaux publicitaires tiers. Assurez-vous que ces informations sont exactes et à jour.',
+      yes: 'Oui, mon application contient des annonces',
+      no: 'Non, mon application ne contient pas d’annonces',
+      badge: 'Contient des annonces'
+    },
+    rating: {
+      title: 'Classification du contenu',
+      intro:
+        'Répondez honnêtement : la classification par âge est calculée à partir de vos réponses et affichée sur la fiche. L’équipe de vérification la contrôle.',
+      ageLabel: 'Âge minimum calculé : {age} ans et plus',
+      notOfficial:
+        'Classification calculée par PWA Store à partir de vos réponses. Ce n’est pas une classification officielle (IARC, PEGI, ESRB).',
+      packagedHelp:
+        'Par exemple : images, vidéos, textes ou sons inclus dans le code ou les ressources de l’application, plutôt que chargés depuis Internet ou publiés par les utilisateurs.',
+      q: {
+        violence: 'L’application montre-t-elle de la violence ?',
+        sexual: 'Contient-elle du contenu à caractère sexuel ou de la nudité ?',
+        language: 'Contient-elle un langage grossier ?',
+        drugs: 'Fait-elle référence aux drogues, à l’alcool ou au tabac ?',
+        gambling: 'Contient-elle des jeux d’argent ?',
+        fear: 'Contient-elle des contenus effrayants ?',
+        users_interact:
+          'Les utilisateurs peuvent-ils communiquer entre eux ou partager du contenu ?',
+        shares_location:
+          'L’application partage-t-elle la localisation de l’utilisateur avec d’autres personnes ?',
+        digital_purchases: 'Propose-t-elle des achats numériques ?',
+        packaged:
+          'Ce contenu est-il inclus dans le package de l’application (code, ressources) ?'
+      },
+      a: {
+        violence: {
+          none: 'Non',
+          mild: 'Légère ou dessinée',
+          strong: 'Réaliste ou intense'
+        },
+        sexual: { none: 'Non', suggestive: 'Suggestif', explicit: 'Explicite' },
+        language: {
+          none: 'Non',
+          mild: 'Occasionnel',
+          strong: 'Fréquent ou très grossier'
+        },
+        drugs: {
+          none: 'Non',
+          references: 'Évocations',
+          use: 'Consommation montrée ou encouragée'
+        },
+        gambling: {
+          none: 'Non',
+          simulated: 'Simulés (sans argent réel)',
+          real_money: 'Avec de l’argent réel'
+        },
+        fear: { none: 'Non', mild: 'Légers', strong: 'Intenses' }
+      },
+      descriptor: {
+        violence: 'Violence',
+        sexual: 'Contenu sexuel',
+        language: 'Langage grossier',
+        drugs: 'Drogues',
+        gambling: 'Jeux d’argent',
+        fear: 'Peur',
+        users_interact: 'Interactions entre utilisateurs',
+        shares_location: 'Partage de la localisation',
+        digital_purchases: 'Achats numériques'
+      }
+    },
+    dossier: {
+      title: 'Contenu de l’application',
+      access: 'Accès pour la vérification',
+      reveal: 'Afficher les identifiants de test',
+      revealNote: 'Cette consultation est enregistrée dans le journal.',
+      noAccess: 'Non renseigné'
+    }
+  },
   hosting: {
     build: {
       label: 'Hébergée par PWA Store',
@@ -706,6 +808,7 @@ export default {
       info: 'Informations',
       media: 'Images',
       privacy: 'Confidentialité',
+      content: 'Contenu',
       version: 'Version',
       submit: 'Récapitulatif',
       history: 'Suivi'
@@ -713,6 +816,9 @@ export default {
     missing:
       '{n} élément à compléter | {n} élément à compléter | {n} éléments à compléter',
     field: {
+      contains_ads: 'Annonces',
+      content_rating: 'Classification du contenu',
+      review_access: 'Accès pour la vérification',
       cover: 'Image de couverture',
       availability: 'Disponibilit\u00e9 g\u00e9ographique',
       name: 'Nom de l’application',

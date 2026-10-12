@@ -503,6 +503,18 @@
           </q-form>
         </q-tab-panel>
 
+        <!-- Contenu de l'application : accès pour la vérification, annonces, classification -->
+        <q-tab-panel name="content">
+          <AppContentPanel
+            :key="app.updated_at"
+            :app="app"
+            :listing="{ ...app, ...app.pending_changes }"
+            :disable="locked"
+            :live="liveListing"
+            @saved="load"
+          />
+        </q-tab-panel>
+
         <!-- 4. Version -->
         <q-tab-panel name="version">
           <section class="version-source">
@@ -997,6 +1009,7 @@ import HostingBadge from '@/components/HostingBadge.vue'
 import BuildUploader from '@/components/BuildUploader.vue'
 import CoverUploader from '@/components/CoverUploader.vue'
 import InstallMeasure from '@/components/InstallMeasure.vue'
+import AppContentPanel from '@/components/AppContentPanel.vue'
 import CountrySelect from '@/components/CountrySelect.vue'
 import ExternalResourcesReport from '@/components/ExternalResourcesReport.vue'
 
@@ -1051,6 +1064,9 @@ const FIELD_TAB = {
   icon_url: 'media',
   cover: 'media',
   media: 'media',
+  contains_ads: 'content',
+  content_rating: 'content',
+  review_access: 'content',
   privacy_policy_url: 'privacy',
   privacy: 'privacy'
 }
@@ -1076,6 +1092,7 @@ const tabs = [
   { name: 'info', icon: 'article' },
   { name: 'media', icon: 'photo_library' },
   { name: 'privacy', icon: 'privacy_tip' },
+  { name: 'content', icon: 'policy' },
   { name: 'version', icon: 'upload_file' },
   { name: 'submit', icon: 'fact_check' },
   { name: 'history', icon: 'timeline' }

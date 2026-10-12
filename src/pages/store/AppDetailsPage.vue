@@ -103,6 +103,15 @@
               ui(card.category)
             }}</span>
             <HostingBadge :source-type="app.source_type" />
+            <span
+              v-if="app.content_rating?.age"
+              class="age-pill"
+              :title="t('content.rating.notOfficial')"
+              >{{ app.content_rating.age }}+</span
+            >
+            <span v-if="app.contains_ads" class="ads-pill">{{
+              t('content.ads.badge')
+            }}</span>
             <span v-if="card.rating" class="details-rating"
               ><q-icon name="star" />{{ card.rating }}
               <small>{{
@@ -499,6 +508,25 @@ const info = computed(() => {
     )
   } else if (a.availability === 'all' || Array.isArray(a.countries))
     add('availability', 'public', t('store.details.allCountries'))
+  if (a.content_rating?.age) {
+    const descriptors = [
+      ...(a.content_rating.descriptors || []).map(d => d.split('.')[0]),
+      ...(a.content_rating.interactive || [])
+    ]
+      .filter(key => te(`content.rating.descriptor.${key}`))
+      .map(key => t(`content.rating.descriptor.${key}`))
+    add(
+      'rating',
+      'verified_user',
+      [`${a.content_rating.age}+`, ...descriptors].join(' · ')
+    )
+  }
+  if (typeof a.contains_ads === 'boolean')
+    add(
+      'ads',
+      'campaign',
+      a.contains_ads ? t('content.ads.badge') : t('store.details.noAds')
+    )
   const collected = a.privacy?.data_collected
   if (Array.isArray(collected)) {
     const labels = collected
@@ -1090,5 +1118,26 @@ a.details-chip:hover {
     width: 100%;
     min-width: 0;
   }
+}
+.age-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 1px 8px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 800;
+  color: #fff;
+  background: var(--q-primary);
+  cursor: help;
+}
+.ads-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 1px 8px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--muted);
+  border: 1px solid var(--outline);
 }
 </style>

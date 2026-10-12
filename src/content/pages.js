@@ -110,7 +110,8 @@ export const pages = {
       {
         title: '3. Technique',
         list: [
-          'Informations requises avant toute soumission : image de couverture (16:9, au moins 1280 × 720 pixels), catégorie, description courte, description d’au moins 30 caractères, icône carrée (192 × 192 pixels minimum), au moins une capture d’écran, au moins une langue, lien officiel de la PWA, e-mail de contact, politique de confidentialité et données collectées.',
+          'Informations requises avant toute soumission : image de couverture (16:9, au moins 1280 × 720 pixels), catégorie, description courte, description d’au moins 30 caractères, icône carrée (192 × 192 pixels minimum), au moins une capture d’écran, au moins une langue, lien officiel de la PWA, e-mail de contact, politique de confidentialité et données collectées, accès pour la vérification (avec des identifiants de test si nécessaire), présence d’annonces et classification du contenu.',
+          'Les déclarations sur les annonces et le contenu doivent être exactes et tenues à jour ; une déclaration trompeuse peut entraîner la suspension. Les identifiants de test doivent être ceux d’un compte de démonstration, jamais d’un compte réel.',
           'Référencement par URL : adresse HTTPS publique, contrôlée automatiquement au moment de la soumission puis surveillée régulièrement.',
           'Dépôt de build : fichiers de production uniquement (index.html à la racine, aucun fichier exécutable) ; aucun script n’est exécuté par PWA Store. Les ressources externes (polices, API, CDN…) sont détectées automatiquement par l’analyse et examinées par l’administration ; aucune déclaration manuelle n’est demandée.',
           'Mesure des installations : l’éditeur peut ajouter à sa PWA le script fourni par PWA Store. Il signale uniquement l’installation et l’ouverture depuis l’écran d’accueil, avec un identifiant pseudonyme de l’appareil. L’éditeur doit en informer les utilisateurs de son application dans sa propre politique de confidentialité. Les signaux ne sont acceptés que depuis l’adresse déclarée de l’application ; toute tentative de gonfler les chiffres peut entraîner la suspension.',
@@ -275,7 +276,8 @@ export const pages = {
           'Descriptions, catégorie, langues et pays de disponibilité.',
           'Lien officiel de la PWA et e-mail de contact.',
           'Icône, couverture et captures d’écran.',
-          'Politique de confidentialité et données collectées.'
+          'Politique de confidentialité et données collectées.',
+          'Onglet Contenu : accès pour la vérification (identifiants de test chiffrés, visibles seulement par l’équipe de vérification), annonces et questionnaire de classification du contenu.'
         ]
       },
       {

@@ -200,6 +200,35 @@ test('the developer prepares a PWA listed by URL and submits it', async ({
   await page.getByText('Aucune donnée').click()
   await save(page)
 
+  // App content: access for the review, ads, content rating.
+  await openTab(page, /Contenu/)
+  await page
+    .getByText(
+      'Toutes les fonctionnalités sont accessibles sans accès particulier'
+    )
+    .click()
+  await page.getByRole('button', { name: 'Enregistrer' }).first().click()
+  await expect(
+    notice(page, 'Accès pour la vérification enregistré.')
+  ).toBeVisible()
+  await page
+    .getByText('Non, mon application ne contient pas d’annonces')
+    .click()
+  const questions = page.locator('.q-tab-panel:visible .question')
+  for (let i = 0; i < (await questions.count()); i++)
+    await questions
+      .nth(i)
+      .getByRole('radio', { name: 'Non', exact: true })
+      .click()
+  await expect(page.locator('.age-badge')).toHaveText('3+')
+  const [content] = await Promise.all([
+    page.waitForResponse(
+      r => /\/api\/apps\/\d+$/.test(r.url()) && r.request().method() === 'POST'
+    ),
+    page.getByRole('button', { name: 'Enregistrer' }).last().click()
+  ])
+  expect(content.status()).toBe(200)
+
   // 5. Summary: nothing missing; the help explains the journey.
   await openTab(page, /Récapitulatif/)
   await expect(page.getByText('Tout est prêt.')).toBeVisible()

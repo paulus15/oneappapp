@@ -112,6 +112,92 @@
             </dl>
           </q-card>
 
+          <!-- Contenu de l'application -->
+          <q-card flat bordered class="workspace-card">
+            <h2>{{ t('content.dossier.title') }}</h2>
+            <dl class="facts">
+              <dt>{{ t('content.ads.title') }}</dt>
+              <dd>{{
+                listing.contains_ads == null
+                  ? '—'
+                  : listing.contains_ads
+                    ? t('content.ads.yes')
+                    : t('content.ads.no')
+              }}</dd>
+              <dt>{{ t('content.rating.title') }}</dt>
+              <dd>
+                <span v-if="listing.content_rating" class="age-pill"
+                  >{{ listing.content_rating.age }}+</span
+                >
+                <span v-if="listing.content_rating?.descriptors?.length">
+                  {{
+                    listing.content_rating.descriptors
+                      .map(d =>
+                        t(`content.rating.descriptor.${d.split('.')[0]}`)
+                      )
+                      .join(', ')
+                  }}</span
+                >
+                <span
+                  v-if="listing.content_rating?.interactive?.length"
+                  class="text-muted"
+                >
+                  ·
+                  {{
+                    listing.content_rating.interactive
+                      .map(d => t(`content.rating.descriptor.${d}`))
+                      .join(', ')
+                  }}</span
+                >
+                <span
+                  v-if="listing.content_rating"
+                  class="text-caption text-muted"
+                >
+                  · {{ t('content.rating.q.packaged') }}
+                  {{
+                    listing.content_rating.answers?.packaged
+                      ? t('content.yes')
+                      : t('content.no')
+                  }}</span
+                >
+              </dd>
+              <dt>{{ t('content.dossier.access') }}</dt>
+              <dd>
+                <span>{{
+                  snapshot.review_access?.mode
+                    ? t(`content.access.${snapshot.review_access.mode}`)
+                    : t('content.dossier.noAccess')
+                }}</span>
+              </dd>
+            </dl>
+            <template v-if="snapshot.review_access?.mode === 'restricted'">
+              <q-btn
+                v-if="!access"
+                outline
+                no-caps
+                color="primary"
+                icon="key"
+                :label="t('content.dossier.reveal')"
+                :loading="revealing"
+                class="q-mt-sm"
+                @click="reveal"
+              />
+              <p class="text-caption text-muted q-mt-xs">{{
+                t('content.dossier.revealNote')
+              }}</p>
+              <dl v-if="access" class="facts credentials">
+                <dt>{{ t('content.access.instructions') }}</dt>
+                <dd class="pre-line">{{ access.instructions || '—' }}</dd>
+                <dt>{{ t('content.access.username') }}</dt>
+                <dd>{{ access.username || '—' }}</dd>
+                <dt>{{ t('content.access.password') }}</dt>
+                <dd>{{ access.password || '—' }}</dd>
+                <dt>{{ t('content.access.other') }}</dt>
+                <dd>{{ access.other || '—' }}</dd>
+              </dl>
+            </template>
+          </q-card>
+
           <!-- Source et version -->
           <q-card flat bordered class="workspace-card">
             <h2>{{ t('requests.dossier.source') }}</h2>
@@ -591,6 +677,20 @@ function decide(decision) {
     }
   })
 }
+const access = ref(null),
+  revealing = ref(false)
+async function reveal() {
+  revealing.value = true
+  try {
+    access.value = (
+      await adminApi.revealAccess(request.value.id)
+    ).data.review_access
+  } catch (e) {
+    q.notify({ type: 'negative', message: apiMessage(e) })
+  } finally {
+    revealing.value = false
+  }
+}
 async function saveNote() {
   savingNote.value = true
   try {
@@ -690,6 +790,19 @@ h3 {
   height: 200px;
   border-radius: 12px;
   border: 1px solid var(--outline);
+}
+.age-pill {
+  display: inline-block;
+  padding: 1px 8px;
+  margin-right: 6px;
+  border-radius: 8px;
+  font-weight: 800;
+  color: #fff;
+  background: var(--q-primary);
+}
+.credentials dd {
+  font-family: ui-monospace, monospace;
+  overflow-wrap: anywhere;
 }
 .facts {
   display: grid;

@@ -2,6 +2,11 @@
 
 Les entrées les plus récentes sont en haut. Détails techniques et vérifications : journal de [PWASTORE_ROADMAP.md](PWASTORE_ROADMAP.md#journal).
 
+## 2026-10-12 (soir) — Contenu de l’application, sécurité lots 1 et 2
+
+- Onglet « Contenu » : accès pour la vérification (identifiants de test chiffrés, consultation journalisée par l’administration), déclaration des annonces, questionnaire de classification du contenu avec âge calculé (non officiel). Les trois sont exigés avant soumission ; l’âge et les annonces apparaissent sur la fiche publique.
+- Revue de sécurité : lots 1 (compteurs, fuites, permissions, blocages du circuit de publication) et 2 (images recodées sans métadonnées, nettoyage des médias, durées de conservation) corrigés — voir `PWASTORE_SECURITY_REVIEW.md`.
+
 ## 2026-10-12 (fin) — Mesure des installations, dépôt ZIP désactivé
 
 - Mesure des installations pour les PWA hébergées par leurs éditeurs : une ligne à coller dans la PWA, signaux « installée » et « ouverte depuis l’écran d’accueil », acceptés seulement depuis l’adresse déclarée, une fois par appareil, avec limites anti-abus. Encart dans l’onglet Version.

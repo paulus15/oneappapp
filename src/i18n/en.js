@@ -155,6 +155,7 @@ export default {
       reviews: '({n} reviews) | ({n} review) | ({n} reviews)'
     },
     details: {
+      noAds: 'No ads',
       back: 'Back to the Store',
       backToStore: 'Back to the Store',
       unavailable: 'This app is not available in your country.',
@@ -175,6 +176,8 @@ export default {
       noDescription: 'The publisher has not provided a description yet.',
       information: 'Information',
       info: {
+        rating: 'Rating',
+        ads: 'Ads',
         version: 'Version',
         category: 'Category',
         languages: 'Languages',
@@ -592,6 +595,103 @@ export default {
     empty: 'No app hosted on your site yet.',
     open: 'Open'
   },
+  content: {
+    yes: 'Yes',
+    no: 'No',
+    incomplete: 'Answer every question about ads and rating to save.',
+    access: {
+      title: 'Access for the review',
+      intro:
+        'If part of your app needs a login or special access, give the review team what they need to test it. Without it, the review may be rejected.',
+      open: 'All features are available without special access',
+      restricted: 'Some features need a login or special access',
+      instructions: 'Access instructions',
+      instructionsHint:
+        'Explain how to reach the restricted features (steps, code, role to choose…).',
+      username: 'Test username or email',
+      password: 'Test password',
+      togglePassword: 'Show or hide the password',
+      other: 'Other information (optional)',
+      secure:
+        'This information is encrypted and visible only to the review team. Every reading is recorded. Use a test account, never a personal one.',
+      saved: 'Review access saved.'
+    },
+    ads: {
+      title: 'Ads',
+      intro:
+        'Tell us whether your app contains ads. This includes ads delivered by third-party ad networks. Make sure this information is accurate and kept up to date.',
+      yes: 'Yes, my app contains ads',
+      no: 'No, my app does not contain ads',
+      badge: 'Contains ads'
+    },
+    rating: {
+      title: 'Content rating',
+      intro:
+        'Answer honestly: the age rating is computed from your answers and shown on the listing. The review team checks it.',
+      ageLabel: 'Computed minimum age: {age} and over',
+      notOfficial:
+        'Rating computed by PWA Store from your answers. It is not an official rating (IARC, PEGI, ESRB).',
+      packagedHelp:
+        'For example: images, videos, texts or sounds included in the app’s code or resources, rather than loaded from the internet or posted by users.',
+      q: {
+        violence: 'Does the app show violence?',
+        sexual: 'Does it contain sexual content or nudity?',
+        language: 'Does it contain crude language?',
+        drugs: 'Does it refer to drugs, alcohol or tobacco?',
+        gambling: 'Does it contain gambling?',
+        fear: 'Does it contain frightening content?',
+        users_interact:
+          'Can users communicate with each other or share content?',
+        shares_location:
+          'Does the app share the user’s location with other people?',
+        digital_purchases: 'Does it offer digital purchases?',
+        packaged:
+          'Is this content included in the app package (code, resources)?'
+      },
+      a: {
+        violence: {
+          none: 'No',
+          mild: 'Mild or cartoon',
+          strong: 'Realistic or intense'
+        },
+        sexual: { none: 'No', suggestive: 'Suggestive', explicit: 'Explicit' },
+        language: {
+          none: 'No',
+          mild: 'Occasional',
+          strong: 'Frequent or very crude'
+        },
+        drugs: {
+          none: 'No',
+          references: 'References',
+          use: 'Use shown or encouraged'
+        },
+        gambling: {
+          none: 'No',
+          simulated: 'Simulated (no real money)',
+          real_money: 'With real money'
+        },
+        fear: { none: 'No', mild: 'Mild', strong: 'Intense' }
+      },
+      descriptor: {
+        violence: 'Violence',
+        sexual: 'Sexual content',
+        language: 'Crude language',
+        drugs: 'Drugs',
+        gambling: 'Gambling',
+        fear: 'Fear',
+        users_interact: 'Users interact',
+        shares_location: 'Shares location',
+        digital_purchases: 'Digital purchases'
+      }
+    },
+    dossier: {
+      title: 'App content',
+      access: 'Access for the review',
+      reveal: 'Show test credentials',
+      revealNote: 'This reading is recorded in the log.',
+      noAccess: 'Not provided'
+    }
+  },
   hosting: {
     build: {
       label: 'Hosted by PWA Store',
@@ -692,6 +792,7 @@ export default {
       info: 'Details',
       media: 'Images',
       privacy: 'Privacy',
+      content: 'App content',
       version: 'Version',
       submit: 'Summary',
       history: 'Tracking'
@@ -699,6 +800,9 @@ export default {
     missing:
       '{n} item to complete | {n} item to complete | {n} items to complete',
     field: {
+      contains_ads: 'Ads',
+      content_rating: 'Content rating',
+      review_access: 'Access for the review',
       cover: 'Cover image',
       availability: 'Geographic availability',
       name: 'App name',

@@ -8,6 +8,8 @@ export const adminApi = {
   startRequest: id => api.post(`/admin/publication-requests/${id}/start`),
   decideRequest: (id, data) =>
     api.post(`/admin/publication-requests/${id}/decide`, data),
+  revealAccess: id =>
+    api.post(`/admin/publication-requests/${id}/review-access`),
   noteRequest: (id, internal_note) =>
     api.put(`/admin/publication-requests/${id}/note`, { internal_note }),
   apps: params => api.get('/admin/apps', { params }),
