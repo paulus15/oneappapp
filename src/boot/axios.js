@@ -3,6 +3,7 @@ import axios from 'axios'
 import { useAuthStore } from '@/stores/auth'
 import { API_BASE_URL } from '@/utils/media'
 import { currentLocale } from '@/i18n'
+import { visitorCountry } from '@/utils/visitorCountry'
 
 // Create an axios instance
 const api = axios.create({
@@ -20,6 +21,9 @@ export default boot(({ app, router }) => {
       const token = localStorage.getItem('auth_token')
       if (token) {
         config.headers.Authorization = `Bearer ${token}`
+      } else if (visitorCountry()) {
+        // Visitors browse the catalogue of the country they chose.
+        config.headers['X-Country'] = visitorCountry()
       }
       // Server messages (requirements, blockers) follow the language chosen in the store.
       config.headers['Accept-Language'] = currentLocale()

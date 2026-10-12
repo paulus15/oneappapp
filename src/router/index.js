@@ -1,3 +1,6 @@
+import { ui } from '@/i18n/text'
+import { watch } from 'vue'
+import { currentLocale } from '@/i18n'
 import { defineRouter } from '#q-app'
 import {
   createMemoryHistory,
@@ -56,61 +59,141 @@ export default defineRouter((/* { store, ssrContext } */) => {
     return resolveAccess(to, auth, { isMobile: !!mobileView?.matches })
   })
 
-  Router.afterEach(to => {
+  function updateTitle(to) {
     const titles = {
-      '/': 'Découvrez les applications Web',
-      '/popular': 'Applications populaires',
-      '/recommended': 'Applications recommandées',
-      '/trending': 'Tendances',
-      '/login': 'Connexion',
-      '/register': 'Inscription',
-      '/forgot-password': 'Mot de passe oublié',
-      '/verify-email': 'Code de confirmation',
-      '/developer': 'Espace développeur',
-      '/developer/stats': 'Statistiques',
-      '/developer/reviews': 'Avis et retours',
-      '/developer/lab': 'PWA Lab',
-      '/developer/apps/create': 'Publier une application',
-      '/admin': 'Administration',
-      '/account': 'Mon compte',
-      '/developer/activate': 'Devenir développeur',
-      '/developers': 'Portail développeur',
-      '/categories': 'Catégories',
-      '/contact': 'Contact',
-      '/about': 'À propos',
-      '/help': 'Centre d’aide',
-      '/terms': 'Conditions d’utilisation',
-      '/privacy': 'Politique de confidentialité',
-      '/publishing-rules': 'Règles de publication',
-      '/developer/profile': 'Profil développeur et quotas',
-      '/admin/developers': 'Vérification des développeurs',
-      '/admin/countries': 'Répartition par pays',
-      '/admin/apps': 'Modération des applications',
-      '/admin/users': 'Utilisateurs',
-      '/admin/categories': 'Catégories',
-      '/admin/audit': 'Journal d’audit',
-      '/admin/collections': 'Sélections éditoriales',
-      '/admin/reports': 'Signalements',
-      '/admin/reviews': 'Modération des avis',
-      '/admin/settings': 'Paramètres et quotas',
-      '/notifications': 'Notifications'
+      get '/'() {
+        return ui('Découvrez les applications Web')
+      },
+      get '/popular'() {
+        return ui('Applications populaires')
+      },
+      get '/recommended'() {
+        return ui('Applications recommandées')
+      },
+      get '/trending'() {
+        return ui('Tendances')
+      },
+      get '/login'() {
+        return ui('Connexion')
+      },
+      get '/register'() {
+        return ui('Inscription')
+      },
+      get '/forgot-password'() {
+        return ui('Mot de passe oublié')
+      },
+      get '/verify-email'() {
+        return ui('Code de confirmation')
+      },
+      get '/developer'() {
+        return ui('Espace développeur')
+      },
+      get '/developer/stats'() {
+        return ui('Statistiques')
+      },
+      get '/developer/reviews'() {
+        return ui('Avis et retours')
+      },
+      get '/developer/lab'() {
+        return ui('PWA Lab')
+      },
+      get '/developer/apps/create'() {
+        return ui('Publier une application')
+      },
+      get '/admin'() {
+        return ui('Administration')
+      },
+      get '/account'() {
+        return ui('Mon compte')
+      },
+      get '/developer/activate'() {
+        return ui('Devenir développeur')
+      },
+      get '/developers'() {
+        return ui('Portail développeur')
+      },
+      get '/categories'() {
+        return ui('Catégories')
+      },
+      get '/contact'() {
+        return ui('Contact')
+      },
+      get '/about'() {
+        return ui('À propos')
+      },
+      get '/help'() {
+        return ui('Centre d’aide')
+      },
+      get '/terms'() {
+        return ui('Conditions d’utilisation')
+      },
+      get '/privacy'() {
+        return ui('Politique de confidentialité')
+      },
+      get '/publishing-rules'() {
+        return ui('Règles de publication')
+      },
+      get '/developer/profile'() {
+        return ui('Profil développeur et quotas')
+      },
+      get '/admin/developers'() {
+        return ui('Vérification des développeurs')
+      },
+      get '/admin/countries'() {
+        return ui('Répartition par pays')
+      },
+      get '/admin/apps'() {
+        return ui('Modération des applications')
+      },
+      get '/admin/users'() {
+        return ui('Utilisateurs')
+      },
+      get '/admin/categories'() {
+        return ui('Catégories')
+      },
+      get '/admin/audit'() {
+        return ui('Journal d’audit')
+      },
+      get '/admin/collections'() {
+        return ui('Sélections éditoriales')
+      },
+      get '/admin/reports'() {
+        return ui('Signalements')
+      },
+      get '/admin/reviews'() {
+        return ui('Modération des avis')
+      },
+      get '/admin/settings'() {
+        return ui('Paramètres et quotas')
+      },
+      get '/notifications'() {
+        return ui('Notifications')
+      }
     }
     const title =
       titles[to.path] ||
       (to.path.startsWith('/developer/apps/')
-        ? 'Modifier une application'
+        ? ui('Modifier une application')
         : to.path.startsWith('/apps/')
-          ? 'Fiche application'
+          ? ui('Fiche application')
           : {
-              categories: 'Catégorie',
-              collections: 'Sélection',
-              publishers: 'Éditeur'
-            }[to.path.split('/')[1]] || 'Page introuvable')
+              get categories() {
+                return ui('Catégorie')
+              },
+              get collections() {
+                return ui('Sélection')
+              },
+              get publishers() {
+                return ui('Éditeur')
+              }
+            }[to.path.split('/')[1]] || ui('Page introuvable'))
     document.title = `${title} · PWA Store`
     document
       .querySelector('meta[property="og:title"]')
       ?.setAttribute('content', document.title)
-  })
+  }
+  Router.afterEach(updateTitle)
+  watch(currentLocale, () => updateTitle(Router.currentRoute.value))
 
   return Router
 })

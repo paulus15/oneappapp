@@ -30,12 +30,14 @@ export const i18n = createI18n({
 })
 
 function apply(locale) {
+  if (!LOCALES.some(item => item.value === locale)) return
   i18n.global.locale.value = locale
   Lang.set(QUASAR_LANG[locale])
   document.documentElement.lang = locale
 }
 
 export function setLocale(locale) {
+  if (!LOCALES.some(item => item.value === locale)) return
   apply(locale)
   try {
     localStorage.setItem(STORAGE_KEY, locale)
@@ -49,4 +51,7 @@ export const currentLocale = () => i18n.global.locale.value
 export function installI18n(app) {
   app.use(i18n)
   apply(i18n.global.locale.value)
+  window.addEventListener('storage', event => {
+    if (event.key === STORAGE_KEY || event.key === null) apply(savedLocale())
+  })
 }

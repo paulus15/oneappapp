@@ -1,35 +1,38 @@
 <template>
   <section class="q-mt-lg">
-    <h2>Justificatifs</h2>
-    <p
-      >Pièce d’identité et documents demandés de façon motivée. Les fichiers
-      restent privés et peuvent être supprimés à tout moment.</p
-    >
+    <h2>{{ ui('Justificatifs') }}</h2>
+    <p>{{
+      ui(
+        'Pièce d’identité et documents demandés de façon motivée. Les fichiers restent privés et peuvent être supprimés à tout moment.'
+      )
+    }}</p>
     <q-banner v-if="error" class="workspace-alert" role="alert">{{
-      error
+      ui(error)
     }}</q-banner>
     <q-linear-progress v-if="busy" indeterminate />
     <q-btn
       v-if="admin"
       outline
       no-caps
-      label="Demander un justificatif"
+      :label="ui('Demander un justificatif')"
       :disable="busy"
       @click="requestDocument"
     />
-    <p v-if="!busy && !documents.length">Aucun justificatif demandé.</p>
+    <p v-if="!busy && !documents.length">{{
+      ui('Aucun justificatif demandé.')
+    }}</p>
     <article v-for="doc in documents" :key="doc.id" class="q-mt-md">
       <p>{{ doc.reason }}</p>
       <p class="text-caption"
-        >Conservation jusqu’au
-        {{ new Date(doc.expires_at).toLocaleDateString('fr-FR') }}.</p
+        >{{ ui('Conservation jusqu’au') }}
+        {{ new Date(doc.expires_at).toLocaleDateString(currentLocale()) }}.</p
       >
       <q-file
         v-if="!admin && doc.kind !== 'identity'"
         outlined
         :model-value="null"
         accept=".pdf,.jpg,.jpeg,.png"
-        label="Déposer un fichier (PDF, JPEG ou PNG, 5 Mo maximum)"
+        :label="ui('Déposer un fichier (PDF, JPEG ou PNG, 5 Mo maximum)')"
         :disable="busy"
         @update:model-value="file => upload(doc, file)"
       />
@@ -38,7 +41,7 @@
           v-if="doc.uploaded_at"
           flat
           no-caps
-          label="Télécharger"
+          :label="ui('Télécharger')"
           :disable="busy"
           @click="download(doc)"
         />
@@ -46,7 +49,7 @@
           flat
           no-caps
           color="negative"
-          label="Supprimer"
+          :label="ui('Supprimer')"
           :disable="busy"
           @click="remove(doc)"
         />
@@ -55,6 +58,9 @@
   </section>
 </template>
 <script setup>
+import { currentLocale } from '@/i18n'
+import { ui } from '@/i18n/text'
+
 import { ref, watch } from 'vue'
 import { useQuasar } from 'quasar'
 import { api } from '@/boot/axios'
@@ -91,8 +97,12 @@ watch(
 )
 function requestDocument() {
   q.dialog({
-    title: 'Justificatif nécessaire',
-    message: 'Expliquez précisément le document demandé et sa nécessité.',
+    get title() {
+      return ui('Justificatif nécessaire')
+    },
+    get message() {
+      return ui('Expliquez précisément le document demandé et sa nécessité.')
+    },
     prompt: {
       model: '',
       type: 'textarea',
@@ -132,8 +142,12 @@ function download(doc) {
 }
 function remove(doc) {
   q.dialog({
-    title: 'Supprimer le justificatif ?',
-    message: 'Le fichier et la demande seront supprimés.',
+    get title() {
+      return ui('Supprimer le justificatif ?')
+    },
+    get message() {
+      return ui('Le fichier et la demande seront supprimés.')
+    },
     cancel: true
   }).onOk(() =>
     run(async () => {

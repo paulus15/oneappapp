@@ -2,31 +2,31 @@
   <section>
     <q-linear-progress v-if="loading" indeterminate />
     <q-banner v-if="error" class="workspace-alert" role="alert"
-      >{{ error
+      >{{ ui(error)
       }}<template #action
-        ><q-btn flat label="Réessayer" @click="load" /></template
+        ><q-btn flat :label="ui('Réessayer')" @click="load" /></template
     ></q-banner>
     <template v-if="summary">
       <div class="workspace-actions">
         <q-chip color="primary" text-color="white">{{
-          profileLabels[summary.profile?.status] || 'Profil à compléter'
+          profileLabels[summary.profile?.status] || ui('Profil à compléter')
         }}</q-chip>
         <q-btn
           no-caps
           color="primary"
-          label="Mes applications"
+          :label="ui('Mes applications')"
           to="/developer"
         />
         <q-btn
           no-caps
           outline
-          label="Profil et vérification"
+          :label="ui('Profil et vérification')"
           to="/developer/profile"
         />
         <q-btn
           no-caps
           outline
-          label="Préparer une application"
+          :label="ui('Préparer une application')"
           to="/developer/apps/create"
           :disable="!auth.canCreateApp"
         />
@@ -38,7 +38,7 @@
       >
       <div class="workspace-grid">
         <q-card flat bordered class="workspace-card"
-          ><h2>{{ summary.total_applications }} application(s)</h2
+          ><h2>{{ summary.total_applications }} {{ ui('application(s)') }}</h2
           ><p
             ><span v-for="(total, status) in summary.by_status" :key="status"
               >{{ total }} {{ statusLabel(status).toLowerCase() }} ·
@@ -46,65 +46,76 @@
           ></q-card
         >
         <q-card flat bordered class="workspace-card"
-          ><h2>Audience (30 jours)</h2
+          ><h2>{{ ui('Audience (30 jours)') }}</h2
           ><p
-            >{{ summary.views_30_days }} vue(s) de fiche ·
-            {{ summary.reviews }} avis<span v-if="summary.reviews">
-              · note {{ summary.average_rating }}/5</span
+            >{{ summary.views_30_days }} {{ ui('vue(s) de fiche ·') }}
+            {{ summary.reviews }} {{ ui('avis')
+            }}<span v-if="summary.reviews">
+              {{ ui('· note') }} {{ summary.average_rating }}/5</span
             ></p
           ><p v-if="summary.open_reports" class="text-negative"
-            >{{ summary.open_reports }} signalement(s) en cours d’examen</p
+            >{{ summary.open_reports }}
+            {{ ui('signalement(s) en cours d’examen') }}</p
           ><div class="workspace-actions"
             ><q-btn
               flat
               no-caps
               color="primary"
-              label="Statistiques"
+              :label="ui('Statistiques')"
               to="/developer/stats" /><q-btn
               flat
               no-caps
               color="primary"
-              label="Avis et retours"
+              :label="ui('Avis et retours')"
               to="/developer/reviews" /></div
         ></q-card>
         <q-card flat bordered class="workspace-card"
-          ><h2>{{ summary.total_versions }} version(s)</h2
+          ><h2>{{ summary.total_versions }} {{ ui('version(s)') }}</h2
           ><p
-            >{{ summary.installed_records }} installation(s) déclarée(s) ·
-            {{ summary.recorded_opens }} ouverture(s) enregistrée(s)</p
+            >{{ summary.installed_records }}
+            {{ ui('installation(s) déclarée(s) ·') }}
+            {{ summary.recorded_opens }}
+            {{ ui('ouverture(s) enregistrée(s)') }}</p
           ></q-card
         >
         <q-card flat bordered class="workspace-card"
-          ><h2>Installations par pays</h2
-          ><p v-if="!summary.installs_by_country?.length"
-            >Aucune installation enregistrée pour le moment.</p
+          ><h2>{{ ui('Installations par pays') }}</h2
+          ><p v-if="!summary.installs_by_country?.length">{{
+            ui('Aucune installation enregistrée pour le moment.')
+          }}</p
           ><p v-for="row in summary.installs_by_country" :key="row.code"
-            >{{ row.name || 'Pays non renseigné' }} · {{ row.total }}</p
+            >{{ row.name || ui('Pays non renseigné') }} · {{ row.total }}</p
           ></q-card
         >
         <q-card flat bordered class="workspace-card"
-          ><h2>Quotas de publication</h2
+          ><h2>{{ ui('Quotas de publication') }}</h2
           ><p
-            >{{ summary.quotas.published_or_reserved }} emplacement(s)
-            utilisé(s)</p
+            >{{ summary.quotas.published_or_reserved }}
+            {{ ui('emplacement(s) utilisé(s)') }}</p
           ><p>{{
             summary.quotas.free_applications === null
-              ? 'Quota gratuit non encore fixé.'
-              : `Quota gratuit : ${summary.quotas.free_applications}`
+              ? ui('Quota gratuit non encore fixé.')
+              : ui('Quota gratuit : {p0}', {
+                  p0: summary.quotas.free_applications
+                })
           }}</p
           ><p
-            >Stockage :
-            {{ (summary.quotas.storage_bytes / 1048576).toFixed(1) }} Mo</p
+            >{{ ui('Stockage :') }}
+            {{ (summary.quotas.storage_bytes / 1048576).toFixed(1) }}
+            {{ ui('Mo') }}</p
           ><q-banner
             v-if="!summary.quotas.can_publish_more"
             class="workspace-alert"
-            >Quota atteint pour les nouvelles publications.</q-banner
+            >{{
+              ui('Quota atteint pour les nouvelles publications.')
+            }}</q-banner
           ></q-card
         >
         <q-card flat bordered class="workspace-card"
-          ><h2>Activité récente</h2
-          ><p v-if="!summary.recent_applications.length"
-            >Aucune application préparée pour le moment.</p
+          ><h2>{{ ui('Activité récente') }}</h2
+          ><p v-if="!summary.recent_applications.length">{{
+            ui('Aucune application préparée pour le moment.')
+          }}</p
           ><q-list
             ><q-item
               v-for="app in summary.recent_applications"
@@ -116,7 +127,7 @@
                 ><q-item-label caption
                   >{{ statusLabel(app.status) }} ·
                   {{
-                    new Date(app.updated_at).toLocaleDateString('fr-FR')
+                    new Date(app.updated_at).toLocaleDateString(currentLocale())
                   }}</q-item-label
                 ></q-item-section
               ><q-item-section side
@@ -128,6 +139,9 @@
   </section>
 </template>
 <script setup>
+import { currentLocale } from '@/i18n'
+import { ui } from '@/i18n/text'
+
 import { useAuthStore } from '@/stores/auth'
 const auth = useAuthStore()
 import { onMounted, ref } from 'vue'
@@ -138,11 +152,21 @@ const loading = ref(true),
   error = ref(''),
   summary = ref(null)
 const profileLabels = {
-  draft: 'Profil à compléter',
-  pending_verification: 'Vérification en attente',
-  verified: 'Développeur vérifié',
-  rejected: 'Profil à corriger',
-  suspended: 'Publication suspendue'
+  get draft() {
+    return ui('Profil à compléter')
+  },
+  get pending_verification() {
+    return ui('Vérification en attente')
+  },
+  get verified() {
+    return ui('Développeur vérifié')
+  },
+  get rejected() {
+    return ui('Profil à corriger')
+  },
+  get suspended() {
+    return ui('Publication suspendue')
+  }
 }
 async function load() {
   loading.value = true

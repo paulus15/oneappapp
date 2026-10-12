@@ -3,13 +3,15 @@
     <div class="admin-hero q-mb-lg">
       <div>
         <span class="admin-eyebrow"
-          ><q-icon name="shield" /> Administration</span
+          ><q-icon name="shield" /> {{ ui('Administration') }}</span
         >
-        <h1 class="admin-title">Modération des applications</h1>
+        <h1 class="admin-title">{{ ui('Modération des applications') }}</h1>
         <div class="admin-subtitle">
-          Chaque décision exige un motif et rejoint l’historique de
-          l’application et le journal d’audit. Une application approuvée n’est
-          visible qu’après sa publication par l’éditeur.
+          {{
+            ui(
+              'Chaque décision exige un motif et rejoint l’historique de l’application et le journal d’audit. Une application approuvée n’est visible qu’après sa publication par l’éditeur.'
+            )
+          }}
         </div>
       </div>
     </div>
@@ -25,7 +27,7 @@
           clearable
           outlined
           dense
-          label="Statut"
+          :label="ui('Statut')"
           @update:model-value="reload"
         />
       </div>
@@ -36,7 +38,7 @@
           dense
           clearable
           debounce="400"
-          label="Nom ou identifiant"
+          :label="ui('Nom ou identifiant')"
           @update:model-value="reload"
         >
           <template #prepend><q-icon name="search" /></template>
@@ -45,7 +47,7 @@
     </div>
 
     <q-banner v-if="error" class="workspace-alert q-mb-md" role="alert">{{
-      error
+      ui(error)
     }}</q-banner>
 
     <div v-if="loading" class="row justify-center q-my-xl">
@@ -68,7 +70,7 @@
                 <q-avatar size="36px" class="rounded-borders">
                   <AppIcon
                     :src="app.icon_url"
-                    :alt="`Icône de ${app.name}`"
+                    :alt="ui('Icône de {p0}', { p0: app.name })"
                     fallback-icon="apps"
                   />
                 </q-avatar>
@@ -81,26 +83,26 @@
                   <q-badge :color="statusColor(app.status)">{{
                     statusLabel(app.status)
                   }}</q-badge>
-                  <q-badge v-if="app.is_featured" color="amber-8"
-                    >À la une</q-badge
-                  >
+                  <q-badge v-if="app.is_featured" color="amber-8">{{
+                    ui('À la une')
+                  }}</q-badge>
                 </div>
                 <div class="text-caption text-muted">
                   {{ app.developer?.name }} ·
                   {{
                     app.developer?.developer_profile?.status === 'verified'
-                      ? 'éditeur vérifié'
-                      : 'éditeur non vérifié'
+                      ? ui('éditeur vérifié')
+                      : ui('éditeur non vérifié')
                   }}
-                  · {{ app.source_type === 'url' ? 'URL' : 'Build' }} ·
+                  · {{ app.source_type === 'url' ? 'URL' : ui('Build') }} ·
                   {{ app.identifier }}
                 </div>
               </q-item-section>
             </q-item>
           </q-list>
-          <p v-if="!apps.length" class="q-mt-md"
-            >Aucune application pour ce filtre.</p
-          >
+          <p v-if="!apps.length" class="q-mt-md">{{
+            ui('Aucune application pour ce filtre.')
+          }}</p>
           <q-pagination
             v-if="lastPage > 1"
             v-model="page"
@@ -143,7 +145,7 @@
             />
           </div>
           <p v-if="selectedApp.moderation_reason" class="text-caption"
-            >Dernier motif : {{ selectedApp.moderation_reason }}</p
+            >{{ ui('Dernier motif :') }} {{ selectedApp.moderation_reason }}</p
           >
 
           <div class="workspace-actions q-mb-md">
@@ -167,7 +169,7 @@
               dense
               color="negative"
               icon="archive"
-              label="Archiver"
+              :label="ui('Archiver')"
               :disable="busy"
               @click="archive"
             />
@@ -176,13 +178,13 @@
           <template v-if="canManageCatalog">
             <q-toggle
               :model-value="!!selectedApp.is_featured"
-              label="Mettre à la une"
+              :label="ui('Mettre à la une')"
               :disable="busy"
               @update:model-value="setFeatured"
             />
-            <div class="text-subtitle2 q-mt-md q-mb-xs"
-              >Score de confiance (indicateur interne)</div
-            >
+            <div class="text-subtitle2 q-mt-md q-mb-xs">{{
+              ui('Score de confiance (indicateur interne)')
+            }}</div>
             <div class="row items-center q-col-gutter-sm">
               <div class="col-8">
                 <q-slider
@@ -194,7 +196,7 @@
               </div>
               <div class="col-4">
                 <q-btn
-                  label="Enregistrer"
+                  :label="ui('Enregistrer')"
                   color="primary"
                   size="sm"
                   unelevated
@@ -211,26 +213,33 @@
             <div class="col-6">
               <div class="stats-box">
                 <div class="stats-value">{{ stats.total_installations }}</div>
-                <div class="stats-label">Installations déclarées</div>
+                <div class="stats-label">{{
+                  ui('Installations déclarées')
+                }}</div>
               </div>
             </div>
             <div class="col-6">
               <div class="stats-box">
                 <div class="stats-value">{{ stats.total_launches }}</div>
-                <div class="stats-label">Ouvertures</div>
+                <div class="stats-label">{{ ui('Ouvertures') }}</div>
               </div>
             </div>
           </div>
 
-          <div class="text-subtitle2 q-mt-md q-mb-xs">Historique</div>
+          <div class="text-subtitle2 q-mt-md q-mb-xs">{{
+            ui('Historique')
+          }}</div>
           <q-list separator dense class="sidebar-list">
             <q-item v-for="event in events" :key="event.id">
               <q-item-section>
                 <q-item-label>{{ statusLabel(event.action) }}</q-item-label>
                 <q-item-label caption
-                  >{{ new Date(event.created_at).toLocaleString('fr-FR') }} ·
+                  >{{
+                    new Date(event.created_at).toLocaleString(currentLocale())
+                  }}
+                  ·
                   {{
-                    event.actor?.name || 'Contrôle automatique'
+                    event.actor?.name || ui('Contrôle automatique')
                   }}</q-item-label
                 >
                 <q-item-label v-if="event.reason" caption>{{
@@ -239,9 +248,9 @@
               </q-item-section>
             </q-item>
             <q-item v-if="!events.length"
-              ><q-item-section caption
-                >Aucun événement enregistré.</q-item-section
-              ></q-item
+              ><q-item-section caption>{{
+                ui('Aucun événement enregistré.')
+              }}</q-item-section></q-item
             >
           </q-list>
         </q-card>
@@ -252,7 +261,7 @@
         >
           <div class="text-muted">
             <q-icon name="rule" size="48px" class="q-mb-md" />
-            <div>Sélectionnez une application pour la modérer.</div>
+            <div>{{ ui('Sélectionnez une application pour la modérer.') }}</div>
           </div>
         </q-card>
       </div>
@@ -261,6 +270,9 @@
 </template>
 
 <script setup>
+import { currentLocale } from '@/i18n'
+import { ui } from '@/i18n/text'
+
 import { useI18n } from 'vue-i18n'
 import { computed, onMounted, reactive, ref } from 'vue'
 import { useQuasar } from 'quasar'
@@ -292,7 +304,9 @@ const apps = ref([]),
 const filters = reactive({ status: 'submitted', search: '' })
 const statusOptions = Object.entries(APP_STATUS).map(([value, s]) => ({
   value,
-  label: s.label
+  get label() {
+    return s.label
+  }
 }))
 const canManageCatalog = computed(() =>
   auth.user?.admin_permissions?.includes('catalog.manage')
@@ -358,7 +372,9 @@ function askReason(title, required = true) {
     $q
       .dialog({
         title,
-        message: 'Ce motif est visible par l’éditeur et conservé.',
+        get message() {
+          return ui('Ce motif est visible par l’éditeur et conservé.')
+        },
         prompt: {
           model: '',
           type: 'textarea',
@@ -377,21 +393,23 @@ async function decide(decision) {
   return run(
     () =>
       adminApi.review(selectedApp.value.id, { status: decision.to, reason }),
-    `Décision enregistrée : ${statusLabel(decision.to)}.`
+    ui('Décision enregistrée : {p0}.', { p0: statusLabel(decision.to) })
   )
 }
 async function archive() {
-  const reason = await askReason('Archiver l’application', false)
+  const reason = await askReason(ui('Archiver l’application'), false)
   if (reason === null) return
   return run(
     () => adminApi.archive(selectedApp.value.id, reason || undefined),
-    'Application archivée.'
+    ui('Application archivée.')
   )
 }
 function setFeatured(value) {
   return run(
     () => adminApi.catalog(selectedApp.value.id, { is_featured: value }),
-    value ? 'Application mise à la une.' : 'Application retirée de la une.'
+    value
+      ? ui('Application mise à la une.')
+      : ui('Application retirée de la une.')
   )
 }
 function updateTrustScore() {
@@ -400,53 +418,13 @@ function updateTrustScore() {
       adminApi.catalog(selectedApp.value.id, {
         trust_score: trustScoreSlider.value
       }),
-    'Score de confiance enregistré.'
+    ui('Score de confiance enregistré.')
   )
 }
 onMounted(fetchApps)
 </script>
 
 <style scoped lang="scss">
-.admin-page {
-  background: var(--page);
-  color: var(--text);
-  padding: 18px var(--ui-page-gutter) 28px;
-}
-.admin-hero {
-  display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
-  gap: 14px;
-  padding: 18px;
-  background: var(--surface-low);
-  border: 1px solid var(--outline);
-  border-radius: 16px;
-  box-shadow: var(--ui-shadow-sm);
-}
-.admin-eyebrow {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  margin-bottom: 8px;
-  color: var(--pwa-link);
-  font-size: 9px;
-  font-weight: 850;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-}
-.admin-title {
-  color: var(--text);
-  font-size: clamp(23px, 2.5vw, 32px);
-  font-weight: 800;
-  margin: 0;
-}
-.admin-subtitle {
-  color: var(--muted);
-  max-width: 720px;
-  font-size: 11px;
-  line-height: 1.6;
-  margin-top: 4px;
-}
 .admin-card {
   background: var(--glass);
   border: 1px solid var(--outline);
@@ -499,15 +477,7 @@ onMounted(fetchApps)
   border: 1px solid var(--outline);
   border-radius: 12px;
 }
-.admin-hero.q-mb-lg {
-  margin-bottom: 16px;
-}
 @media (max-width: 700px) {
-  .admin-hero {
-    align-items: flex-start;
-    flex-direction: column;
-    padding: 15px;
-  }
   .admin-card {
     padding: 14px;
   }

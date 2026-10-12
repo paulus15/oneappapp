@@ -1,25 +1,27 @@
 <template>
   <q-page class="workspace-page">
     <header class="workspace-heading"
-      ><span class="eyebrow">Administration</span><h1>Répartition par pays</h1
-      ><p
-        >Pays de résidence déclarés par les utilisateurs et pays légaux des
-        profils développeurs. Ces données ne représentent pas leur position
-        actuelle.</p
-      ></header
+      ><span class="eyebrow">{{ ui('Administration') }}</span
+      ><h1>{{ ui('Répartition par pays') }}</h1
+      ><p>{{
+        ui(
+          'Pays de résidence déclarés par les utilisateurs et pays légaux des profils développeurs. Ces données ne représentent pas leur position actuelle.'
+        )
+      }}</p></header
     >
     <AdminNav />
     <q-linear-progress v-if="loading" indeterminate />
     <q-banner v-if="error" class="workspace-alert" role="alert"
-      >{{ error
+      >{{ ui(error)
       }}<template #action
-        ><q-btn flat label="Réessayer" @click="load" /></template
+        ><q-btn flat :label="ui('Réessayer')" @click="load" /></template
     ></q-banner>
     <template v-if="summary"
       ><p
-        >{{ summary.total_users }} compte(s) · {{ summary.unknown_users }} pays
-        non renseigné(s) · {{ summary.unknown_installations }} installation(s)
-        sans pays</p
+        >{{ summary.total_users }} {{ ui('compte(s) ·') }}
+        {{ summary.unknown_users }} {{ ui('pays non renseigné(s) ·') }}
+        {{ summary.unknown_installations }}
+        {{ ui('installation(s) sans pays') }}</p
       ><q-table
         flat
         bordered
@@ -28,11 +30,13 @@
         row-key="id"
         :grid="$q.screen.lt.sm"
         :pagination="{ rowsPerPage: 15 }"
-        no-data-label="Aucun pays renseigné pour le moment"
+        :no-data-label="ui('Aucun pays renseigné pour le moment')"
     /></template>
   </q-page>
 </template>
 <script setup>
+import { ui } from '@/i18n/text'
+
 import AdminNav from '@/components/AdminNav.vue'
 import { onMounted, ref } from 'vue'
 import { api } from '@/boot/axios'
@@ -41,28 +45,44 @@ const summary = ref(null),
   loading = ref(true),
   error = ref('')
 const columns = [
-  { name: 'name', label: 'Pays', field: 'name', align: 'left', sortable: true },
+  {
+    name: 'name',
+    get label() {
+      return ui('Pays')
+    },
+    field: 'name',
+    align: 'left',
+    sortable: true
+  },
   {
     name: 'users',
-    label: 'Utilisateurs',
+    get label() {
+      return ui('Utilisateurs')
+    },
     field: 'users_count',
     sortable: true
   },
   {
     name: 'developers',
-    label: 'Profils développeurs',
+    get label() {
+      return ui('Profils développeurs')
+    },
     field: 'developer_profiles_count',
     sortable: true
   },
   {
     name: 'installations',
-    label: 'Installations',
+    get label() {
+      return ui('Installations')
+    },
     field: 'installations_count',
     sortable: true
   },
   {
     name: 'applications',
-    label: 'Apps disponibles',
+    get label() {
+      return ui('Apps disponibles')
+    },
     field: 'applications_count',
     sortable: true
   }

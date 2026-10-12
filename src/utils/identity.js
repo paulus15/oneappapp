@@ -1,13 +1,25 @@
+import { ui } from '@/i18n/text'
 export const identityLabels = {
-  national_id: 'Carte nationale d’identité',
-  passport: 'Passeport',
-  residence_permit: 'Titre de séjour',
-  driving_license: 'Permis de conduire'
+  get national_id() {
+    return ui('Carte nationale d’identité')
+  },
+  get passport() {
+    return ui('Passeport')
+  },
+  get residence_permit() {
+    return ui('Titre de séjour')
+  },
+  get driving_license() {
+    return ui('Permis de conduire')
+  }
 }
 
-export const identityOptions = Object.entries(identityLabels).map(
-  ([value, label]) => ({ value, label })
-)
+export const identityOptions = Object.keys(identityLabels).map(value => ({
+  value,
+  get label() {
+    return identityLabels[value]
+  }
+}))
 
 // Mirrors DeveloperProfile::hasValidIdentity(): the document must expire after today.
 export function identityIsValid(profile) {

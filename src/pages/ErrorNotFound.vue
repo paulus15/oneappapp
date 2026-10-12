@@ -1,6 +1,9 @@
 <template>
   <main class="not-found-page">
-    <router-link to="/" class="not-found-brand" aria-label="PWA Store, accueil"
+    <router-link
+      to="/"
+      class="not-found-brand"
+      :aria-label="ui('PWA Store, accueil')"
       ><BrandLogo
     /></router-link>
     <div class="not-found-orb orb-one" aria-hidden="true" />
@@ -12,18 +15,19 @@
         <div class="lost-app"><q-icon name="travel_explore" /></div>
         <span>4</span>
       </div>
-      <span class="error-kicker">Page introuvable</span>
-      <h1>Cette application s’est égarée.</h1>
-      <p
-        >Le lien a peut-être changé ou la page n’existe plus. Revenez au Store
-        pour poursuivre votre exploration.</p
-      >
+      <span class="error-kicker">{{ ui('Page introuvable') }}</span>
+      <h1>{{ ui('Cette application s’est égarée.') }}</h1>
+      <p>{{
+        ui(
+          'Le lien a peut-être changé ou la page n’existe plus. Revenez au Store pour poursuivre votre exploration.'
+        )
+      }}</p>
       <div class="error-actions">
         <q-btn
           unelevated
           no-caps
           icon="home"
-          label="Retour à l’accueil"
+          :label="ui('Retour à l’accueil')"
           to="/"
           class="home-action"
         />
@@ -31,7 +35,7 @@
           flat
           no-caps
           icon="arrow_back"
-          label="Page précédente"
+          :label="ui('Page précédente')"
           @click="$router.back()"
         />
       </div>
@@ -40,6 +44,8 @@
 </template>
 
 <script setup>
+import { ui } from '@/i18n/text'
+
 import BrandLogo from '@/components/BrandLogo.vue'
 </script>
 

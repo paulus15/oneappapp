@@ -1,11 +1,13 @@
 <template>
   <q-page class="workspace-page">
     <header class="workspace-heading"
-      ><span class="eyebrow">Administration</span><h1>Sélections éditoriales</h1
-      ><p
-        >Les sélections actives apparaissent sur l’accueil, dans l’ordre choisi.
-        Seules les applications publiées y sont visibles.</p
-      ></header
+      ><span class="eyebrow">{{ ui('Administration') }}</span
+      ><h1>{{ ui('Sélections éditoriales') }}</h1
+      ><p>{{
+        ui(
+          'Les sélections actives apparaissent sur l’accueil, dans l’ordre choisi. Seules les applications publiées y sont visibles.'
+        )
+      }}</p></header
     >
     <AdminNav />
     <div class="workspace-actions q-mb-md">
@@ -13,12 +15,12 @@
         color="primary"
         no-caps
         icon="add"
-        label="Nouvelle sélection"
+        :label="ui('Nouvelle sélection')"
         @click="edit()"
       />
     </div>
     <q-banner v-if="error" class="workspace-alert q-mb-md" role="alert">{{
-      error
+      ui(error)
     }}</q-banner>
     <q-linear-progress v-if="loading" indeterminate />
     <div class="workspace-grid">
@@ -32,49 +34,54 @@
         <div class="row items-center q-gutter-sm">
           <h2 class="col">{{ collection.title }}</h2>
           <q-badge :color="collection.is_active ? 'positive' : 'grey-7'">{{
-            collection.is_active ? 'Active' : 'Masquée'
+            collection.is_active ? ui('Active') : ui('Masquée')
           }}</q-badge>
         </div>
         <p class="text-muted">{{ collection.description }}</p>
         <p
-          >{{ collection.applications.length }} application(s) ·
+          >{{ collection.applications.length }} {{ ui('application(s) ·') }}
           {{
             collection.applications.filter(a => a.status === 'published').length
           }}
-          publiée(s)</p
+          {{ ui('publiée(s)') }}</p
         >
         <div class="workspace-actions">
-          <q-btn outline no-caps label="Modifier" @click="edit(collection)" />
+          <q-btn
+            outline
+            no-caps
+            :label="ui('Modifier')"
+            @click="edit(collection)"
+          />
           <q-btn
             flat
             no-caps
             color="negative"
-            label="Supprimer"
+            :label="ui('Supprimer')"
             :disable="busy"
             @click="remove(collection)"
           />
         </div>
       </q-card>
     </div>
-    <p v-if="!loading && !collections.length" class="text-muted"
-      >Aucune sélection pour le moment.</p
-    >
+    <p v-if="!loading && !collections.length" class="text-muted">{{
+      ui('Aucune sélection pour le moment.')
+    }}</p>
 
     <q-dialog v-model="dialog" :maximized="$q.screen.lt.sm">
       <q-card class="form-card">
         <q-form @submit="save">
           <q-card-section
             ><h2>{{
-              form.id ? 'Modifier la sélection' : 'Nouvelle sélection'
+              form.id ? ui('Modifier la sélection') : ui('Nouvelle sélection')
             }}</h2></q-card-section
           >
           <q-card-section class="workspace-form">
             <q-input
               v-model="form.title"
               outlined
-              label="Titre"
+              :label="ui('Titre')"
               maxlength="120"
-              :rules="[v => !!v?.trim() || 'Titre requis']"
+              :rules="[v => !!v?.trim() || ui('Titre requis')]"
             />
             <q-input
               v-model="form.description"
@@ -82,15 +89,18 @@
               type="textarea"
               autogrow
               maxlength="500"
-              label="Description (facultatif)"
+              :label="ui('Description (facultatif)')"
             />
             <q-input
               v-model.number="form.order"
               outlined
               type="number"
-              label="Ordre sur l’accueil"
+              :label="ui('Ordre sur l’accueil')"
             />
-            <q-toggle v-model="form.is_active" label="Afficher sur l’accueil" />
+            <q-toggle
+              v-model="form.is_active"
+              :label="ui('Afficher sur l’accueil')"
+            />
             <q-select
               v-model="form.applications"
               outlined
@@ -101,18 +111,18 @@
               :options="options"
               option-value="id"
               option-label="name"
-              label="Applications (dans l’ordre d’affichage)"
-              hint="Recherchez parmi les applications publiées"
+              :label="ui('Applications (dans l’ordre d’affichage)')"
+              :hint="ui('Recherchez parmi les applications publiées')"
               @filter="searchApps"
             />
           </q-card-section>
           <q-card-actions align="right">
-            <q-btn flat no-caps label="Annuler" v-close-popup />
+            <q-btn flat no-caps :label="ui('Annuler')" v-close-popup />
             <q-btn
               type="submit"
               color="primary"
               no-caps
-              label="Enregistrer"
+              :label="ui('Enregistrer')"
               :loading="busy"
             />
           </q-card-actions>
@@ -122,6 +132,8 @@
   </q-page>
 </template>
 <script setup>
+import { ui } from '@/i18n/text'
+
 import { onMounted, reactive, ref } from 'vue'
 import { useQuasar } from 'quasar'
 import AdminNav from '@/components/AdminNav.vue'
@@ -188,7 +200,12 @@ async function save() {
       ? adminApi.updateCollection(form.id, payload)
       : adminApi.createCollection(payload))
     dialog.value = false
-    $q.notify({ type: 'positive', message: 'Sélection enregistrée.' })
+    $q.notify({
+      type: 'positive',
+      get message() {
+        return ui('Sélection enregistrée.')
+      }
+    })
     await load()
   } catch (e) {
     error.value = apiMessage(e)
@@ -198,8 +215,12 @@ async function save() {
 }
 function remove(collection) {
   $q.dialog({
-    title: `Supprimer « ${collection.title} » ?`,
-    message: 'Les applications ne sont pas affectées.',
+    get title() {
+      return ui('Supprimer « {p0} » ?', { p0: collection.title })
+    },
+    get message() {
+      return ui('Les applications ne sont pas affectées.')
+    },
     cancel: true
   }).onOk(async () => {
     busy.value = true

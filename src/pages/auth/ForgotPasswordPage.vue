@@ -2,14 +2,21 @@
   <q-page class="auth-page">
     <q-card flat class="auth-card">
       <q-card-section class="card-header">
-        <span class="auth-eyebrow">Accès au compte</span>
+        <span class="auth-eyebrow">{{ ui('Accès au compte') }}</span>
         <h1 class="auth-title">{{
-          step === 'email' ? 'Mot de passe oublié' : 'Nouveau mot de passe'
+          step === 'email'
+            ? ui('Mot de passe oublié')
+            : ui('Nouveau mot de passe')
         }}</h1>
         <p class="auth-subtitle">{{
           step === 'email'
-            ? 'Indiquez l’adresse de votre compte. Si elle est connue, vous recevrez un code à six chiffres.'
-            : `Saisissez le code envoyé à ${auth.pendingChallenge?.destination || 'votre adresse'}, valable dix minutes, puis choisissez votre nouveau mot de passe.`
+            ? ui(
+                'Indiquez l’adresse de votre compte. Si elle est connue, vous recevrez un code à six chiffres.'
+              )
+            : ui(
+                'Saisissez le code envoyé à {p0}, valable dix minutes, puis choisissez votre nouveau mot de passe.',
+                { p0: auth.pendingChallenge?.destination || 'votre adresse' }
+              )
         }}</p>
       </q-card-section>
 
@@ -19,7 +26,7 @@
             v-model="email"
             type="email"
             autocomplete="email"
-            label="Adresse e-mail"
+            :label="ui('Adresse e-mail')"
             filled
             dense
             hide-bottom-space
@@ -28,10 +35,12 @@
           >
             <template #prepend><q-icon name="alternate_email" /></template>
           </q-input>
-          <div v-if="error" class="form-error" role="alert">{{ error }}</div>
+          <div v-if="error" class="form-error" role="alert">{{
+            ui(error)
+          }}</div>
           <div class="auth-submit">
             <q-btn
-              label="Recevoir un code"
+              :label="ui('Recevoir un code')"
               type="submit"
               unelevated
               no-caps
@@ -44,23 +53,27 @@
         <q-form v-else class="auth-form" @submit="reset">
           <q-input
             v-model="code"
-            label="Code reçu par e-mail"
+            :label="ui('Code reçu par e-mail')"
             inputmode="numeric"
             autocomplete="one-time-code"
             maxlength="6"
             filled
             dense
             autofocus
-            :rules="[v => /^\d{6}$/.test(v) || 'Saisissez les six chiffres']"
+            :rules="[
+              v => /^\d{6}$/.test(v) || ui('Saisissez les six chiffres')
+            ]"
           />
           <q-input
             v-model="password"
             :type="showPassword ? 'text' : 'password'"
             autocomplete="new-password"
-            label="Nouveau mot de passe"
+            :label="ui('Nouveau mot de passe')"
             filled
             dense
-            :rules="[v => (v && v.length >= 8) || 'Huit caractères minimum']"
+            :rules="[
+              v => (v && v.length >= 8) || ui('Huit caractères minimum')
+            ]"
           >
             <template #append>
               <q-btn
@@ -70,8 +83,8 @@
                 :icon="showPassword ? 'visibility_off' : 'visibility'"
                 :aria-label="
                   showPassword
-                    ? 'Masquer le mot de passe'
-                    : 'Afficher le mot de passe'
+                    ? ui('Masquer le mot de passe')
+                    : ui('Afficher le mot de passe')
                 "
                 @click="showPassword = !showPassword"
               />
@@ -81,18 +94,21 @@
             v-model="confirmation"
             :type="showPassword ? 'text' : 'password'"
             autocomplete="new-password"
-            label="Confirmez le mot de passe"
+            :label="ui('Confirmez le mot de passe')"
             filled
             dense
             :rules="[
-              v => v === password || 'Les mots de passe ne correspondent pas'
+              v =>
+                v === password || ui('Les mots de passe ne correspondent pas')
             ]"
           />
-          <div v-if="error" class="form-error" role="alert">{{ error }}</div>
+          <div v-if="error" class="form-error" role="alert">{{
+            ui(error)
+          }}</div>
           <p v-if="notice" role="status" class="text-caption">{{ notice }}</p>
           <div class="auth-submit">
             <q-btn
-              label="Changer mon mot de passe"
+              :label="ui('Changer mon mot de passe')"
               type="submit"
               unelevated
               no-caps
@@ -104,21 +120,28 @@
             flat
             no-caps
             :label="
-              remaining ? `Renvoyer dans ${remaining} s` : 'Renvoyer le code'
+              remaining
+                ? ui('Renvoyer dans {p0} s', { p0: remaining })
+                : ui('Renvoyer le code')
             "
             :disable="busy || remaining > 0"
             @click="resend"
           />
-          <q-btn flat no-caps label="Changer d’adresse" @click="restart" />
+          <q-btn
+            flat
+            no-caps
+            :label="ui('Changer d’adresse')"
+            @click="restart"
+          />
         </q-form>
       </q-card-section>
 
       <q-card-section class="card-footer">
         <div class="footer-text">
-          Vous vous en souvenez ?
-          <router-link to="/login" class="register-link"
-            >Connectez-vous</router-link
-          >
+          {{ ui('Vous vous en souvenez ?') }}
+          <router-link to="/login" class="register-link">{{
+            ui('Connectez-vous')
+          }}</router-link>
         </div>
       </q-card-section>
     </q-card>
@@ -126,6 +149,8 @@
 </template>
 
 <script setup>
+import { ui } from '@/i18n/text'
+
 import { onBeforeUnmount, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useQuasar } from 'quasar'
@@ -180,7 +205,12 @@ function resend() {
 function reset() {
   return run(async () => {
     await auth.resetPassword(code.value, password.value, confirmation.value)
-    q.notify({ type: 'positive', message: 'Mot de passe modifié.' })
+    q.notify({
+      type: 'positive',
+      get message() {
+        return ui('Mot de passe modifié.')
+      }
+    })
     router.replace('/account')
   })
 }

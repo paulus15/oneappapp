@@ -1,13 +1,14 @@
 <template>
   <footer class="app-footer">
     <div class="footer-brand">
-      <router-link to="/" aria-label="PWA Store, accueil"
+      <router-link to="/" :aria-label="ui('PWA Store, accueil')"
         ><BrandLogo
       /></router-link>
-      <p
-        >Un canal de découverte, de test et de distribution Web pour les
-        Progressive Web Apps. Complémentaire des stores mobiles.</p
-      >
+      <p>{{
+        ui(
+          'Un canal de découverte, de test et de distribution Web pour les Progressive Web Apps. Complémentaire des stores mobiles.'
+        )
+      }}</p>
     </div>
     <nav
       v-for="group in groups"
@@ -20,41 +21,103 @@
         link.label
       }}</router-link>
     </nav>
-    <p class="legal">© {{ year }} PWA Store. Tous droits réservés.</p>
+    <p class="legal"
+      >© {{ year }} {{ ui('PWA Store. Tous droits réservés.') }}</p
+    >
   </footer>
 </template>
 <script setup>
+import { ui } from '@/i18n/text'
+
 import BrandLogo from '@/components/BrandLogo.vue'
 const year = new Date().getFullYear()
 const groups = [
   {
-    title: 'Store',
+    get title() {
+      return ui('Store')
+    },
     links: [
-      { to: '/', label: 'Accueil' },
-      { to: '/categories', label: 'Catégories' },
-      { to: '/popular', label: 'Populaires' },
-      { to: '/about', label: 'À propos' }
+      {
+        to: '/',
+        get label() {
+          return ui('Accueil')
+        }
+      },
+      {
+        to: '/categories',
+        get label() {
+          return ui('Catégories')
+        }
+      },
+      {
+        to: '/popular',
+        get label() {
+          return ui('Populaires')
+        }
+      },
+      {
+        to: '/about',
+        get label() {
+          return ui('À propos')
+        }
+      }
     ]
   },
   {
-    title: 'Développeurs',
+    get title() {
+      return ui('Développeurs')
+    },
     links: [
-      { to: '/developers', label: 'Devenir développeur' },
-      { to: '/publishing-rules', label: 'Règles de publication' }
+      {
+        to: '/developers',
+        get label() {
+          return ui('Devenir développeur')
+        }
+      },
+      {
+        to: '/publishing-rules',
+        get label() {
+          return ui('Règles de publication')
+        }
+      }
     ]
   },
   {
-    title: 'Aide',
+    get title() {
+      return ui('Aide')
+    },
     links: [
-      { to: '/help', label: 'Centre d’aide' },
-      { to: '/contact', label: 'Contact' }
+      {
+        to: '/help',
+        get label() {
+          return ui('Centre d’aide')
+        }
+      },
+      {
+        to: '/contact',
+        get label() {
+          return ui('Contact')
+        }
+      }
     ]
   },
   {
-    title: 'Légal',
+    get title() {
+      return ui('Légal')
+    },
     links: [
-      { to: '/terms', label: 'Conditions d’utilisation' },
-      { to: '/privacy', label: 'Confidentialité' }
+      {
+        to: '/terms',
+        get label() {
+          return ui('Conditions d’utilisation')
+        }
+      },
+      {
+        to: '/privacy',
+        get label() {
+          return ui('Confidentialité')
+        }
+      }
     ]
   }
 ]

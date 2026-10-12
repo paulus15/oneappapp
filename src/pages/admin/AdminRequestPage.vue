@@ -10,7 +10,7 @@
     />
     <q-linear-progress v-if="loading" indeterminate />
     <q-banner v-if="error" class="workspace-alert" role="alert"
-      >{{ error
+      >{{ ui(error)
       }}<template #action
         ><q-btn flat :label="t('common.retry')" @click="load" /></template
     ></q-banner>
@@ -46,6 +46,32 @@
           <!-- Fiche telle qu'elle sera publiée -->
           <q-card flat bordered class="workspace-card">
             <h2>{{ t('requests.dossier.listing') }}</h2>
+            <div
+              class="dossier-cover"
+              :style="{
+                background: listing.cover?.color || 'var(--surface-high)'
+              }"
+            >
+              <img
+                v-if="coverUrl(listing.cover)"
+                :src="coverUrl(listing.cover)"
+                alt=""
+              />
+              <span v-else class="text-negative">{{
+                t('requests.dossier.noCover')
+              }}</span>
+            </div>
+            <p
+              v-if="changedFields.includes('cover') && previous?.cover"
+              class="text-caption"
+            >
+              {{ t('requests.dossier.previousCover') }}
+              <img
+                :src="coverUrl(previous.cover)"
+                alt=""
+                class="previous-cover"
+              />
+            </p>
             <p v-if="changedFields.length" class="changed-note">
               <q-icon name="compare_arrows" />
               {{
@@ -129,7 +155,7 @@
                 version.release_notes
               }}</p>
               <p class="text-caption text-muted hash"
-                >SHA-256 {{ version.hash_sha256 }}</p
+                >{{ ui('SHA-256') }} {{ version.hash_sha256 }}</p
               >
               <template v-if="version.permissions?.length">
                 <h3>{{ t('builder.permissions') }}</h3>
@@ -354,6 +380,8 @@
   </q-page>
 </template>
 <script setup>
+import { ui } from '@/i18n/text'
+
 import { computed, onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useQuasar } from 'quasar'
@@ -405,9 +433,14 @@ const screens = computed(() => [
 // Detector limitations are repeated on every report; keep the reviewer's list short.
 const warnings = computed(() =>
   (version.value?.warnings || []).filter(
-    w => w && !w.startsWith('Analyse statique')
+    w => w && !w.startsWith(ui('Analyse statique'))
   )
 )
+function coverUrl(cover) {
+  const set = cover?.sources?.webp || cover?.sources?.jpg || {}
+  const url = set['1280'] || set['640'] || Object.values(set)[0]
+  return url ? resolveMediaUrl(url) : ''
+}
 const formatDate = value =>
   value ? new Date(value).toLocaleString(locale.value) : '—'
 const formatSize = bytes =>
@@ -439,6 +472,10 @@ function format(key, value) {
     return (value.data_collected || [])
       .map(d => t(`workspace.data.${d}`))
       .join(', ')
+  if (key === 'availability')
+    return t(value === 'selected' ? 'geo.selected' : 'geo.all')
+  if (key === 'cover')
+    return value?.width ? `${value.width} × ${value.height}` : ''
   if (key === 'countries')
     return value.length
       ? t('workspace.recap.countries', { n: value.length }, value.length)
@@ -461,6 +498,7 @@ const listingRows = computed(() =>
   [
     'category_id',
     'languages',
+    'availability',
     'countries',
     'official_site_url',
     'contact_email',
@@ -548,6 +586,7 @@ onMounted(load)
 <style scoped>
 .dossier-head {
   display: flex;
+  flex-direction: row;
   gap: 16px;
   align-items: center;
   margin-bottom: 16px;
@@ -559,9 +598,6 @@ onMounted(load)
   overflow: hidden;
   flex: 0 0 auto;
   background: var(--surface-high);
-}
-.dossier-title h1 {
-  margin: 2px 0;
 }
 .dossier-meta {
   display: flex;
@@ -594,16 +630,34 @@ onMounted(load)
     position: static;
   }
 }
-h2 {
-  font-size: 18px;
-  margin: 0 0 8px;
-}
 h3 {
-  font-size: 15px;
-  margin: 12px 0 4px;
+  margin-top: 12px;
 }
 .pre-line {
   white-space: pre-line;
+}
+.dossier-cover {
+  aspect-ratio: 16 / 9;
+  max-width: 560px;
+  border-radius: 14px;
+  overflow: hidden;
+  display: grid;
+  place-items: center;
+  margin-bottom: 12px;
+}
+.dossier-cover img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.previous-cover {
+  display: block;
+  width: 200px;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+  border-radius: 8px;
+  opacity: 0.7;
+  margin-top: 4px;
 }
 .dossier-shots {
   display: flex;

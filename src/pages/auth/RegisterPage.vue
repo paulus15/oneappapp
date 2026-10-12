@@ -2,12 +2,13 @@
   <q-page class="auth-page">
     <q-card flat class="auth-card">
       <q-card-section class="card-header">
-        <span class="auth-eyebrow">Rejoindre la communauté</span>
-        <h1 class="auth-title">Créez votre compte</h1>
-        <p class="auth-subtitle"
-          >Un compte unique pour explorer ou publier sur toutes les
-          plateformes.</p
-        >
+        <span class="auth-eyebrow">{{ ui('Rejoindre la communauté') }}</span>
+        <h1 class="auth-title">{{ ui('Créez votre compte') }}</h1>
+        <p class="auth-subtitle">{{
+          ui(
+            'Un compte unique pour explorer ou publier sur toutes les plateformes.'
+          )
+        }}</p>
       </q-card-section>
 
       <q-card-section>
@@ -15,13 +16,13 @@
           <q-input
             v-model="name"
             autocomplete="name"
-            label="Nom complet"
+            :label="ui('Nom complet')"
             filled
             dense
             hide-bottom-space
             color="primary"
             required
-            :rules="[val => (val && val.length > 0) || 'Nom requis']"
+            :rules="[val => (val && val.length > 0) || ui('Nom requis')]"
             ><template #prepend><q-icon name="person_outline" /></template
           ></q-input>
 
@@ -29,13 +30,13 @@
             v-model="email"
             type="email"
             autocomplete="email"
-            label="Adresse e-mail"
+            :label="ui('Adresse e-mail')"
             filled
             dense
             hide-bottom-space
             color="primary"
             required
-            :rules="[val => (val && val.length > 0) || 'Email requis']"
+            :rules="[val => (val && val.length > 0) || ui('Email requis')]"
             ><template #prepend><q-icon name="alternate_email" /></template
           ></q-input>
 
@@ -43,13 +44,15 @@
             v-model="password"
             autocomplete="new-password"
             :type="showPassword ? 'text' : 'password'"
-            label="Mot de passe"
+            :label="ui('Mot de passe')"
             filled
             dense
             hide-bottom-space
             color="primary"
             required
-            :rules="[val => (val && val.length >= 8) || 'Minimum 8 caractères']"
+            :rules="[
+              val => (val && val.length >= 8) || ui('Minimum 8 caractères')
+            ]"
             ><template #prepend><q-icon name="lock" /></template
           ></q-input>
 
@@ -57,7 +60,7 @@
             v-model="passwordConfirmation"
             autocomplete="new-password"
             :type="showPassword ? 'text' : 'password'"
-            label="Confirmer le mot de passe"
+            :label="ui('Confirmer le mot de passe')"
             filled
             dense
             hide-bottom-space
@@ -65,7 +68,7 @@
             required
             :rules="[
               val =>
-                val === password || 'Les mots de passe ne correspondent pas'
+                val === password || ui('Les mots de passe ne correspondent pas')
             ]"
           >
             <template #prepend><q-icon name="verified_user" /></template>
@@ -75,7 +78,7 @@
                 round
                 dense
                 :icon="showPassword ? 'visibility_off' : 'visibility'"
-                aria-label="Afficher ou masquer les mots de passe"
+                :aria-label="ui('Afficher ou masquer les mots de passe')"
                 @click="showPassword = !showPassword"
             /></template>
           </q-input>
@@ -83,20 +86,20 @@
           <CountrySelect v-model="countryId" required />
           <q-checkbox
             v-model="twoFactorEnabled"
-            label="Authentification à double facteurs par e-mail"
+            :label="ui('Authentification à double facteurs par e-mail')"
           />
-          <p class="text-caption"
-            >Un code envoyé par e-mail confirmera votre inscription. Si vous
-            activez la double authentification, un code sera également demandé à
-            chaque connexion.</p
-          >
+          <p class="text-caption">{{
+            ui(
+              'Un code envoyé par e-mail confirmera votre inscription. Si vous activez la double authentification, un code sera également demandé à chaque connexion.'
+            )
+          }}</p>
           <div v-if="error" class="form-error" role="alert">
-            {{ error }}
+            {{ ui(error) }}
           </div>
 
           <div class="auth-submit">
             <q-btn
-              label="Créer mon compte"
+              :label="ui('Créer mon compte')"
               type="submit"
               unelevated
               no-caps
@@ -109,9 +112,9 @@
 
       <q-card-section class="text-center q-pt-none card-footer">
         <div class="footer-text">
-          Vous avez déjà un compte ?
+          {{ ui('Vous avez déjà un compte ?') }}
           <router-link to="/login" class="login-link">
-            Connectez-vous
+            {{ ui('Connectez-vous') }}
           </router-link>
         </div>
       </q-card-section>
@@ -120,6 +123,8 @@
 </template>
 
 <script setup>
+import { ui } from '@/i18n/text'
+
 import { ref } from 'vue'
 import CountrySelect from '@/components/CountrySelect.vue'
 import { useRoute, useRouter } from 'vue-router'
@@ -158,7 +163,7 @@ async function onSubmit() {
       })
     }
   } catch (err) {
-    error.value = authStore.error || "Erreur lors de l'inscription"
+    error.value = authStore.error || ui("Erreur lors de l'inscription")
   } finally {
     loading.value = false
   }

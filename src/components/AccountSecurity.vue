@@ -1,45 +1,46 @@
 <template>
   <q-card flat bordered class="workspace-card">
-    <h2>Sécurité du compte</h2>
+    <h2>{{ ui('Sécurité du compte') }}</h2>
     <p>{{
       auth.user?.two_factor_enabled
-        ? 'La double authentification par e-mail est activée.'
-        : 'La connexion utilise actuellement votre mot de passe.'
+        ? ui('La double authentification par e-mail est activée.')
+        : ui('La connexion utilise actuellement votre mot de passe.')
     }}</p>
     <q-form class="workspace-form" @submit="saveTwoFactor">
       <q-checkbox
         v-model="enabled"
-        label="Authentification à double facteurs"
+        :label="ui('Authentification à double facteurs')"
       />
       <q-option-group v-model="channel" :options="channels" />
       <q-input
         v-model="twoFactorPassword"
-        label="Mot de passe actuel"
+        :label="ui('Mot de passe actuel')"
         type="password"
         autocomplete="current-password"
         outlined
         required
       />
-      <p class="text-caption"
-        >Un code envoyé à votre adresse actuelle confirmera toute activation ou
-        désactivation. Les autres sessions seront déconnectées.</p
-      >
+      <p class="text-caption">{{
+        ui(
+          'Un code envoyé à votre adresse actuelle confirmera toute activation ou désactivation. Les autres sessions seront déconnectées.'
+        )
+      }}</p>
       <q-btn
         type="submit"
         no-caps
         color="primary"
-        label="Confirmer mon choix par e-mail"
+        :label="ui('Confirmer mon choix par e-mail')"
         :loading="busy === 'two-factor'"
         :disable="!auth.user?.email_verified_at"
       />
     </q-form>
 
     <q-separator class="q-my-lg" />
-    <h3>Mot de passe</h3>
+    <h3>{{ ui('Mot de passe') }}</h3>
     <q-form class="workspace-form" @submit="changePassword">
       <q-input
         v-model="passwordForm.current_password"
-        label="Mot de passe actuel"
+        :label="ui('Mot de passe actuel')"
         type="password"
         autocomplete="current-password"
         outlined
@@ -47,22 +48,22 @@
       />
       <q-input
         v-model="passwordForm.password"
-        label="Nouveau mot de passe"
+        :label="ui('Nouveau mot de passe')"
         type="password"
         autocomplete="new-password"
         outlined
-        :rules="[v => (v && v.length >= 8) || 'Huit caractères minimum']"
+        :rules="[v => (v && v.length >= 8) || ui('Huit caractères minimum')]"
       />
       <q-input
         v-model="passwordForm.password_confirmation"
-        label="Confirmez le nouveau mot de passe"
+        :label="ui('Confirmez le nouveau mot de passe')"
         type="password"
         autocomplete="new-password"
         outlined
         :rules="[
           v =>
             v === passwordForm.password ||
-            'Les mots de passe ne correspondent pas'
+            ui('Les mots de passe ne correspondent pas')
         ]"
       />
       <q-btn
@@ -70,13 +71,13 @@
         no-caps
         outline
         color="primary"
-        label="Changer le mot de passe"
+        :label="ui('Changer le mot de passe')"
         :loading="busy === 'password'"
       />
     </q-form>
 
     <q-separator class="q-my-lg" />
-    <h3>Sessions actives</h3>
+    <h3>{{ ui('Sessions actives') }}</h3>
     <q-list separator>
       <q-item v-for="session in sessions" :key="session.id">
         <q-item-section>
@@ -84,16 +85,18 @@
           <q-item-label caption
             >{{
               session.current
-                ? 'Cette session'
+                ? ui('Cette session')
                 : session.last_used_at
-                  ? `Dernière activité le ${date(session.last_used_at)}`
-                  : `Ouverte le ${date(session.created_at)}`
+                  ? ui('Dernière activité le {p0}', {
+                      p0: date(session.last_used_at)
+                    })
+                  : ui('Ouverte le {p0}', { p0: date(session.created_at) })
             }}
             ·
             {{
               session.expires_at
-                ? `expire le ${date(session.expires_at)}`
-                : 'sans expiration'
+                ? ui('expire le {p0}', { p0: date(session.expires_at) })
+                : ui('sans expiration')
             }}</q-item-label
           >
         </q-item-section>
@@ -102,7 +105,7 @@
             flat
             no-caps
             color="negative"
-            :label="session.current ? 'Se déconnecter' : 'Fermer'"
+            :label="session.current ? ui('Se déconnecter') : ui('Fermer')"
             :disable="!!busy"
             @click="revoke(session)"
           />
@@ -111,27 +114,30 @@
     </q-list>
 
     <q-separator class="q-my-lg" />
-    <h3>Désactiver le compte</h3>
-    <p class="text-caption"
-      >Votre compte sera fermé immédiatement. Ses données personnelles seront
-      anonymisées après 30 jours ; vos avis resteront visibles sous un nom
-      anonyme. Contactez le support pour le réactiver avant ce délai.</p
-    >
+    <h3>{{ ui('Désactiver le compte') }}</h3>
+    <p class="text-caption">{{
+      ui(
+        'Votre compte sera fermé immédiatement. Ses données personnelles seront anonymisées après 30 jours ; vos avis resteront visibles sous un nom anonyme. Contactez le support pour le réactiver avant ce délai.'
+      )
+    }}</p>
     <q-btn
       no-caps
       outline
       color="negative"
-      label="Désactiver mon compte"
+      :label="ui('Désactiver mon compte')"
       :disable="!!busy || !auth.user?.email_verified_at"
       @click="deactivate"
     />
 
     <q-banner v-if="error" class="workspace-alert q-mt-md" role="alert">{{
-      error
+      ui(error)
     }}</q-banner>
   </q-card>
 </template>
 <script setup>
+import { currentLocale } from '@/i18n'
+import { ui } from '@/i18n/text'
+
 import { onMounted, reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useQuasar } from 'quasar'
@@ -153,10 +159,22 @@ const passwordForm = reactive({
 })
 const channels = [
   { label: 'E-mail', value: 'email' },
-  { label: 'SMS — prochainement', value: 'sms', disable: true },
-  { label: 'WhatsApp — prochainement', value: 'whatsapp', disable: true }
+  {
+    get label() {
+      return ui('SMS — prochainement')
+    },
+    value: 'sms',
+    disable: true
+  },
+  {
+    get label() {
+      return ui('WhatsApp — prochainement')
+    },
+    value: 'whatsapp',
+    disable: true
+  }
 ]
-const date = value => new Date(value).toLocaleDateString('fr-FR')
+const date = value => new Date(value).toLocaleDateString(currentLocale())
 
 async function run(name, action) {
   busy.value = name
@@ -209,9 +227,14 @@ function revoke(session) {
 }
 function deactivate() {
   q.dialog({
-    title: 'Désactiver votre compte ?',
-    message:
-      'Saisissez votre mot de passe. Un code de confirmation vous sera envoyé par e-mail.',
+    get title() {
+      return ui('Désactiver votre compte ?')
+    },
+    get message() {
+      return ui(
+        'Saisissez votre mot de passe. Un code de confirmation vous sera envoyé par e-mail.'
+      )
+    },
     prompt: { model: '', type: 'password', isValid: v => v.length > 0 },
     cancel: true,
     persistent: true

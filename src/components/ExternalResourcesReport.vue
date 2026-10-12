@@ -1,48 +1,56 @@
 <template>
   <q-expansion-item
     icon="travel_explore"
-    label="Ressources et domaines externes détectés"
-    :caption="`${domainCount} domaine(s) détecté(s) automatiquement`"
+    :label="ui('Ressources et domaines externes détectés')"
+    :caption="
+      ui('{p0} domaine(s) détecté(s) automatiquement', { p0: domainCount })
+    "
     @before-show="load"
   >
     <div class="resource-report q-pa-md">
       <q-linear-progress v-if="loading" indeterminate />
       <q-banner v-if="error" class="workspace-alert" role="alert"
-        >{{ error }}<q-btn flat label="Réessayer" @click="load"
+        >{{ ui(error) }}<q-btn flat :label="ui('Réessayer')" @click="load"
       /></q-banner>
       <template v-if="report">
         <p
-          >{{ report.domain_count }} domaines uniques ·
-          {{ report.resource_count }} ressources ·
-          {{ report.occurrence_count }} occurrences. Ces informations
-          accompagnent la validation de cette version.</p
+          >{{ report.domain_count }} {{ ui('domaines uniques ·') }}
+          {{ report.resource_count }} {{ ui('ressources ·') }}
+          {{ report.occurrence_count }}
+          {{
+            ui(
+              'occurrences. Ces informations accompagnent la validation de cette version.'
+            )
+          }}</p
         >
         <p class="text-caption">{{ report.limitation }}</p>
-        <q-banner v-if="!report.analyzed" class="workspace-alert"
-          >Cette ancienne version possède un rapport historique. Une nouvelle
-          analyse détaillée est nécessaire. Une version déjà approuvée dont le
-          rapport change devra être réimportée.</q-banner
-        >
+        <q-banner v-if="!report.analyzed" class="workspace-alert">{{
+          ui(
+            'Cette ancienne version possède un rapport historique. Une nouvelle analyse détaillée est nécessaire. Une version déjà approuvée dont le rapport change devra être réimportée.'
+          )
+        }}</q-banner>
         <q-btn
           flat
           no-caps
           icon="refresh"
-          label="Réanalyser le ZIP"
+          :label="ui('Réanalyser le ZIP')"
           :loading="busy"
           @click="reanalyze"
         />
         <div v-if="report.comparison" class="q-my-md">
           <strong>{{
             report.comparison.previous_version_number
-              ? `Comparaison à la version ${report.comparison.previous_version_number}`
-              : 'Première version analysée'
+              ? ui('Comparaison à la version {p0}', {
+                  p0: report.comparison.previous_version_number
+                })
+              : ui('Première version analysée')
           }}</strong>
-          <p v-if="report.comparison.legacy_baseline"
-            >La comparaison des types est limitée pour cet ancien rapport.</p
-          >
+          <p v-if="report.comparison.legacy_baseline">{{
+            ui('La comparaison des types est limitée pour cet ancien rapport.')
+          }}</p>
           <p v-for="(label, key) in comparisonLabels" :key="key"
             >{{ label }} :
-            {{ report.comparison[key]?.join(', ') || 'Aucun' }}</p
+            {{ report.comparison[key]?.join(', ') || ui('Aucun') }}</p
           >
         </div>
         <q-select
@@ -51,11 +59,13 @@
           dense
           emit-value
           map-options
-          label="Filtrer par risque indicatif"
+          :label="ui('Filtrer par risque indicatif')"
           :options="riskOptions"
           class="q-mb-md"
         />
-        <p v-if="!filtered.length">Aucune ressource pour ce filtre.</p>
+        <p v-if="!filtered.length">{{
+          ui('Aucune ressource pour ce filtre.')
+        }}</p>
         <q-card
           v-for="resource in filtered"
           :key="resource.id"
@@ -64,7 +74,9 @@
           class="q-pa-md q-mb-sm"
         >
           <div class="row items-center q-gutter-sm"
-            ><strong>{{ resource.hostname || 'Référence indéterminée' }}</strong
+            ><strong>{{
+              resource.hostname || ui('Référence indéterminée')
+            }}</strong
             ><q-badge
               :color="
                 { high: 'orange-9', review: 'blue-grey', info: 'grey-6' }[
@@ -75,24 +87,24 @@
             ><q-badge
               v-if="report.comparison.added_domains.includes(resource.hostname)"
               color="primary"
-              >Nouveau domaine</q-badge
+              >{{ ui('Nouveau domaine') }}</q-badge
             ></div
           >
           <p
             >{{ types[resource.resource_type] || resource.resource_type }} ·
             {{ classes[resource.classification] || resource.classification }} ·
-            {{ resource.occurrences }} occurrence(s)</p
+            {{ resource.occurrences }} {{ ui('occurrence(s)') }}</p
           >
           <p class="resource-url">{{
             resource.normalized_url || resource.original_url
           }}</p>
           <p class="text-caption"
-            >Fichiers : {{ resource.source_files.join(', ') }}</p
+            >{{ ui('Fichiers :') }} {{ resource.source_files.join(', ') }}</p
           >
-          <p>Examen : {{ statuses[resource.review_status] }}</p>
+          <p>{{ ui('Examen :') }} {{ statuses[resource.review_status] }}</p>
           <q-expansion-item
             v-if="resource.observations.length"
-            label="Historique des observations"
+            :label="ui('Historique des observations')"
           >
             <div
               v-for="note in resource.observations"
@@ -100,11 +112,11 @@
               class="q-pa-sm"
             >
               <strong>{{ note.administrator_name }}</strong> ·
-              {{ new Date(note.created_at).toLocaleString('fr-FR') }} ·
+              {{ new Date(note.created_at).toLocaleString(currentLocale()) }} ·
               {{
                 note.visibility === 'internal'
-                  ? 'Interne'
-                  : 'Communiquée au développeur'
+                  ? ui('Interne')
+                  : ui('Communiquée au développeur')
               }}
               <p class="note-body">{{ note.body }}</p
               ><span>{{ statuses[note.status] }}</span>
@@ -115,38 +127,38 @@
             flat
             no-caps
             icon="rate_review"
-            label="Examiner / ajouter une observation"
+            :label="ui('Examiner / ajouter une observation')"
             :disable="busy"
             @click="openReview(resource)"
           />
         </q-card>
         <q-expansion-item
           v-if="report.proposed_csp"
-          label="Politique de sécurité proposée pour cette version"
+          :label="ui('Politique de sécurité proposée pour cette version')"
           ><p class="resource-url q-pa-sm">{{ report.proposed_csp }}</p
-          ><p
-            >Les origines HTTPS et WSS sont limitées aux types de ressources
-            identifiés. Les références privées, non chiffrées ou indéterminées
-            ne sont pas autorisées automatiquement.</p
-          ></q-expansion-item
+          ><p>{{
+            ui(
+              'Les origines HTTPS et WSS sont limitées aux types de ressources identifiés. Les références privées, non chiffrées ou indéterminées ne sont pas autorisées automatiquement.'
+            )
+          }}</p></q-expansion-item
         >
       </template>
     </div>
   </q-expansion-item>
   <q-dialog v-model="reviewOpen"
     ><q-card class="review-dialog q-pa-lg"
-      ><h2>Examiner la ressource</h2
-      ><p>{{ selected?.hostname || 'Référence indéterminée' }}</p
+      ><h2>{{ ui('Examiner la ressource') }}</h2
+      ><p>{{ selected?.hostname || ui('Référence indéterminée') }}</p
       ><q-form @submit="saveReview" class="q-gutter-md">
         <q-select
           v-model="form.status"
           outlined
           emit-value
           map-options
-          label="Décision"
+          :label="ui('Décision')"
           :options="[
-            { label: 'Examinée', value: 'reviewed' },
-            { label: 'Correction demandée', value: 'correction_requested' }
+            { label: ui('Examinée'), value: 'reviewed' },
+            { label: ui('Correction demandée'), value: 'correction_requested' }
           ]"
           @update:model-value="
             v => {
@@ -159,32 +171,39 @@
           outlined
           emit-value
           map-options
-          label="Visibilité"
+          :label="ui('Visibilité')"
           :disable="form.status === 'correction_requested'"
           :options="[
-            { label: 'Communiquée au développeur', value: 'developer' },
-            { label: 'Interne à l’administration', value: 'internal' }
+            { label: ui('Communiquée au développeur'), value: 'developer' },
+            { label: ui('Interne à l’administration'), value: 'internal' }
           ]"
         />
         <q-input
           v-model="form.body"
           outlined
           type="textarea"
-          label="Observation"
+          :label="ui('Observation')"
           maxlength="4000"
-          :rules="[v => v.trim().length >= 3 || 'Précisez votre observation']"
+          :rules="[
+            v => v.trim().length >= 3 || ui('Précisez votre observation')
+          ]"
         />
-        <q-banner v-if="reviewError" role="alert">{{ reviewError }}</q-banner>
+        <q-banner v-if="reviewError" role="alert">{{
+          ui(reviewError)
+        }}</q-banner>
         <div class="row justify-end q-gutter-sm"
-          ><q-btn flat label="Annuler" v-close-popup /><q-btn
+          ><q-btn flat :label="ui('Annuler')" v-close-popup /><q-btn
             type="submit"
             color="primary"
-            label="Enregistrer"
+            :label="ui('Enregistrer')"
             :loading="busy"
         /></div> </q-form></q-card
   ></q-dialog>
 </template>
 <script setup>
+import { currentLocale } from '@/i18n'
+import { ui } from '@/i18n/text'
+
 import { computed, reactive, ref } from 'vue'
 import { api } from '@/boot/axios'
 import { apiMessage } from '@/services/account'
@@ -204,15 +223,41 @@ const domainCount = computed(
     report.value?.domain_count ?? props.version.detected_domains?.length ?? 0
 )
 const riskLabels = {
-  high: 'Risque élevé à examiner',
-  review: 'À examiner',
-  info: 'Information'
+  get high() {
+    return ui('Risque élevé à examiner')
+  },
+  get review() {
+    return ui('À examiner')
+  },
+  get info() {
+    return ui('Information')
+  }
 }
 const riskOptions = [
-  { label: 'Tous les risques', value: 'all' },
-  { label: 'Risque élevé', value: 'high' },
-  { label: 'À examiner', value: 'review' },
-  { label: 'Information', value: 'info' }
+  {
+    get label() {
+      return ui('Tous les risques')
+    },
+    value: 'all'
+  },
+  {
+    get label() {
+      return ui('Risque élevé')
+    },
+    value: 'high'
+  },
+  {
+    get label() {
+      return ui('À examiner')
+    },
+    value: 'review'
+  },
+  {
+    get label() {
+      return ui('Information')
+    },
+    value: 'info'
+  }
 ]
 const riskOrder = { high: 0, review: 1, info: 2 }
 // High-risk references first, informational ones (namespaces, examples) last.
@@ -226,38 +271,88 @@ const filtered = computed(() =>
     )
 )
 const statuses = {
-  pending: 'En attente',
-  reviewed: 'Examinée',
-  correction_requested: 'Correction demandée'
+  get pending() {
+    return ui('En attente')
+  },
+  get reviewed() {
+    return ui('Examinée')
+  },
+  get correction_requested() {
+    return ui('Correction demandée')
+  }
 }
 const types = {
   script: 'JavaScript',
-  style: 'Feuille de style',
-  image: 'Image',
-  font: 'Police',
-  connect: 'API / WebSocket',
-  frame: 'Iframe',
-  media: 'Média',
-  manifest: 'Manifest',
-  worker: 'Worker',
-  unknown: 'Usage non déterminé',
-  indeterminate: 'Référence indéterminée',
-  reference: 'Simple mention'
+  get style() {
+    return ui('Feuille de style')
+  },
+  get image() {
+    return ui('Image')
+  },
+  get font() {
+    return ui('Police')
+  },
+  get connect() {
+    return ui('API / WebSocket')
+  },
+  get frame() {
+    return ui('Iframe')
+  },
+  get media() {
+    return ui('Média')
+  },
+  get manifest() {
+    return ui('Manifest')
+  },
+  get worker() {
+    return ui('Worker')
+  },
+  get unknown() {
+    return ui('Usage non déterminé')
+  },
+  get indeterminate() {
+    return ui('Référence indéterminée')
+  },
+  get reference() {
+    return ui('Simple mention')
+  }
 }
 const classes = {
-  known_service: 'Service reconnu, à vérifier',
-  business_api: 'API métier présumée',
-  unknown: 'Domaine inconnu',
-  local_private: 'Adresse locale ou non publique',
-  indeterminate: 'Indéterminé',
-  namespace: 'Espace de noms XML (jamais chargé)',
-  placeholder: 'Adresse d’exemple'
+  get known_service() {
+    return ui('Service reconnu, à vérifier')
+  },
+  get business_api() {
+    return ui('API métier présumée')
+  },
+  get unknown() {
+    return ui('Domaine inconnu')
+  },
+  get local_private() {
+    return ui('Adresse locale ou non publique')
+  },
+  get indeterminate() {
+    return ui('Indéterminé')
+  },
+  get namespace() {
+    return ui('Espace de noms XML (jamais chargé)')
+  },
+  get placeholder() {
+    return ui('Adresse d’exemple')
+  }
 }
 const comparisonLabels = {
-  added_domains: 'Nouveaux domaines',
-  removed_domains: 'Domaines supprimés',
-  changed_types: 'Types modifiés',
-  new_risks: 'Nouveaux risques élevés'
+  get added_domains() {
+    return ui('Nouveaux domaines')
+  },
+  get removed_domains() {
+    return ui('Domaines supprimés')
+  },
+  get changed_types() {
+    return ui('Types modifiés')
+  },
+  get new_risks() {
+    return ui('Nouveaux risques élevés')
+  }
 }
 async function load() {
   loading.value = true

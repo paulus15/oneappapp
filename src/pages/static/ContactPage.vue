@@ -1,46 +1,48 @@
 <template>
   <q-page class="workspace-page">
     <header class="workspace-heading"
-      ><span class="eyebrow">Aide</span><h1>Contact</h1
-      ><p
-        >Une question, un signalement ou une demande concernant vos données ?
-        Écrivez-nous ; la réponse arrivera à l’adresse indiquée.</p
-      ></header
+      ><span class="eyebrow">{{ ui('Aide') }}</span
+      ><h1>{{ ui('Contact') }}</h1
+      ><p>{{
+        ui(
+          'Une question, un signalement ou une demande concernant vos données ? Écrivez-nous ; la réponse arrivera à l’adresse indiquée.'
+        )
+      }}</p></header
     >
     <q-card flat bordered class="workspace-card contact-card">
       <q-form v-if="!sent" class="workspace-form" @submit="send">
         <q-input
           v-model="form.name"
           outlined
-          label="Votre nom"
+          :label="ui('Votre nom')"
           autocomplete="name"
           maxlength="120"
-          :rules="[v => !!v?.trim() || 'Indiquez votre nom']"
+          :rules="[v => !!v?.trim() || ui('Indiquez votre nom')]"
         />
         <q-input
           v-model="form.email"
           outlined
           type="email"
-          label="Votre e-mail"
+          :label="ui('Votre e-mail')"
           autocomplete="email"
-          :rules="[v => /.+@.+\..+/.test(v || '') || 'E-mail invalide']"
+          :rules="[v => /.+@.+\..+/.test(v || '') || ui('E-mail invalide')]"
         />
         <q-select
           v-model="form.subject"
           outlined
           :options="subjects"
-          label="Sujet"
+          :label="ui('Sujet')"
         />
         <q-input
           v-model="form.message"
           outlined
           type="textarea"
           autogrow
-          label="Message"
+          :label="ui('Message')"
           maxlength="5000"
           counter
           :rules="[
-            v => (v || '').trim().length >= 10 || 'Dix caractères minimum'
+            v => (v || '').trim().length >= 10 || ui('Dix caractères minimum')
           ]"
         />
         <!-- Honeypot: hidden from people, filled by naive bots. -->
@@ -52,27 +54,29 @@
           aria-hidden="true"
         />
         <q-banner v-if="error" class="workspace-alert" role="alert">{{
-          error
+          ui(error)
         }}</q-banner>
         <q-btn
           type="submit"
           color="primary"
           no-caps
           unelevated
-          label="Envoyer"
+          :label="ui('Envoyer')"
           :loading="busy"
         />
       </q-form>
       <div v-else role="status">
-        <h2>Message envoyé</h2>
+        <h2>{{ ui('Message envoyé') }}</h2>
         <p>{{ sent }}</p>
-        <q-btn flat no-caps label="Retour à l’accueil" to="/" />
+        <q-btn flat no-caps :label="ui('Retour à l’accueil')" to="/" />
       </div>
     </q-card>
     <AppFooter />
   </q-page>
 </template>
 <script setup>
+import { ui } from '@/i18n/text'
+
 import { reactive, ref } from 'vue'
 import AppFooter from '@/components/AppFooter.vue'
 import { useAuthStore } from '@/stores/auth'
@@ -81,16 +85,18 @@ import { apiMessage } from '@/services/account'
 
 const auth = useAuthStore()
 const subjects = [
-  'Question',
-  'Développeur',
-  'Signalement',
-  'Données personnelles',
-  'Autre'
+  ui('Question'),
+  ui('Développeur'),
+  ui('Signalement'),
+  ui('Données personnelles'),
+  ui('Autre')
 ]
 const form = reactive({
   name: auth.user?.name || '',
   email: auth.user?.email || '',
-  subject: 'Question',
+  get subject() {
+    return ui('Question')
+  },
   message: '',
   website: ''
 })
@@ -108,7 +114,7 @@ async function send() {
   } catch (e) {
     error.value =
       e.response?.status === 429
-        ? 'Trop de messages envoyés. Réessayez dans quelques minutes.'
+        ? ui('Trop de messages envoyés. Réessayez dans quelques minutes.')
         : apiMessage(e)
   } finally {
     busy.value = false

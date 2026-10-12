@@ -21,10 +21,10 @@ const files = []
   }
 })('src')
 const PATTERNS = [
-  /(?<![-\w])icon="([a-z0-9_]+)"/g,
+  /(?<![:\w-])icon="([a-z0-9_]+)"/g,
   /<q-icon[^>]*\sname="([a-z0-9_]+)"/g,
   /\bicon: '([a-z0-9_]+)'/g,
-  /\bfallback-icon="([a-z0-9_]+)"/g
+  /(?<![:\w-])fallback-icon="([a-z0-9_]+)"/g
 ]
 
 describe('icons', () => {

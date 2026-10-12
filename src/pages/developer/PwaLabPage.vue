@@ -1,13 +1,13 @@
 <template>
   <q-page class="workspace-page">
     <header class="workspace-heading"
-      ><span class="eyebrow">Portail développeur</span><h1>PWA Lab</h1
-      ><p
-        >Diagnostic technique d’une PWA à partir de son adresse : accès,
-        métadonnées, manifeste, critères d’installation, responsive et
-        indicateurs d’accessibilité et de performance. Aucun script n’est
-        exécuté.</p
-      ></header
+      ><span class="eyebrow">{{ ui('Portail développeur') }}</span
+      ><h1>{{ ui('PWA Lab') }}</h1
+      ><p>{{
+        ui(
+          'Diagnostic technique d’une PWA à partir de son adresse : accès, métadonnées, manifeste, critères d’installation, responsive et indicateurs d’accessibilité et de performance. Aucun script n’est exécuté.'
+        )
+      }}</p></header
     >
     <q-card flat bordered class="workspace-card q-mb-md">
       <q-form class="lab-form" @submit="run">
@@ -15,9 +15,11 @@
           v-model="url"
           outlined
           type="url"
-          label="Adresse HTTPS de la PWA"
+          :label="ui('Adresse HTTPS de la PWA')"
           placeholder="https://mon-app.exemple.com/"
-          :rules="[v => /^https:\/\//.test(v || '') || 'Adresse HTTPS requise']"
+          :rules="[
+            v => /^https:\/\//.test(v || '') || ui('Adresse HTTPS requise')
+          ]"
           class="col"
         />
         <q-btn
@@ -26,19 +28,19 @@
           no-caps
           unelevated
           icon="science"
-          label="Analyser"
+          :label="ui('Analyser')"
           :loading="busy"
         />
       </q-form>
       <q-banner v-if="error" class="workspace-alert" role="alert">{{
-        error
+        ui(error)
       }}</q-banner>
     </q-card>
 
     <template v-if="current">
       <div class="summary">
         <div class="workspace-card score">
-          <span>Score technique</span>
+          <span>{{ ui('Score technique') }}</span>
           <strong>{{ current.report.score ?? '—' }}<small>/100</small></strong>
           <q-linear-progress
             :value="(current.report.score || 0) / 100"
@@ -56,8 +58,8 @@
           <div>
             <strong>{{
               current.report.installable
-                ? 'Installation possible'
-                : 'Installation non réunie'
+                ? ui('Installation possible')
+                : ui('Installation non réunie')
             }}</strong>
             <p>{{ current.report.installability }}</p>
           </div>
@@ -98,8 +100,10 @@
     </template>
 
     <section class="workspace-section">
-      <h2>Historique</h2>
-      <p v-if="!history.length" class="text-muted">Aucune analyse.</p>
+      <h2>{{ ui('Historique') }}</h2>
+      <p v-if="!history.length" class="text-muted">{{
+        ui('Aucune analyse.')
+      }}</p>
       <q-list v-else bordered separator class="rounded-borders">
         <q-item
           v-for="item in history"
@@ -111,12 +115,12 @@
           <q-item-section>
             <q-item-label lines="1">{{ item.url }}</q-item-label>
             <q-item-label caption>{{
-              new Date(item.created_at).toLocaleString('fr-FR')
+              new Date(item.created_at).toLocaleString(currentLocale())
             }}</q-item-label>
           </q-item-section>
           <q-item-section side>
             <q-badge :color="item.reachable ? 'primary' : 'negative'">{{
-              item.reachable ? `${item.score}/100` : 'Inaccessible'
+              item.reachable ? `${item.score}/100` : ui('Inaccessible')
             }}</q-badge>
           </q-item-section>
         </q-item>
@@ -125,6 +129,9 @@
   </q-page>
 </template>
 <script setup>
+import { currentLocale } from '@/i18n'
+import { ui } from '@/i18n/text'
+
 import { computed, onMounted, ref } from 'vue'
 import { api } from '@/boot/axios'
 import { apiMessage } from '@/services/account'
@@ -136,17 +143,29 @@ const url = ref(''),
   history = ref([])
 const icons = {
   pass: { icon: 'check_circle', color: 'positive', label: 'conforme' },
-  warn: { icon: 'error_outline', color: 'warning', label: 'à améliorer' },
-  fail: { icon: 'cancel', color: 'negative', label: 'en échec' },
+  warn: {
+    icon: 'error_outline',
+    color: 'warning',
+    get label() {
+      return ui('à améliorer')
+    }
+  },
+  fail: {
+    icon: 'cancel',
+    color: 'negative',
+    get label() {
+      return ui('en échec')
+    }
+  },
   info: { icon: 'info', color: 'grey-7', label: 'information' }
 }
 const order = [
-  'Accès',
-  'Installation',
-  'Métadonnées',
-  'Responsive',
-  'Accessibilité',
-  'Performance'
+  ui('Accès'),
+  ui('Installation'),
+  ui('Métadonnées'),
+  ui('Responsive'),
+  ui('Accessibilité'),
+  ui('Performance')
 ]
 const groups = computed(() =>
   order
@@ -168,7 +187,7 @@ async function run() {
   } catch (e) {
     error.value =
       e.response?.status === 429
-        ? 'Cinq analyses par minute au maximum. Patientez un instant.'
+        ? ui('Cinq analyses par minute au maximum. Patientez un instant.')
         : apiMessage(e)
   } finally {
     busy.value = false

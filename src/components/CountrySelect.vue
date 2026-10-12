@@ -5,18 +5,23 @@
       @update:model-value="$emit('update:modelValue', $event)"
       :options="options"
       :option-value="valueField"
-      option-label="name"
+      :option-label="
+        country =>
+          currentLocale() === 'en'
+            ? country.name_en || country.name
+            : country.name
+      "
       emit-value
       map-options
       :multiple="multiple"
       :use-chips="multiple"
-      :label="label"
+      :label="ui(label)"
       :disable="disable"
       :loading="loading"
       :error="!!error"
       :error-message="error"
       :clearable="!required"
-      :rules="required ? [value => !!value || 'Choisissez un pays'] : []"
+      :rules="required ? [value => !!value || ui('Choisissez un pays')] : []"
       outlined
       dense
       use-input
@@ -29,12 +34,15 @@
       flat
       dense
       no-caps
-      label="Recharger les pays"
+      :label="ui('Recharger les pays')"
       @click="load"
     />
   </div>
 </template>
 <script setup>
+import { currentLocale } from '@/i18n'
+import { ui } from '@/i18n/text'
+
 import { onMounted, ref } from 'vue'
 import { api } from '@/boot/axios'
 defineProps({
@@ -57,17 +65,17 @@ async function load() {
     countries.value = (await api.get('/countries')).data
     options.value = countries.value
   } catch {
-    error.value = 'Impossible de charger les pays.'
+    error.value = ui('Impossible de charger les pays.')
   } finally {
     loading.value = false
   }
 }
 function filter(value, update) {
   update(() => {
-    const needle = value.toLocaleLowerCase('fr')
+    const needle = value.toLocaleLowerCase(currentLocale())
     options.value = countries.value.filter(c =>
       `${c.name} ${c.code} ${c.name_en}`
-        .toLocaleLowerCase('fr')
+        .toLocaleLowerCase(currentLocale())
         .includes(needle)
     )
   })

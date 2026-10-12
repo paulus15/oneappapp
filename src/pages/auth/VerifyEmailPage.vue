@@ -2,12 +2,12 @@
   <q-page class="auth-page">
     <q-card flat class="auth-card">
       <q-card-section class="card-header">
-        <span class="auth-eyebrow">Confirmation par e-mail</span>
+        <span class="auth-eyebrow">{{ ui('Confirmation par e-mail') }}</span>
         <h1 class="auth-title">{{ title }}</h1>
         <p v-if="auth.pendingChallenge" class="auth-subtitle"
-          >Saisissez le code à six chiffres envoyé à
-          {{ auth.pendingChallenge.destination }}. Il est valable dix
-          minutes.</p
+          >{{ ui('Saisissez le code à six chiffres envoyé à') }}
+          {{ auth.pendingChallenge.destination
+          }}{{ ui('. Il est valable dix minutes.') }}</p
         >
       </q-card-section>
       <q-card-section v-if="auth.pendingChallenge">
@@ -19,21 +19,23 @@
         <q-form class="auth-form" @submit="verify">
           <q-input
             v-model="code"
-            label="Code de confirmation"
+            :label="ui('Code de confirmation')"
             inputmode="numeric"
             autocomplete="one-time-code"
             maxlength="6"
             outlined
             autofocus
             :rules="[
-              v => /^\d{6}$/.test(v) || 'Saisissez les six chiffres du code'
+              v => /^\d{6}$/.test(v) || ui('Saisissez les six chiffres du code')
             ]"
           />
-          <div v-if="error" class="form-error" role="alert">{{ error }}</div>
+          <div v-if="error" class="form-error" role="alert">{{
+            ui(error)
+          }}</div>
           <q-btn
             type="submit"
             no-caps
-            label="Confirmer le code"
+            :label="ui('Confirmer le code')"
             class="submit-btn"
             unelevated
             :loading="busy"
@@ -42,29 +44,38 @@
             <svg viewBox="0 0 24 24" aria-hidden="true">
               <path d="M5 12.5l4.2 4.2L19 7" />
             </svg>
-            Code confirmé
+            {{ ui('Code confirmé') }}
           </p>
           <q-btn
             flat
             no-caps
             :label="
-              remaining ? `Renvoyer dans ${remaining} s` : 'Renvoyer le code'
+              remaining
+                ? ui('Renvoyer dans {p0} s', { p0: remaining })
+                : ui('Renvoyer le code')
             "
             :disable="busy || remaining > 0"
             @click="resend"
           />
         </q-form>
         <p v-if="notice" role="status" class="text-caption">{{ notice }}</p>
-        <q-btn flat no-caps label="Recommencer" @click="restart" />
+        <q-btn flat no-caps :label="ui('Recommencer')" @click="restart" />
       </q-card-section>
       <q-card-section v-else>
-        <p>Connectez-vous pour recevoir un nouveau code.</p>
-        <q-btn to="/login" label="Se connecter" color="primary" no-caps />
+        <p>{{ ui('Connectez-vous pour recevoir un nouveau code.') }}</p>
+        <q-btn
+          to="/login"
+          :label="ui('Se connecter')"
+          color="primary"
+          no-caps
+        />
       </q-card-section>
     </q-card>
   </q-page>
 </template>
 <script setup>
+import { ui } from '@/i18n/text'
+
 import { computed, onBeforeUnmount, ref } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
@@ -91,12 +102,22 @@ onBeforeUnmount(() => clearInterval(timer))
 const title = computed(
   () =>
     ({
-      login: 'Confirmez la connexion',
-      two_factor: 'Confirmez votre choix',
-      authorize_email_change: 'Confirmez le changement',
-      verify_email_change: 'Confirmez le nouvel e-mail',
-      deactivate_account: 'Confirmez la désactivation'
-    })[auth.pendingChallenge?.purpose] || 'Confirmez votre e-mail'
+      get login() {
+        return ui('Confirmez la connexion')
+      },
+      get two_factor() {
+        return ui('Confirmez votre choix')
+      },
+      get authorize_email_change() {
+        return ui('Confirmez le changement')
+      },
+      get verify_email_change() {
+        return ui('Confirmez le nouvel e-mail')
+      },
+      get deactivate_account() {
+        return ui('Confirmez la désactivation')
+      }
+    })[auth.pendingChallenge?.purpose] || ui('Confirmez votre e-mail')
 )
 async function verify() {
   busy.value = true
@@ -111,8 +132,9 @@ async function verify() {
     }
     if (data.requires_otp) {
       remaining.value = data.retry_after
-      notice.value =
+      notice.value = ui(
         'Un nouveau code confirme maintenant votre nouvelle adresse e-mail.'
+      )
       return
     }
     // A short confirmation stroke before leaving (skipped with reduced motion).

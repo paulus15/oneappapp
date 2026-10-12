@@ -2,7 +2,7 @@
   <q-page class="flex flex-center">
     <div class="column items-center">
       <img
-        alt="Quasar logo"
+        :alt="ui('Quasar logo')"
         src="~@/assets/quasar-logo-vertical.svg"
         style="width: 200px; height: 200px"
       />
@@ -11,7 +11,7 @@
         class="q-mt-md"
         color="primary"
         to="/second"
-        label="Go to Second Page"
+        :label="ui('Go to Second Page')"
         no-caps
       />
     </div>
@@ -19,5 +19,7 @@
 </template>
 
 <script setup>
+import { ui } from '@/i18n/text'
+
 //
 </script>

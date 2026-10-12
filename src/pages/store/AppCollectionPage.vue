@@ -6,7 +6,7 @@
       ><p v-if="description">{{ description }}</p></header
     >
     <q-banner v-if="error" class="workspace-alert" role="alert">{{
-      error
+      ui(error)
     }}</q-banner>
     <div v-if="kind === 'category'" class="row q-col-gutter-sm q-mb-md">
       <div class="col-12 col-sm-6 col-md-4">
@@ -17,14 +17,14 @@
           map-options
           outlined
           dense
-          label="Trier par"
+          :label="ui('Trier par')"
         />
       </div>
     </div>
     <AppGrid
       :apps="apps"
       :loading="loading"
-      empty="Aucune application publiée ici pour le moment."
+      :empty="ui('Aucune application publiée ici pour le moment.')"
     />
     <div v-if="lastPage > 1" class="row justify-center q-mt-md">
       <q-pagination v-model="page" :max="lastPage" />
@@ -33,6 +33,8 @@
   </q-page>
 </template>
 <script setup>
+import { ui } from '@/i18n/text'
+
 import { computed, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import AppFooter from '@/components/AppFooter.vue'
@@ -54,13 +56,33 @@ const apps = ref([]),
   lastPage = ref(1),
   sortBy = ref('downloads')
 const eyebrow = computed(() =>
-  kind.value === 'collection' ? 'Sélection' : 'Catégorie'
+  kind.value === 'collection' ? ui('Sélection') : ui('Catégorie')
 )
 const sortOptions = [
-  { label: 'Les plus téléchargées', value: 'downloads' },
-  { label: 'Les mieux notées', value: 'rating' },
-  { label: 'Nouveautés', value: 'latest' },
-  { label: 'Nom', value: 'name' }
+  {
+    get label() {
+      return ui('Les plus téléchargées')
+    },
+    value: 'downloads'
+  },
+  {
+    get label() {
+      return ui('Les mieux notées')
+    },
+    value: 'rating'
+  },
+  {
+    get label() {
+      return ui('Nouveautés')
+    },
+    value: 'latest'
+  },
+  {
+    get label() {
+      return ui('Nom')
+    },
+    value: 'name'
+  }
 ]
 
 async function load() {
@@ -90,7 +112,9 @@ async function load() {
     document.title = `${title.value} · PWA Store`
   } catch (e) {
     error.value =
-      e.response?.status === 404 ? 'Cette page n’existe pas.' : apiMessage(e)
+      e.response?.status === 404
+        ? ui('Cette page n’existe pas.')
+        : apiMessage(e)
     apps.value = []
   } finally {
     loading.value = false

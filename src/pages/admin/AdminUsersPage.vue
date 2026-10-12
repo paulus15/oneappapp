@@ -1,11 +1,13 @@
 <template>
   <q-page class="workspace-page">
     <header class="workspace-heading"
-      ><span class="eyebrow">Administration</span><h1>Utilisateurs</h1
-      ><p
-        >Recherche, consultation et suspension motivée. Chaque action est
-        inscrite au journal d’audit.</p
-      ></header
+      ><span class="eyebrow">{{ ui('Administration') }}</span
+      ><h1>{{ ui('Utilisateurs') }}</h1
+      ><p>{{
+        ui(
+          'Recherche, consultation et suspension motivée. Chaque action est inscrite au journal d’audit.'
+        )
+      }}</p></header
     >
     <AdminNav />
     <div class="row q-col-gutter-sm q-mb-md">
@@ -16,7 +18,7 @@
           dense
           clearable
           debounce="400"
-          label="Nom ou e-mail"
+          :label="ui('Nom ou e-mail')"
           @update:model-value="reload"
           ><template #prepend><q-icon name="search" /></template
         ></q-input>
@@ -30,7 +32,7 @@
           clearable
           outlined
           dense
-          label="Statut"
+          :label="ui('Statut')"
           @update:model-value="reload"
         />
       </div>
@@ -43,13 +45,13 @@
           clearable
           outlined
           dense
-          label="Type de compte"
+          :label="ui('Type de compte')"
           @update:model-value="reload"
         />
       </div>
     </div>
     <q-banner v-if="error" class="workspace-alert q-mb-md" role="alert">{{
-      error
+      ui(error)
     }}</q-banner>
     <q-table
       flat
@@ -61,7 +63,7 @@
       :grid="$q.screen.lt.sm"
       v-model:pagination="pagination"
       :rows-per-page-options="[25]"
-      no-data-label="Aucun compte pour ces critères"
+      :no-data-label="ui('Aucun compte pour ces critères')"
       @request="onRequest"
       @row-click="(_, row) => open(row)"
     >
@@ -81,32 +83,38 @@
             <h2>{{ detail.user.name }}</h2>
             <p class="text-muted">{{ detail.user.email }}</p>
           </div>
-          <q-btn flat round icon="close" aria-label="Fermer" v-close-popup />
+          <q-btn
+            flat
+            round
+            icon="close"
+            :aria-label="ui('Fermer')"
+            v-close-popup
+          />
         </q-card-section>
         <q-card-section>
           <dl>
-            <dt>Statut</dt>
+            <dt>{{ ui('Statut') }}</dt>
             <dd
               >{{ statusLabels[detail.user.status]
               }}<span v-if="detail.user.status_reason">
                 — {{ detail.user.status_reason }}</span
               ></dd
             >
-            <dt>Pays</dt>
-            <dd>{{ detail.user.country?.name || 'Non renseigné' }}</dd>
-            <dt>E-mail vérifié</dt>
-            <dd>{{ detail.user.email_verified_at ? 'Oui' : 'Non' }}</dd>
-            <dt>Profil développeur</dt>
+            <dt>{{ ui('Pays') }}</dt>
+            <dd>{{ detail.user.country?.name || ui('Non renseigné') }}</dd>
+            <dt>{{ ui('E-mail vérifié') }}</dt>
+            <dd>{{ detail.user.email_verified_at ? ui('Oui') : ui('Non') }}</dd>
+            <dt>{{ ui('Profil développeur') }}</dt>
             <dd>{{
               detail.user.developer_profile?.status
                 ? profileLabels[detail.user.developer_profile.status]
-                : 'Aucun'
+                : ui('Aucun')
             }}</dd>
-            <dt>Applications</dt>
+            <dt>{{ ui('Applications') }}</dt>
             <dd>{{ detail.applications.length }}</dd>
-            <dt>Avis publiés</dt>
+            <dt>{{ ui('Avis publiés') }}</dt>
             <dd>{{ detail.reviews_count }}</dd>
-            <dt>Inscription</dt>
+            <dt>{{ ui('Inscription') }}</dt>
             <dd>{{ date(detail.user.created_at) }}</dd>
           </dl>
           <div class="workspace-actions">
@@ -115,7 +123,7 @@
               outline
               no-caps
               color="negative"
-              label="Suspendre"
+              :label="ui('Suspendre')"
               :disable="busy || detail.user.id === auth.user?.id"
               @click="setStatus('suspended')"
             />
@@ -126,8 +134,8 @@
               color="positive"
               :label="
                 detail.user.status === 'deactivated'
-                  ? 'Réactiver le compte'
-                  : 'Lever la suspension'
+                  ? ui('Réactiver le compte')
+                  : ui('Lever la suspension')
               "
               :disable="busy"
               @click="setStatus('active')"
@@ -135,8 +143,11 @@
           </div>
         </q-card-section>
         <q-card-section v-if="canEditPermissions">
-          <h3>Accès administrateur</h3>
-          <q-toggle v-model="permissionForm.admin" label="Administrateur" />
+          <h3>{{ ui('Accès administrateur') }}</h3>
+          <q-toggle
+            v-model="permissionForm.admin"
+            :label="ui('Administrateur')"
+          />
           <q-option-group
             v-if="permissionForm.admin"
             v-model="permissionForm.permissions"
@@ -147,16 +158,16 @@
             no-caps
             outline
             color="primary"
-            label="Enregistrer les accès"
+            :label="ui('Enregistrer les accès')"
             :disable="busy || detail.user.id === auth.user?.id"
             @click="savePermissions"
           />
         </q-card-section>
         <q-card-section>
-          <h3>Historique administratif</h3>
-          <p v-if="!detail.history.length" class="text-muted"
-            >Aucune action enregistrée.</p
-          >
+          <h3>{{ ui('Historique administratif') }}</h3>
+          <p v-if="!detail.history.length" class="text-muted">{{
+            ui('Aucune action enregistrée.')
+          }}</p>
           <q-list dense separator>
             <q-item v-for="log in detail.history" :key="log.id">
               <q-item-section>
@@ -176,6 +187,9 @@
   </q-page>
 </template>
 <script setup>
+import { currentLocale } from '@/i18n'
+import { ui } from '@/i18n/text'
+
 import { computed, onMounted, reactive, ref } from 'vue'
 import { useQuasar } from 'quasar'
 import AdminNav from '@/components/AdminNav.vue'
@@ -195,9 +209,15 @@ const filters = reactive({ search: '', status: null, role: null })
 const pagination = ref({ page: 1, rowsPerPage: 25, rowsNumber: 0 })
 const permissionForm = reactive({ admin: false, permissions: [] })
 const statusLabels = {
-  active: 'Actif',
-  suspended: 'Suspendu',
-  deactivated: 'Désactivé'
+  get active() {
+    return ui('Actif')
+  },
+  get suspended() {
+    return ui('Suspendu')
+  },
+  get deactivated() {
+    return ui('Désactivé')
+  }
 }
 const statusColors = {
   active: 'positive',
@@ -205,48 +225,98 @@ const statusColors = {
   deactivated: 'grey-7'
 }
 const profileLabels = {
-  draft: 'Brouillon',
-  pending_verification: 'En attente de vérification',
-  verified: 'Vérifié',
-  rejected: 'À corriger',
-  suspended: 'Suspendu'
+  get draft() {
+    return ui('Brouillon')
+  },
+  get pending_verification() {
+    return ui('En attente de vérification')
+  },
+  get verified() {
+    return ui('Vérifié')
+  },
+  get rejected() {
+    return ui('À corriger')
+  },
+  get suspended() {
+    return ui('Suspendu')
+  }
 }
-const statusOptions = Object.entries(statusLabels).map(([value, label]) => ({
+const statusOptions = Object.keys(statusLabels).map(value => ({
   value,
-  label
+  get label() {
+    return statusLabels[value]
+  }
 }))
 const roleOptions = [
-  { value: 'user', label: 'Utilisateurs' },
-  { value: 'developer', label: 'Développeurs' },
-  { value: 'admin', label: 'Administrateurs' }
+  {
+    value: 'user',
+    get label() {
+      return ui('Utilisateurs')
+    }
+  },
+  {
+    value: 'developer',
+    get label() {
+      return ui('Développeurs')
+    }
+  },
+  {
+    value: 'admin',
+    get label() {
+      return ui('Administrateurs')
+    }
+  }
 ]
-const permissionOptions = Object.entries(PERMISSION_LABELS).map(
-  ([value, label]) => ({ value, label })
-)
+const permissionOptions = Object.keys(PERMISSION_LABELS).map(value => ({
+  value,
+  get label() {
+    return PERMISSION_LABELS[value]
+  }
+}))
 const columns = [
-  { name: 'name', label: 'Nom', field: 'name', align: 'left' },
+  {
+    name: 'name',
+    get label() {
+      return ui('Nom')
+    },
+    field: 'name',
+    align: 'left'
+  },
   { name: 'email', label: 'E-mail', field: 'email', align: 'left' },
   {
     name: 'country',
-    label: 'Pays',
+    get label() {
+      return ui('Pays')
+    },
     field: row => row.country?.name || '—',
     align: 'left'
   },
   {
     name: 'role',
-    label: 'Type',
+    get label() {
+      return ui('Type')
+    },
     field: row =>
       row.role === 'admin'
-        ? 'Administrateur'
+        ? ui('Administrateur')
         : row.developer_profile
-          ? 'Développeur'
-          : 'Utilisateur',
+          ? ui('Développeur')
+          : ui('Utilisateur'),
     align: 'left'
   },
-  { name: 'status', label: 'Statut', field: 'status', align: 'left' },
+  {
+    name: 'status',
+    get label() {
+      return ui('Statut')
+    },
+    field: 'status',
+    align: 'left'
+  },
   {
     name: 'created_at',
-    label: 'Inscription',
+    get label() {
+      return ui('Inscription')
+    },
     field: row => date(row.created_at),
     align: 'left'
   }
@@ -254,7 +324,8 @@ const columns = [
 const canEditPermissions = computed(() =>
   auth.user?.admin_permissions?.includes('settings.manage')
 )
-const date = value => (value ? new Date(value).toLocaleDateString('fr-FR') : '')
+const date = value =>
+  value ? new Date(value).toLocaleDateString(currentLocale()) : ''
 
 async function load() {
   loading.value = true
@@ -298,7 +369,9 @@ function askReason(title) {
     $q
       .dialog({
         title,
-        message: 'Indiquez le motif. Il est conservé dans le journal.',
+        get message() {
+          return ui('Indiquez le motif. Il est conservé dans le journal.')
+        },
         prompt: {
           model: '',
           type: 'textarea',
@@ -326,16 +399,18 @@ async function act(action, message) {
 }
 async function setStatus(status) {
   const reason = await askReason(
-    status === 'suspended' ? 'Suspendre ce compte' : 'Réactiver ce compte'
+    status === 'suspended'
+      ? ui('Suspendre ce compte')
+      : ui('Réactiver ce compte')
   )
   if (!reason) return
   return act(
     () => adminApi.userStatus(detail.value.user.id, { status, reason }),
-    'Statut mis à jour.'
+    ui('Statut mis à jour.')
   )
 }
 async function savePermissions() {
-  const reason = await askReason('Modifier les accès administrateur')
+  const reason = await askReason(ui('Modifier les accès administrateur'))
   if (!reason) return
   return act(
     () =>
@@ -344,7 +419,7 @@ async function savePermissions() {
         permissions: permissionForm.permissions,
         reason
       }),
-    'Accès enregistrés.'
+    ui('Accès enregistrés.')
   )
 }
 onMounted(load)

@@ -1,89 +1,137 @@
 <template>
   <q-page class="details-page">
-    <!-- Back Button -->
     <q-btn
       flat
       no-caps
       icon="arrow_back"
-      label="Retour au catalogue"
+      :label="t('store.details.back')"
       class="back-btn"
       to="/"
     />
 
-    <div v-if="loading" class="row justify-center q-my-xl">
-      <q-spinner-orbit color="primary" size="48px" />
+    <!-- Loading: the final layout, in skeleton form (no jump when data arrives). -->
+    <div v-if="loading" class="details-shell" aria-busy="true">
+      <q-skeleton class="details-cover skeleton-cover" />
+      <div class="details-header glass-panel">
+        <q-skeleton class="details-icon" />
+        <div class="details-title">
+          <q-skeleton type="text" width="50%" height="34px" />
+          <q-skeleton type="text" width="30%" />
+          <q-skeleton type="text" width="40%" />
+        </div>
+      </div>
+      <div class="details-grid">
+        <div class="details-main">
+          <q-skeleton height="220px" class="skeleton-block" />
+          <q-skeleton height="140px" class="skeleton-block" />
+        </div>
+        <div class="details-side">
+          <q-skeleton height="180px" class="skeleton-block" />
+        </div>
+      </div>
     </div>
 
-    <div v-else-if="error" class="text-center q-my-xl text-red-400">
-      <q-icon name="error" size="48px" />
-      <div class="text-h6 q-mt-md">{{ error }}</div>
+    <div v-else-if="unavailable" class="details-state glass-panel">
+      <q-icon name="public_off" />
+      <h1>{{ t('store.details.unavailable') }}</h1>
+      <p>{{ t('store.details.unavailableHelp') }}</p>
+      <q-btn
+        unelevated
+        no-caps
+        color="primary"
+        :label="t('store.details.backToStore')"
+        to="/"
+      />
     </div>
 
-    <div v-else-if="app" class="row q-col-gutter-md">
-      <!-- Left side: App Info & Reviews -->
-      <div class="col-12 col-md-8">
-        <q-card class="glass-panel detail-card q-mb-md">
-          <div class="row items-start no-wrap q-mb-md">
-            <q-avatar
-              size="64px"
-              class="q-mr-md bg-blue-grey-900 border-blue-grey-sm shadow-md rounded-borders"
+    <div v-else-if="error" class="details-state glass-panel" role="alert">
+      <q-icon name="error_outline" />
+      <h1>{{ t('store.details.errorTitle') }}</h1>
+      <p>{{ error }}</p>
+      <q-btn
+        unelevated
+        no-caps
+        color="primary"
+        icon="refresh"
+        :label="t('common.retry')"
+        @click="fetchAppDetails"
+      />
+    </div>
+
+    <article v-else-if="app" class="details-shell">
+      <div class="details-cover">
+        <CoverImage
+          :cover="card.cover"
+          priority
+          :fallback-color="card.color"
+          :icon="card.icon"
+          :icon-url="card.iconUrl"
+          sizes="(min-width: 1320px) 1280px, 100vw"
+        />
+      </div>
+
+      <header class="details-header glass-panel">
+        <span class="details-icon" :style="{ background: card.color }">
+          <AppIcon
+            :src="app.icon_url"
+            :alt="t('store.card.iconAlt', { name: app.name })"
+            :fallback-icon="card.icon"
+          />
+        </span>
+        <div class="details-title">
+          <h1 class="app-title">{{ app.name }}</h1>
+          <div class="dev-name">
+            {{ t('store.details.publishedBy') }}
+            <router-link
+              v-if="
+                app.developer?.developer_profile?.status === 'verified' &&
+                app.developer.developer_profile.public_name
+              "
+              :to="`/publishers/${app.developer.developer_profile.id}`"
+              >{{ app.developer.developer_profile.public_name }}</router-link
             >
-              <AppIcon
-                :src="app.icon_url"
-                :alt="`Icône de ${app.name}`"
-                fallback-icon="apps"
-              />
-            </q-avatar>
-            <div class="col">
-              <h1 class="app-title">{{ app.name }}</h1>
-              <div class="dev-name">
-                Publié par
-                <router-link
-                  v-if="
-                    app.developer?.developer_profile?.status === 'verified' &&
-                    app.developer.developer_profile.public_name
-                  "
-                  :to="`/publishers/${app.developer.developer_profile.id}`"
-                  >{{
-                    app.developer.developer_profile.public_name
-                  }}</router-link
-                >
-                <span v-else>{{ app.developer?.name }}</span>
-              </div>
-              <div class="row items-center q-gutter-xs q-mt-xs">
-                <q-badge color="blue-grey-9" class="q-py-xs q-px-sm">
-                  {{ app.category }}
-                </q-badge>
-                <HostingBadge :source-type="app.source_type" />
-                <q-badge
-                  v-if="app.languages?.length"
-                  color="blue-grey-7"
-                  class="q-py-xs q-px-sm"
-                >
-                  {{ app.languages.join(', ') }}
-                </q-badge>
-                <q-btn
-                  v-if="isOwnerOrAdmin"
-                  outline
-                  dense
-                  no-caps
-                  icon="edit"
-                  label="Éditer l'application"
-                  color="primary"
-                  class="q-ml-xs text-caption text-weight-bold"
-                  :to="`/developer/apps/${app.id}/edit`"
-                />
-              </div>
-            </div>
+            <span v-else>{{ app.developer?.name }}</span>
           </div>
-
-          <div class="row q-gutter-sm q-mb-md">
+          <div class="details-chips">
+            <router-link
+              v-if="card.category && card.categorySlug"
+              :to="`/categories/${card.categorySlug}`"
+              class="details-chip"
+              >{{ ui(card.category) }}</router-link
+            >
+            <span v-else-if="card.category" class="details-chip">{{
+              ui(card.category)
+            }}</span>
+            <HostingBadge :source-type="app.source_type" />
+            <span v-if="card.rating" class="details-rating"
+              ><q-icon name="star" />{{ card.rating }}
+              <small>{{
+                t('store.details.reviews', { n: card.reviews }, card.reviews)
+              }}</small></span
+            >
+          </div>
+        </div>
+        <div class="details-actions">
+          <q-btn
+            unelevated
+            no-caps
+            icon="launch"
+            :label="t('store.details.open')"
+            class="launch-pwa-btn"
+            :disable="extracting"
+            @click="launchApp"
+          />
+          <div class="details-secondary">
             <q-btn
               flat
               no-caps
               color="primary"
               :icon="favorited ? 'favorite' : 'favorite_border'"
-              :label="favorited ? 'Dans vos favoris' : 'Ajouter aux favoris'"
+              :label="
+                favorited
+                  ? t('store.details.inFavorites')
+                  : t('store.details.addFavorite')
+              "
               :class="{ 'motion-pop': popping }"
               @click="addFavorite"
             />
@@ -92,7 +140,7 @@
               no-caps
               color="primary"
               icon="share"
-              label="Partager"
+              :label="t('store.details.share')"
               @click="share"
             />
             <ReportButton
@@ -100,275 +148,227 @@
               target-type="application"
               :target-id="app.id"
             />
+            <q-btn
+              v-if="isOwnerOrAdmin"
+              flat
+              no-caps
+              icon="edit"
+              color="primary"
+              :label="t('store.details.edit')"
+              :to="`/developer/apps/${app.id}`"
+            />
           </div>
-          <div class="section-title q-mb-xs">Description</div>
-          <p class="description-text q-mb-lg">
-            {{ app.description }}
-          </p>
+        </div>
+      </header>
 
-          <div class="section-title q-mb-xs">Captures d'écran</div>
-          <div class="screenshots-section q-mb-lg">
-            <p
-              v-if="
-                !app.media?.screenshots?.mobile?.length &&
-                !app.media?.screenshots?.tablet?.length
-              "
-              class="text-grey"
-              >Aucune capture fournie par l’éditeur.</p
-            >
-            <div
-              v-if="app.media?.screenshots?.mobile?.length"
-              class="screenshot-group mobile-group"
-            >
-              <div class="device-type-label"
-                ><q-icon name="smartphone" /> Mobile</div
+      <div class="details-grid">
+        <div class="details-main">
+          <section
+            v-if="screenshots.length"
+            class="detail-card glass-panel"
+            aria-labelledby="shots-title"
+          >
+            <h2 id="shots-title" class="section-title">{{
+              t('store.details.screenshots')
+            }}</h2>
+            <ScrollRow item-width="auto" :watch-key="screenshots.length">
+              <figure
+                v-for="(shot, i) in screenshots"
+                :key="shot.key"
+                class="screenshot-card"
+                :class="`shot-${shot.device}`"
               >
-              <div class="screenshot-scroll">
-                <div
-                  v-for="(shot, i) in app.media.screenshots.mobile"
-                  :key="'mob-' + i"
-                  class="screenshot-card mobile-card"
-                >
-                  <q-img
-                    :src="shot"
-                    :alt="`Capture mobile ${i + 1}`"
-                    spinner-color="primary"
-                  />
-                </div>
-              </div>
-            </div>
-
-            <!-- Tablet screenshots scroll -->
-            <div
-              v-if="app.media?.screenshots?.tablet?.length"
-              class="screenshot-group tablet-group q-mt-md"
-            >
-              <div class="device-type-label"
-                ><q-icon name="tablet_mac" /> Tablette</div
-              >
-              <div class="screenshot-scroll">
-                <div
-                  v-for="(shot, i) in app.media.screenshots.tablet"
-                  :key="'tab-' + i"
-                  class="screenshot-card tablet-card"
-                >
-                  <q-img
-                    :src="shot"
-                    :alt="`Capture tablette ${i + 1}`"
-                    spinner-color="primary"
-                  />
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <q-separator class="q-my-md opacity-35" />
-
-          <AppReviews :app="app" @changed="refreshRating" />
-        </q-card>
-      </div>
-
-      <!-- Right side: Installation, Sandbox and Versions -->
-      <div class="col-12 col-md-4">
-        <!-- Actions Box -->
-        <q-card class="glass-panel detail-card q-mb-md text-center">
-          <div
-            class="text-caption text-blue-grey-300 text-uppercase tracking-wider text-weight-bold q-mb-xs"
-          >
-            Application
-          </div>
-
-          <div v-if="latestVersion" class="q-mb-md">
-            <div class="text-subtitle2 text-white text-weight-bold">
-              Version {{ latestVersion.version_number }}
-            </div>
-          </div>
-
-          <q-btn
-            color="blue-grey-700"
-            icon="launch"
-            label="Lancer l'application (PWA)"
-            unelevated
-            no-caps
-            class="full-width text-weight-bold text-white rounded-borders q-mb-sm launch-pwa-btn"
-            @click="launchApp"
-            :disabled="extracting"
-          />
-
-          <q-btn
-            v-if="app.status === 'published'"
-            color="green-6"
-            icon="add_to_home_screen"
-            label="Ouvrir pour installer"
-            unelevated
-            no-caps
-            class="full-width text-weight-bold text-white rounded-borders q-mb-sm install-pwa-btn"
-            @click="launchApp"
-            :loading="extracting"
-          />
-
-          <q-btn
-            v-if="
-              app.status === 'published' &&
-              (app.source_type === 'url' || latestVersion?.status === 'active')
-            "
-            flat
-            no-caps
-            class="full-width q-mb-sm"
-            label="Déclarer cette PWA installée"
-            @click="confirmInstallation"
-          />
-          <div class="text-caption text-blue-grey-400 italic">
-            Installation proposée par votre navigateur, selon sa compatibilité.
-          </div>
-
-          <!-- PWA Installation Info -->
-          <div
-            v-if="latestVersion"
-            class="pwa-install-info row items-start q-gutter-xs q-mt-sm"
-          >
-            <q-icon name="info" color="blue-grey-4" size="xs" class="q-mt-xs" />
-            <div class="col text-caption text-left text-grey-4">
-              Cette application est une PWA. Une fois lancée, vous pourrez
-              l'installer directement sur votre écran d'accueil.
-            </div>
-          </div>
-
-          <div
-            v-if="latestVersion?.hash_sha256"
-            class="hash-box q-mt-md text-left truncate"
-          >
-            SHA256: {{ latestVersion.hash_sha256.substring(0, 16) }}...
-          </div>
-        </q-card>
-
-        <!-- Sandbox Permissions Box -->
-        <q-card class="glass-panel detail-card q-mb-md">
-          <div class="row items-center q-gutter-xs q-mb-sm">
-            <q-icon name="shield" color="blue-grey-300" size="20px" />
-            <span class="text-subtitle2 text-weight-bold text-white"
-              >PWA Store Sandbox</span
-            >
-          </div>
-
-          <div class="text-caption text-blue-grey-300 q-mb-sm">
-            Cette application s'exécute dans une sandbox sécurisée et déclare
-            les accès suivants :
-          </div>
-
-          <div
-            class="text-weight-bold text-blue-grey-200 text-caption text-uppercase q-mb-xs"
-          >
-            Permissions requises :
-          </div>
-          <div
-            v-if="latestVersion?.permissions_required?.length > 0"
-            class="q-gutter-xs q-mb-md"
-          >
-            <q-chip
-              v-for="perm in latestVersion.permissions_required"
-              :key="perm"
-              color="blue-grey-900"
-              text-color="blue-grey-200"
-              icon="verified"
-              dense
-            >
-              {{ perm }}
-            </q-chip>
-          </div>
-          <div v-else class="text-caption text-green-400 italic q-mb-md">
-            Aucune permission spéciale requise.
-          </div>
-
-          <div
-            class="text-weight-bold text-blue-grey-200 text-caption text-uppercase q-mb-xs"
-          >
-            Domaines externes détectés :
-          </div>
-          <div
-            v-if="
-              (
-                latestVersion?.detected_domains ||
-                latestVersion?.domains_whitelist
-              )?.length > 0
-            "
-            class="q-gutter-xs"
-          >
-            <q-chip
-              v-for="domain in latestVersion.detected_domains ||
-              latestVersion.domains_whitelist"
-              :key="domain"
-              color="slate-900"
-              text-color="blue-grey-300"
-              icon="language"
-              dense
-            >
-              {{ domain }}
-            </q-chip>
-          </div>
-          <div v-else class="text-caption text-red-400 italic">
-            Aucun domaine externe signalé par l’analyse statique.
-          </div>
-        </q-card>
-
-        <!-- Version History Box -->
-        <q-card class="glass-panel detail-card">
-          <div class="text-subtitle2 text-weight-bold text-white q-mb-sm">
-            Historique des versions
-          </div>
-          <q-list
-            v-if="app.versions?.length > 0"
-            separator
-            class="text-blue-grey-200"
-          >
-            <q-item v-for="ver in app.versions" :key="ver.id" class="q-px-none">
-              <q-item-section>
-                <div class="text-weight-bold text-white"
-                  >v{{ ver.version_number }}</div
-                >
-                <div class="text-caption text-blue-grey-400">{{
-                  formatDate(ver.created_at)
-                }}</div>
-              </q-item-section>
-              <q-item-section side>
-                <q-btn
-                  flat
-                  round
-                  icon="download"
-                  color="blue-grey-300"
-                  @click="downloadVersion(ver.id)"
+                <img
+                  :src="shot.src"
+                  :alt="
+                    t('store.details.screenshotAlt', {
+                      n: i + 1,
+                      name: app.name
+                    })
+                  "
+                  loading="lazy"
+                  decoding="async"
+                  referrerpolicy="no-referrer"
                 />
-              </q-item-section>
-            </q-item>
-          </q-list>
-          <div v-else class="text-caption text-blue-grey-400 italic">
-            Aucun historique de version.
-          </div>
-        </q-card>
-      </div>
-    </div>
+              </figure>
+            </ScrollRow>
+          </section>
 
-    <section v-if="similar.length" class="similar-section">
-      <h2 class="section-title">Applications similaires</h2>
-      <AppGrid :apps="similar" />
-    </section>
-
-    <!-- Extraction Dialog -->
-    <q-dialog v-model="extracting" persistent>
-      <q-card
-        class="extraction-dialog q-pa-md"
-        style="min-width: 300px; border-radius: 16px"
-      >
-        <q-card-section
-          class="row items-center justify-center column q-gutter-md"
-        >
-          <q-spinner-orbit color="primary" size="lg" />
-          <div class="text-h6 text-weight-bold text-center"
-            >Ouverture en cours...</div
+          <section
+            class="detail-card glass-panel"
+            aria-labelledby="about-title"
           >
-          <div class="extraction-caption text-caption text-center">
-            Vérification de la disponibilité de l’application.
-          </div>
+            <h2 id="about-title" class="section-title">{{
+              t('store.details.about')
+            }}</h2>
+            <p v-if="app.short_description" class="lead-text">{{
+              app.short_description
+            }}</p>
+            <p class="description-text">{{
+              app.description || t('store.details.noDescription')
+            }}</p>
+          </section>
+
+          <section
+            v-if="info.length"
+            class="detail-card glass-panel"
+            aria-labelledby="info-title"
+          >
+            <h2 id="info-title" class="section-title">{{
+              t('store.details.information')
+            }}</h2>
+            <dl class="info-grid">
+              <div v-for="row in info" :key="row.key" class="info-row">
+                <dt><q-icon :name="row.icon" />{{ row.label }}</dt>
+                <dd>
+                  <a
+                    v-if="row.href"
+                    :href="row.href"
+                    :target="row.external ? '_blank' : undefined"
+                    :rel="row.external ? 'noopener noreferrer' : undefined"
+                    >{{ row.value
+                    }}<q-icon v-if="row.external" name="open_in_new"
+                  /></a>
+                  <template v-else>{{ row.value }}</template>
+                </dd>
+              </div>
+            </dl>
+          </section>
+
+          <section class="detail-card glass-panel">
+            <AppReviews :app="app" @changed="refreshRating" />
+          </section>
+        </div>
+
+        <aside class="details-side">
+          <section class="detail-card glass-panel install-card">
+            <h2 class="section-title">{{ t('store.details.install') }}</h2>
+            <p v-if="latestVersion" class="install-version">{{
+              t('store.details.version', {
+                version: latestVersion.version_number
+              })
+            }}</p>
+            <q-btn
+              v-if="app.status === 'published'"
+              unelevated
+              no-caps
+              icon="add_to_home_screen"
+              :label="t('store.details.openToInstall')"
+              class="full-width install-pwa-btn"
+              :loading="extracting"
+              @click="launchApp"
+            />
+            <q-btn
+              v-if="
+                app.status === 'published' &&
+                (app.source_type === 'url' ||
+                  latestVersion?.status === 'active')
+              "
+              flat
+              no-caps
+              class="full-width"
+              :label="t('store.details.declareInstalled')"
+              @click="confirmInstallation"
+            />
+            <p class="install-note">{{ t('store.details.installNote') }}</p>
+            <div v-if="latestVersion" class="pwa-install-info">
+              <q-icon name="info" />
+              <span>{{ t('store.details.pwaInfo') }}</span>
+            </div>
+            <div v-if="latestVersion?.hash_sha256" class="hash-box">
+              SHA256: {{ latestVersion.hash_sha256.substring(0, 16) }}…
+            </div>
+          </section>
+
+          <section class="detail-card glass-panel">
+            <h2 class="section-title"
+              ><q-icon name="shield" /> {{ t('store.details.sandbox') }}</h2
+            >
+            <p class="muted-text">{{ t('store.details.sandboxIntro') }}</p>
+            <h3 class="mini-title">{{ t('store.details.permissions') }}</h3>
+            <div
+              v-if="latestVersion?.permissions_required?.length"
+              class="chips"
+            >
+              <q-chip
+                v-for="perm in latestVersion.permissions_required"
+                :key="perm"
+                dense
+                icon="verified"
+                class="soft-chip"
+                >{{ perm }}</q-chip
+              >
+            </div>
+            <p v-else class="muted-text">{{
+              t('store.details.noPermissions')
+            }}</p>
+            <h3 class="mini-title">{{ t('store.details.domains') }}</h3>
+            <div v-if="domains.length" class="chips">
+              <q-chip
+                v-for="domain in domains"
+                :key="domain"
+                dense
+                icon="language"
+                class="soft-chip"
+                >{{ domain }}</q-chip
+              >
+            </div>
+            <p v-else class="muted-text">{{ t('store.details.noDomains') }}</p>
+          </section>
+
+          <section class="detail-card glass-panel">
+            <h2 class="section-title">{{ t('store.details.versions') }}</h2>
+            <q-list v-if="app.versions?.length" separator>
+              <q-item
+                v-for="ver in app.versions"
+                :key="ver.id"
+                class="q-px-none"
+              >
+                <q-item-section>
+                  <q-item-label class="version-number"
+                    >v{{ ver.version_number }}</q-item-label
+                  >
+                  <q-item-label caption>{{
+                    formatDate(ver.created_at)
+                  }}</q-item-label>
+                </q-item-section>
+                <q-item-section side>
+                  <q-btn
+                    flat
+                    round
+                    icon="download"
+                    :aria-label="
+                      t('store.details.download', {
+                        version: ver.version_number
+                      })
+                    "
+                    @click="downloadVersion(ver.id)"
+                  />
+                </q-item-section>
+              </q-item>
+            </q-list>
+            <p v-else class="muted-text">{{ t('store.details.noVersions') }}</p>
+          </section>
+        </aside>
+      </div>
+
+      <AppRow
+        :title="t('store.details.similar')"
+        :apps="similar"
+        class="similar-row"
+      />
+    </article>
+
+    <q-dialog v-model="extracting" persistent>
+      <q-card class="extraction-dialog">
+        <q-card-section class="column items-center q-gutter-md">
+          <q-spinner-orbit color="primary" size="lg" />
+          <div class="text-h6 text-weight-bold text-center">{{
+            t('store.details.opening')
+          }}</div>
+          <div class="extraction-caption text-caption text-center">{{
+            t('store.details.openingHelp')
+          }}</div>
         </q-card-section>
       </q-card>
     </q-dialog>
@@ -376,22 +376,36 @@
 </template>
 
 <script setup>
-import HostingBadge from '@/components/HostingBadge.vue'
-import { deviceIdentity, devicePlatform } from '@/utils/device'
-import { useWorkspaceAccess } from '@/composables/useWorkspaceAccess'
-const { isMobile } = useWorkspaceAccess()
-import { ref, computed, onMounted, watch } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { api } from '@/boot/axios'
-import { useAuthStore } from '@/stores/auth'
 import { useQuasar } from 'quasar'
+import { useI18n } from 'vue-i18n'
+import { api } from '@/boot/axios'
 import AppIcon from '@/components/AppIcon.vue'
-import AppGrid from '@/components/AppGrid.vue'
+import AppReviews from '@/components/AppReviews.vue'
+import AppRow from '@/components/AppRow.vue'
+import CoverImage from '@/components/CoverImage.vue'
+import HostingBadge from '@/components/HostingBadge.vue'
+import ReportButton from '@/components/ReportButton.vue'
+import ScrollRow from '@/components/ScrollRow.vue'
+import { useWorkspaceAccess } from '@/composables/useWorkspaceAccess'
+import { ui } from '@/i18n/text'
 import { catalogApi } from '@/services/catalog'
 import { communityApi } from '@/services/community'
-import AppReviews from '@/components/AppReviews.vue'
-import ReportButton from '@/components/ReportButton.vue'
+import { toCard } from '@/utils/appCard'
+import { deviceIdentity, devicePlatform } from '@/utils/device'
+import {
+  compatibilityKeys,
+  countryCodes,
+  displayName,
+  safeEmail,
+  safeExternalUrl
+} from '@/utils/listing'
+import { resolveMediaUrl } from '@/utils/media'
+import { useAuthStore } from '@/stores/auth'
 
+const { t, te, locale } = useI18n()
+const { isMobile } = useWorkspaceAccess()
 const route = useRoute()
 const router = useRouter()
 const authStore = useAuthStore()
@@ -400,11 +414,13 @@ const $q = useQuasar()
 const app = ref(null)
 const loading = ref(true)
 const error = ref('')
-
+const unavailable = ref(false)
 const extracting = ref(false)
 const similar = ref([])
 const favorited = ref(false),
   popping = ref(false)
+
+const card = computed(() => (app.value ? toCard(app.value) : {}))
 
 const latestVersion = computed(() => {
   if (!app.value?.versions || app.value.versions.length === 0) return null
@@ -412,6 +428,13 @@ const latestVersion = computed(() => {
     app.value.versions.find(v => v.status === 'active') || app.value.versions[0]
   )
 })
+
+const domains = computed(
+  () =>
+    latestVersion.value?.detected_domains ||
+    latestVersion.value?.domains_whitelist ||
+    []
+)
 
 const isOwnerOrAdmin = computed(() => {
   if (isMobile.value || !authStore.isAuthenticated || !app.value) return false
@@ -421,9 +444,94 @@ const isOwnerOrAdmin = computed(() => {
   )
 })
 
+const screenshots = computed(() => {
+  const shots = app.value?.media?.screenshots || {}
+  return ['mobile', 'tablet'].flatMap(device =>
+    (Array.isArray(shots[device]) ? shots[device] : [])
+      .map((src, i) => ({
+        key: `${device}-${i}`,
+        device,
+        src: resolveMediaUrl(src)
+      }))
+      .filter(shot => shot.src)
+  )
+})
+
+const MAX_COUNTRIES = 8
+// The "Informations" block: only what the publisher declared, nothing guessed.
+const info = computed(() => {
+  const a = app.value
+  if (!a) return []
+  const rows = []
+  const add = (key, icon, value, href = '', external = false) => {
+    if (value)
+      rows.push({
+        key,
+        icon,
+        label: t(`store.details.info.${key}`),
+        value,
+        href,
+        external
+      })
+  }
+  add('version', 'update', latestVersion.value?.version_number)
+  add(
+    'category',
+    'category',
+    card.value.category ? ui(card.value.category) : ''
+  )
+  const languages = (Array.isArray(a.languages) ? a.languages : [])
+    .map(code => displayName(code, locale.value, 'language'))
+    .filter(Boolean)
+  add('languages', 'translate', languages.join(', '))
+  const countries = countryCodes(a.countries)
+  if (countries.length && a.availability !== 'all') {
+    const names = countries
+      .slice(0, MAX_COUNTRIES)
+      .map(code => displayName(code, locale.value, 'region'))
+    const more = countries.length - MAX_COUNTRIES
+    add(
+      'availability',
+      'public',
+      more > 0
+        ? `${names.join(', ')} ${t('store.details.moreCountries', { n: more }, more)}`
+        : names.join(', ')
+    )
+  } else if (a.availability === 'all' || Array.isArray(a.countries))
+    add('availability', 'public', t('store.details.allCountries'))
+  const collected = a.privacy?.data_collected
+  if (Array.isArray(collected)) {
+    const labels = collected
+      .filter(code => code !== 'none' && te(`workspace.data.${code}`))
+      .map(code => t(`workspace.data.${code}`))
+    add(
+      'dataCollected',
+      'privacy_tip',
+      labels.length ? labels.join(', ') : t('store.details.noDataCollected')
+    )
+  }
+  const compat = compatibilityKeys(a.compatibility)
+    .filter(key => te(`workspace.compatibility.${key}`))
+    .map(key => t(`workspace.compatibility.${key}`))
+  add('compatibility', 'devices', compat.join(', '))
+  const email = safeEmail(a.contact_email)
+  add('contact', 'mail', email, email ? `mailto:${email}` : '')
+  for (const [key, icon, field] of [
+    ['website', 'language', 'official_site_url'],
+    ['support', 'support_agent', 'support_url'],
+    ['privacyPolicy', 'policy', 'privacy_policy_url'],
+    ['terms', 'gavel', 'terms_url']
+  ]) {
+    const url = safeExternalUrl(a[field])
+    if (url) add(key, icon, new URL(url).host, url, true)
+  }
+  return rows
+})
+
 async function fetchAppDetails() {
   loading.value = true
   error.value = ''
+  unavailable.value = false
   try {
     const response = await api.get('/apps/' + route.params.id)
     app.value = response.data
@@ -432,13 +540,16 @@ async function fetchAppDetails() {
       communityApi.recordView(app.value.id).catch(() => {})
       catalogApi
         .similar(app.value.id)
-        .then(({ data }) => (similar.value = data))
+        .then(({ data }) => (similar.value = Array.isArray(data) ? data : []))
         .catch(() => {})
     }
   } catch (err) {
-    error.value =
-      err.response?.data?.message ||
-      'Erreur lors de la récupération des détails'
+    app.value = null
+    const message = err.response?.data?.message || ''
+    // Country restriction (CountryAvailability): a friendly state, not an error.
+    if (err.response?.status === 403 && /pays|country/i.test(message))
+      unavailable.value = true
+    else error.value = message || t('store.details.loadError')
   } finally {
     loading.value = false
   }
@@ -454,10 +565,9 @@ async function refreshRating() {
   }
 }
 
-function formatDate(dateStr) {
-  if (!dateStr) return ''
-  const date = new Date(dateStr)
-  return date.toLocaleDateString('fr-FR', {
+function formatDate(value) {
+  if (!value) return ''
+  return new Date(value).toLocaleDateString(locale.value, {
     day: 'numeric',
     month: 'long',
     year: 'numeric'
@@ -470,14 +580,13 @@ function confirmInstallation() {
     return
   }
   $q.dialog({
-    title: 'Installation sur cet appareil',
-    message:
-      'Avez-vous installé cette PWA depuis votre navigateur ? Confirmez pour la retrouver dans votre bibliothèque. Cette action ne lance pas l’installation.',
+    title: t('store.details.installDialog.title'),
+    message: t('store.details.installDialog.message'),
     cancel: true
   }).onOk(async () => {
     try {
       const device = deviceIdentity()
-      if (!device) throw new Error('Le stockage local est indisponible.')
+      if (!device) throw new Error(t('store.details.noStorage'))
       await api.post('/installations', {
         application_id: app.value.id,
         app_version_id:
@@ -487,21 +596,19 @@ function confirmInstallation() {
         status: 'installed',
         metadata: { source: 'user_confirmation' }
       })
-      $q.notify({
-        type: 'positive',
-        message: 'Installation enregistrée pour cet appareil.'
-      })
+      $q.notify({ type: 'positive', message: t('store.details.installSaved') })
     } catch (e) {
       $q.notify({
         type: 'negative',
         message:
           e.response?.data?.message ||
           e.message ||
-          'Impossible d’enregistrer cette installation.'
+          t('store.details.installFailed')
       })
     }
   })
 }
+
 async function downloadVersion(id) {
   try {
     const { data } = await api.get(`/versions/${id}/download`, {
@@ -531,16 +638,12 @@ async function downloadVersion(id) {
       } catch {
         $q.notify({
           type: 'warning',
-          message:
-            'Archive reçue, mais son enregistrement dans la bibliothèque a échoué.'
+          message: t('store.details.downloadNotSaved')
         })
       }
     }
   } catch {
-    $q.notify({
-      type: 'negative',
-      message: 'Impossible de télécharger cette version.'
-    })
+    $q.notify({ type: 'negative', message: t('store.details.downloadFailed') })
   }
 }
 
@@ -553,7 +656,7 @@ async function launchApp() {
     const { data } = await api.get(`/apps/${app.value.id}/launch`)
     const url = new URL(data.url)
     if (url.protocol !== 'https:')
-      throw new Error('Adresse de lancement non sécurisée.')
+      throw new Error(t('store.details.unsafeLaunch'))
     if (target) target.location.replace(url.href)
     else window.location.assign(url.href)
   } catch (err) {
@@ -561,7 +664,9 @@ async function launchApp() {
     $q.notify({
       type: 'negative',
       message:
-        err.response?.data?.message || 'Impossible d’ouvrir cette application.'
+        err.response?.data?.message ||
+        err.message ||
+        t('store.details.launchFailed')
     })
   } finally {
     extracting.value = false
@@ -578,12 +683,11 @@ async function addFavorite() {
     favorited.value = true
     popping.value = true
     setTimeout(() => (popping.value = false), 450)
-    $q.notify({ type: 'positive', message: 'Application ajoutée aux favoris.' })
+    $q.notify({ type: 'positive', message: t('store.details.favoriteAdded') })
   } catch (e) {
     $q.notify({
       type: 'negative',
-      message:
-        e.response?.data?.message || 'Impossible d’enregistrer ce favori.'
+      message: e.response?.data?.message || t('store.details.favoriteFailed')
     })
   }
 }
@@ -591,7 +695,9 @@ async function addFavorite() {
 async function share() {
   const data = {
     title: app.value.name,
-    text: app.value.short_description || `${app.value.name} sur PWA Store`,
+    text:
+      app.value.short_description ||
+      t('store.details.shareText', { name: app.value.name }),
     url: window.location.href
   }
   try {
@@ -600,20 +706,15 @@ async function share() {
       return
     }
     await navigator.clipboard.writeText(data.url)
-    $q.notify({ type: 'positive', message: 'Lien copié.' })
+    $q.notify({ type: 'positive', message: t('store.details.linkCopied') })
   } catch (e) {
     // Closing the share sheet is not an error worth reporting.
     if (e?.name !== 'AbortError')
-      $q.notify({
-        type: 'negative',
-        message: 'Impossible de partager ce lien.'
-      })
+      $q.notify({ type: 'negative', message: t('store.details.shareFailed') })
   }
 }
 
-onMounted(() => {
-  fetchAppDetails()
-})
+onMounted(fetchAppDetails)
 watch(
   () => route.params.id,
   (id, previous) => {
@@ -623,194 +724,371 @@ watch(
 </script>
 
 <style scoped lang="scss">
-.similar-section {
-  margin-top: 24px;
-}
 .details-page {
-  background: var(--page);
+  max-width: 1320px;
+  margin: 0 auto;
+  padding: 12px var(--ui-page-gutter) 32px;
+  overflow-x: clip;
   color: var(--text);
-  padding: 16px var(--ui-page-gutter) 28px;
+  background: var(--page);
 }
 .back-btn {
-  color: var(--pwa-link);
   margin-bottom: 8px;
+  color: var(--pwa-link);
 }
-.detail-card {
-  background: var(--glass);
-  border: 1px solid var(--outline);
-  border-radius: 17px;
-  padding: clamp(13px, 1.6vw, 18px);
+.details-shell {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-width: 0;
+}
+.details-cover {
+  overflow: hidden;
+  max-height: 420px;
+  border-radius: var(--ui-radius-lg);
   box-shadow: var(--ui-shadow-sm);
-  transition:
-    border-color 0.2s ease,
-    box-shadow 0.25s ease;
 }
-.detail-card:hover {
-  border-color: color-mix(in srgb, var(--primary) 22%, var(--outline));
+.details-cover :deep(.cover-image) {
+  max-height: 420px;
+}
+.skeleton-cover {
+  aspect-ratio: 16 / 9;
+  height: auto;
+}
+.details-header {
+  position: relative;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 16px;
+  margin: -64px 16px 0;
+  padding: 16px 18px;
+  border-radius: var(--ui-radius-lg);
+  background: var(--surface-low);
   box-shadow: var(--ui-shadow-md);
 }
-.detail-card :deep(.text-white) {
-  color: var(--text) !important;
+.details-icon {
+  width: 88px;
+  height: 88px;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  color: var(--pwa-on-primary);
+  border-radius: 22px;
+  box-shadow: 0 12px 26px rgba(2, 5, 20, 0.22);
 }
-.detail-card :deep(.text-blue-grey-100),
-.detail-card :deep(.text-blue-grey-200),
-.detail-card :deep(.text-blue-grey-300),
-.detail-card :deep(.text-blue-grey-400) {
-  color: var(--muted) !important;
+.details-icon :deep(.q-icon) {
+  font-size: 40px;
 }
-.detail-card :deep(.q-list--dark) {
-  color: var(--text);
+.details-title {
+  min-width: 0;
 }
 .app-title {
-  color: var(--text);
-  font-size: clamp(23px, 3vw, 34px);
-  font-weight: 800;
   margin: 0;
-  line-height: 1.2;
+  overflow-wrap: anywhere;
+  font-size: clamp(22px, 3vw, 32px);
+  font-weight: 800;
+  line-height: 1.15;
+  letter-spacing: -0.03em;
 }
 .dev-name {
+  margin-top: 2px;
   color: var(--muted);
+  font-size: 13px;
+}
+.dev-name a {
+  color: var(--pwa-link);
+  font-weight: 650;
+  text-decoration: none;
+}
+.details-chips {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+}
+.details-chip {
+  padding: 2px 10px;
+  color: var(--text);
+  background: var(--surface-high);
+  border: 1px solid var(--outline);
+  border-radius: 999px;
   font-size: 12px;
+  font-weight: 600;
+  line-height: 20px;
+  text-decoration: none;
+}
+a.details-chip:hover {
+  color: var(--pwa-link);
+}
+.details-rating {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 13px;
+  font-weight: 700;
+}
+.details-rating .q-icon {
+  color: var(--pwa-accent);
+}
+.details-rating small {
+  color: var(--muted);
+  font-weight: 500;
+}
+.details-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+}
+.details-secondary {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+.launch-pwa-btn {
+  min-width: 200px;
+  min-height: 44px;
+  color: var(--pwa-on-primary);
+  background: var(--primary);
+  border-radius: 999px;
+  font-weight: 750;
+  box-shadow: 0 6px 18px rgba(var(--pwa-primary-rgb), 0.32);
+}
+.details-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 340px;
+  align-items: start;
+  gap: 16px;
+}
+.details-main,
+.details-side {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.detail-card {
+  min-width: 0;
+  padding: clamp(14px, 1.6vw, 20px);
+  border-radius: var(--ui-radius-lg);
+}
+.skeleton-block {
+  border-radius: var(--ui-radius-lg);
 }
 .section-title {
-  color: var(--pwa-link);
-  font-size: 12px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0 0 12px;
+  font-size: 17px;
+  font-weight: 750;
+}
+.mini-title {
+  margin: 12px 0 6px;
+  color: var(--muted);
+  font-size: 11px;
   font-weight: 800;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+}
+.lead-text {
+  margin: 0 0 8px;
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.5;
 }
 .description-text {
-  color: var(--text);
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.65;
+  white-space: pre-line;
+  overflow-wrap: anywhere;
+}
+.muted-text {
+  margin: 0;
+  color: var(--muted);
   font-size: 13px;
   line-height: 1.5;
 }
-.screenshots-section {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
+.screenshot-card {
+  margin: 0;
+  overflow: hidden;
+  background: var(--surface-high);
+  border: 1px solid var(--outline);
+  border-radius: 14px;
 }
-.device-type-label {
-  font-size: 10px;
-  font-weight: 800;
-  color: var(--muted);
-  text-transform: uppercase;
-  margin-bottom: 6px;
+.screenshot-card img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.shot-mobile {
+  width: clamp(140px, 36vw, 200px);
+  aspect-ratio: 9 / 19.5;
+}
+.shot-tablet {
+  width: clamp(240px, 64vw, 420px);
+  aspect-ratio: 4 / 3;
+}
+.info-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 14px 20px;
+  margin: 0;
+}
+.info-row {
+  min-width: 0;
+}
+.info-row dt {
   display: flex;
   align-items: center;
+  gap: 6px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 650;
+}
+.info-row dt .q-icon {
+  font-size: 16px;
+}
+.info-row dd {
+  margin: 2px 0 0 22px;
+  font-size: 14px;
+  overflow-wrap: anywhere;
+}
+.info-row a {
+  display: inline-flex;
+  align-items: center;
   gap: 4px;
+  color: var(--pwa-link);
+  text-decoration: none;
 }
-.screenshot-scroll {
-  display: flex;
-  gap: 10px;
-  overflow-x: auto;
-  padding-bottom: 6px;
-  scrollbar-width: thin;
-  scrollbar-color: var(--surface-highest) transparent;
-
-  &::-webkit-scrollbar {
-    height: 4px;
-  }
-  &::-webkit-scrollbar-thumb {
-    background: var(--surface-highest);
-    border-radius: 2px;
-  }
+.info-row a .q-icon {
+  font-size: 14px;
 }
-.screenshot-card {
-  flex: 0 0 auto;
-  border-radius: 13px;
-  overflow: hidden;
-  border: 1px solid var(--outline);
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
-  background: var(--surface-low);
-  transition:
-    transform 0.25s var(--ui-ease),
-    box-shadow 0.25s ease;
-
-  &:hover {
-    box-shadow: var(--ui-shadow-md);
-    transform: translateY(-3px) scale(1.01);
-  }
+.install-version {
+  margin: -6px 0 10px;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 650;
 }
-.mobile-card {
-  width: 110px;
-  height: 195px;
-}
-.tablet-card {
-  width: 220px;
-  height: 145px;
-}
-.launch-pwa-btn {
-  background: var(--primary) !important;
-  color: var(--pwa-on-primary) !important;
-  box-shadow: 0 4px 15px rgba(var(--pwa-primary-rgb), 0.35);
-  transition:
-    transform 0.2s,
-    box-shadow 0.2s;
-}
-.launch-pwa-btn:not(.q-btn--disabled):hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(var(--pwa-primary-rgb), 0.45);
-}
-.launch-pwa-btn.q-btn--disabled {
-  background: var(--outline) !important;
-  color: var(--muted) !important;
-  opacity: 0.55 !important;
-  box-shadow: none !important;
-}
-.rating-box {
-  background: var(--surface-low);
-  border: 1px solid var(--outline);
-  border-radius: 12px;
-  min-width: 100px;
-}
-.rating-value {
-  color: var(--text);
-  font-size: 24px;
-  font-weight: 800;
-}
-.review-box {
-  background: var(--surface-low);
-  border: 1px solid var(--outline);
-  border-radius: 13px;
-}
-.hash-box {
-  background: var(--surface-low);
-  border: 1px solid var(--outline);
-  font-family: var(--pwa-font-sans);
-  padding: 6px 10px;
-  border-radius: 6px;
-  font-size: 10px;
-  color: var(--text);
-}
-.download-btn {
+.install-pwa-btn {
+  margin-bottom: 6px;
   color: var(--pwa-on-primary);
-  background: var(--primary);
-  font-weight: 800;
-  border-radius: 11px;
+  background: #16a34a;
+  font-weight: 700;
 }
-@media (max-width: 599px) {
-  .details-page {
-    padding-top: 15px;
-  }
-  .detail-card {
-    border-radius: 14px;
-  }
-  .mobile-card {
-    width: 128px;
-    height: 225px;
-  }
+.install-note {
+  margin: 6px 0 0;
+  color: var(--muted);
+  font-size: 12px;
 }
 .pwa-install-info {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+  padding: 10px 12px;
+  color: var(--muted);
   background: rgba(var(--pwa-primary-rgb), 0.08);
   border: 1px solid rgba(var(--pwa-primary-rgb), 0.2);
   border-radius: 12px;
-  padding: 10px 12px;
+  font-size: 12px;
+}
+.hash-box {
+  margin-top: 10px;
+  padding: 6px 10px;
+  overflow: hidden;
+  background: var(--surface-high);
+  border: 1px solid var(--outline);
+  border-radius: 6px;
+  font-size: 11px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+.soft-chip {
+  margin: 0;
+  color: var(--text);
+  background: var(--surface-high);
+}
+.version-number {
+  font-weight: 700;
+}
+.similar-row {
+  margin-top: 12px;
+}
+.details-state {
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  max-width: 560px;
+  margin: 32px auto;
+  padding: 36px 20px;
+  color: var(--muted);
+  text-align: center;
+  border-radius: var(--ui-radius-lg);
+}
+.details-state > .q-icon {
+  color: var(--pwa-link);
+  font-size: 44px;
+}
+.details-state h1 {
+  margin: 0;
+  color: var(--text);
+  font-size: 22px;
+  line-height: 1.3;
+}
+.details-state p {
+  margin: 0 0 8px;
 }
 .extraction-dialog {
+  min-width: 300px;
+  padding: 16px;
   color: var(--pwa-text);
   background: var(--pwa-surface);
+  border-radius: 16px;
 }
 .extraction-caption {
   color: var(--pwa-muted);
+}
+@media (max-width: 1023px) {
+  .details-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .details-header {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+  .details-actions {
+    grid-column: 1 / -1;
+    align-items: stretch;
+  }
+  .details-secondary {
+    justify-content: flex-start;
+  }
+}
+@media (max-width: 599px) {
+  .details-cover {
+    border-radius: var(--ui-radius-md);
+  }
+  .details-header {
+    gap: 12px;
+    margin: -36px 8px 0;
+    padding: 14px;
+  }
+  .details-icon {
+    width: 64px;
+    height: 64px;
+    border-radius: 16px;
+  }
+  .launch-pwa-btn {
+    width: 100%;
+    min-width: 0;
+  }
 }
 </style>

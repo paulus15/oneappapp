@@ -12,14 +12,14 @@
           dense
           icon="menu"
           class="menu-button lt-md"
-          aria-label="Ouvrir la navigation"
+          :aria-label="ui('Ouvrir la navigation')"
           @click="leftDrawerOpen = !leftDrawerOpen"
         />
 
         <router-link
           to="/"
           class="mobile-brand lt-md"
-          aria-label="PWA Store, accueil"
+          :aria-label="ui('PWA Store, accueil')"
         >
           <BrandLogo compact />
         </router-link>
@@ -27,7 +27,7 @@
         <router-link
           to="/"
           class="desktop-brand gt-sm"
-          aria-label="PWA Store, accueil"
+          :aria-label="ui('PWA Store, accueil')"
           ><BrandLogo
         /></router-link>
         <div class="header-search">
@@ -35,19 +35,24 @@
           <input
             v-model="search"
             type="search"
-            placeholder="Rechercher une application, un jeu, une entreprise..."
-            aria-label="Rechercher"
+            :placeholder="
+              ui('Rechercher une application, un jeu, une entreprise...')
+            "
+            :aria-label="ui('Rechercher')"
             @focus="searchFocused = true"
             @blur="onSearchBlur"
             @keyup.enter="submitSearch"
           />
 
           <!-- Search Overlay Suggestions / History -->
-          <div v-if="searchFocused" class="search-overlay-box glass-panel">
+          <div
+            v-if="searchFocused && (suggestions.length || searchHistory.length)"
+            class="search-overlay-box glass-panel"
+          >
             <!-- Autocomplete Suggestions -->
             <div v-if="suggestions.length > 0" class="search-section">
               <div class="search-section-title"
-                ><q-icon name="auto_awesome" /> Suggestions</div
+                ><q-icon name="auto_awesome" /> {{ ui('Suggestions') }}</div
               >
               <div class="search-suggestions-list">
                 <div
@@ -67,12 +72,14 @@
               <div
                 class="search-section-title row justify-between items-center"
               >
-                <span><q-icon name="history" /> Historique récent</span>
+                <span
+                  ><q-icon name="history" /> {{ ui('Historique récent') }}</span
+                >
                 <q-btn
                   flat
                   dense
                   no-caps
-                  label="Effacer"
+                  :label="ui('Effacer')"
                   class="clear-history-btn"
                   @mousedown="clearHistory"
                 />
@@ -100,33 +107,18 @@
                 </div>
               </div>
             </div>
-
-            <!-- Trending Searches -->
-            <div class="search-section">
-              <div class="search-section-title"
-                ><q-icon name="trending_up" /> Recherches populaires</div
-              >
-              <div class="search-trending-chips">
-                <q-chip
-                  v-for="trend in trendingQueries"
-                  :key="trend"
-                  clickable
-                  color="blue-grey-900"
-                  text-color="blue-grey-200"
-                  class="trend-chip"
-                  @mousedown="selectSearchTerm(trend)"
-                >
-                  {{ trend }}
-                </q-chip>
-              </div>
-            </div>
           </div>
         </div>
 
-        <nav class="top-links gt-md" aria-label="Liens secondaires">
-          <router-link to="/developers">Développeurs</router-link>
-          <router-link to="/">Apps</router-link>
-          <a href="#features">Documentation</a>
+        <nav class="top-links gt-md" :aria-label="t('store.nav.primary')">
+          <router-link
+            v-for="item in mainNavigation"
+            :key="item.key"
+            :to="item.to"
+            :class="{ active: isActive(item) }"
+            >{{ t(`nav.${item.key}`) }}</router-link
+          >
+          <router-link to="/developers">{{ ui('Développeurs') }}</router-link>
         </nav>
 
         <div class="header-actions">
@@ -159,9 +151,11 @@
             class="icon-action"
             type="button"
             :aria-label="
-              isDark ? 'Activer le thème clair' : 'Activer le thème sombre'
+              isDark
+                ? ui('Activer le thème clair')
+                : ui('Activer le thème sombre')
             "
-            :title="isDark ? 'Thème clair' : 'Thème sombre'"
+            :title="isDark ? ui('Thème clair') : ui('Thème sombre')"
             @click="toggleTheme"
           >
             <transition name="theme-swap" mode="out-in">
@@ -171,6 +165,7 @@
               />
             </transition>
           </button>
+          <CountryChoice />
           <NotificationBell class="gt-xs" />
 
           <template v-if="authStore.isAuthenticated">
@@ -180,7 +175,7 @@
               </q-avatar>
               <span class="profile-copy gt-sm">
                 <strong>{{ authStore.userName }}</strong>
-                <small>{{ authStore.user?.role || 'Membre' }}</small>
+                <small>{{ authStore.user?.role || ui('Membre') }}</small>
               </span>
               <q-icon name="expand_more" class="gt-sm" />
               <q-menu auto-close class="profile-menu">
@@ -189,13 +184,13 @@
                     <q-item-section avatar
                       ><q-icon name="person_outline"
                     /></q-item-section>
-                    <q-item-section>Mon espace</q-item-section>
+                    <q-item-section>{{ ui('Mon espace') }}</q-item-section>
                   </q-item>
                   <q-item clickable class="text-negative" @click="handleLogout">
                     <q-item-section avatar
                       ><q-icon name="logout"
                     /></q-item-section>
-                    <q-item-section>Déconnexion</q-item-section>
+                    <q-item-section>{{ ui('Déconnexion') }}</q-item-section>
                   </q-item>
                 </q-list>
               </q-menu>
@@ -208,7 +203,7 @@
             icon="person_outline"
             to="/login"
             class="icon-action login-action"
-            aria-label="Se connecter"
+            :aria-label="ui('Se connecter')"
           />
         </div>
       </q-toolbar>
@@ -222,11 +217,15 @@
       class="one-drawer"
     >
       <div class="drawer-content">
-        <router-link to="/" class="brand" aria-label="PWA Store, accueil">
+        <router-link
+          to="/"
+          class="brand"
+          :aria-label="ui('PWA Store, accueil')"
+        >
           <BrandLogo />
         </router-link>
 
-        <p class="drawer-label drawer-label-first">Explorer</p>
+        <p class="drawer-label drawer-label-first">{{ ui('Explorer') }}</p>
         <q-list class="navigation-list">
           <q-item
             v-for="item in mainNavigation"
@@ -234,9 +233,9 @@
             clickable
             v-ripple
             :to="item.to"
-            exact
+            :exact="item.to === '/'"
             active-class="nav-active"
-            @click="handleNavigation(item)"
+            @click="handleNavigation"
           >
             <q-item-section avatar>
               <span class="nav-icon"><q-icon :name="item.icon" /></span>
@@ -249,20 +248,22 @@
         </q-list>
 
         <template v-if="authStore.isAdmin">
-          <p class="drawer-label">Administration</p>
+          <p class="drawer-label">{{ ui('Administration') }}</p>
           <router-link to="/admin" class="developer-entry">
             <span class="developer-entry-icon"
               ><q-icon name="admin_panel_settings"
             /></span>
             <span class="developer-entry-copy">
-              <strong>Back-office</strong>
-              <small>Modération, comptes et journal</small>
+              <strong>{{ ui('Back-office') }}</strong>
+              <small>{{ ui('Modération, comptes et journal') }}</small>
             </span>
             <q-icon name="arrow_forward" class="developer-entry-arrow" />
           </router-link>
         </template>
 
-        <p v-if="!isMobile" class="drawer-label">Espace développeur</p>
+        <p v-if="!isMobile" class="drawer-label">{{
+          ui('Espace développeur')
+        }}</p>
         <router-link
           v-if="!isMobile"
           to="/developer/activate"
@@ -270,8 +271,8 @@
         >
           <span class="developer-entry-icon"><q-icon name="terminal" /></span>
           <span class="developer-entry-copy">
-            <strong>Espace développeur</strong>
-            <small>Gérez vos apps et vos builds</small>
+            <strong>{{ ui('Espace développeur') }}</strong>
+            <small>{{ ui('Gérez vos apps et vos builds') }}</small>
           </span>
           <q-icon name="arrow_forward" class="developer-entry-arrow" />
         </router-link>
@@ -279,14 +280,18 @@
         <div v-if="!isMobile" class="publish-card">
           <span class="publish-glow" />
           <span class="publish-icon"><q-icon name="rocket_launch" /></span>
-          <strong>Publiez votre application</strong>
+          <strong>{{ ui('Publiez votre application') }}</strong>
           <p>
-            Proposez vos PWA et suivez leur publication depuis votre espace.
+            {{
+              ui(
+                'Proposez vos PWA et suivez leur publication depuis votre espace.'
+              )
+            }}
           </p>
           <q-btn
             unelevated
             no-caps
-            label="Commencer"
+            :label="ui('Commencer')"
             to="/developer/activate"
           />
         </div>
@@ -299,7 +304,7 @@
             no-caps
             class="full-width text-weight-bold"
             icon="add_to_home_screen"
-            label="Installer PWA Store"
+            :label="ui('Installer PWA Store')"
             @click="promptInstallStore"
           />
         </div>
@@ -322,6 +327,7 @@
     </q-drawer>
 
     <q-page-container class="page-container">
+      <CountryMissingBanner />
       <router-view v-slot="{ Component, route }">
         <transition name="page" mode="out-in">
           <component :is="Component" :key="route.path" />
@@ -331,35 +337,24 @@
 
     <nav
       class="mobile-bottom-nav lt-md"
-      aria-label="Navigation mobile principale"
+      :aria-label="ui('Navigation mobile principale')"
     >
       <q-btn
+        v-for="item in mainNavigation"
+        :key="item.key"
         flat
         no-caps
-        icon="home"
-        label="Accueil"
-        to="/"
-        :class="{ active: route.path === '/' }"
-      />
-      <q-btn
-        flat
-        no-caps
-        icon="apps"
-        label="Apps"
-        @click="handleNavigation(mainNavigation[1])"
-      />
-      <q-btn
-        flat
-        no-caps
-        icon="category"
-        label="Catégories"
-        @click="handleNavigation(mainNavigation[4])"
+        :icon="item.icon"
+        :label="t(`nav.${item.key}`)"
+        :to="item.to"
+        :class="{ active: isActive(item) }"
+        :aria-current="isActive(item) ? 'page' : undefined"
       />
       <q-btn
         flat
         no-caps
         icon="person_outline"
-        label="Compte"
+        :label="ui('Compte')"
         :to="authStore.isAuthenticated ? '/account' : '/login'"
         :class="{
           active: route.path === '/account' || route.path === '/login'
@@ -370,12 +365,16 @@
 </template>
 
 <script setup>
+import { ui } from '@/i18n/text'
+
 import NotificationBell from '@/components/NotificationBell.vue'
+import CountryChoice from '@/components/CountryChoice.vue'
+import CountryMissingBanner from '@/components/CountryMissingBanner.vue'
 import { useWorkspaceAccess } from '@/composables/useWorkspaceAccess'
 const { isMobile } = useWorkspaceAccess()
 import BrandLogo from '@/components/BrandLogo.vue'
 import { useTheme } from '@/composables/useTheme'
-import { nextTick, onMounted, ref, watch, computed } from 'vue'
+import { onMounted, ref, watch, computed } from 'vue'
 import { useQuasar } from 'quasar'
 import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
@@ -398,19 +397,19 @@ const activeLocale = computed(
 const searchFocused = ref(false)
 const searchHistory = ref([])
 const suggestions = ref([])
-const trendingQueries = ['Retro Games', 'Taskify', 'Chat', 'Secure Notes']
 
 const deferredInstallPrompt = ref(null)
 const canInstallStore = computed(() => !!deferredInstallPrompt.value)
 
+// Découvrir · Applications · Catégories · Classements: one entry per destination.
 const mainNavigation = [
-  { key: 'home', icon: 'home', to: '/' },
-  { key: 'popular', icon: 'apps', to: '/popular' },
-  { key: 'recommended', icon: 'auto_awesome', to: '/recommended' },
-  { key: 'trending', icon: 'trending_up', to: '/trending' },
-  { key: 'categories', icon: 'category', section: 'categories' },
-  { key: 'business', icon: 'business', section: 'business' }
+  { key: 'discover', icon: 'explore', to: '/' },
+  { key: 'applications', icon: 'apps', to: '/applications' },
+  { key: 'categories', icon: 'category', to: '/categories' },
+  { key: 'rankings', icon: 'leaderboard', to: '/rankings' }
 ]
+const isActive = item =>
+  item.to === '/' ? route.path === '/' : route.path.startsWith(item.to)
 
 onMounted(() => {
   search.value = String(route.query.search || '')
@@ -431,7 +430,9 @@ onMounted(() => {
     deferredInstallPrompt.value = null
     $q.notify({
       type: 'positive',
-      message: 'PWA Store a été installé avec succès sur votre appareil !'
+      get message() {
+        return ui('PWA Store a été installé avec succès sur votre appareil !')
+      }
     })
   })
 })
@@ -498,20 +499,8 @@ function removeHistoryItem(index) {
   )
 }
 
-async function handleNavigation(item) {
+function handleNavigation() {
   if ($q.screen.lt.md) leftDrawerOpen.value = false
-
-  if (!item.section) return
-
-  if (route.path !== '/') await router.push('/')
-  await nextTick()
-
-  requestAnimationFrame(() => {
-    document.getElementById(item.section)?.scrollIntoView({
-      behavior: 'smooth',
-      block: 'start'
-    })
-  })
 }
 
 async function handleLogout() {
@@ -660,15 +649,6 @@ async function promptInstallStore() {
     opacity: 1;
   }
 }
-.search-trending-chips {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-.trend-chip {
-  font-size: 11px;
-  font-weight: 700;
-}
 .header-search input::placeholder {
   color: var(--muted);
   opacity: 0.72;
@@ -689,7 +669,8 @@ async function promptInstallStore() {
   font-size: 13px;
   font-weight: 600;
 }
-.top-links a:hover {
+.top-links a:hover,
+.top-links a.active {
   color: var(--pwa-link);
 }
 .header-actions {
@@ -1038,7 +1019,7 @@ async function promptInstallStore() {
   max-width: calc(100vw - 24px);
   height: 60px;
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(5, minmax(0, 1fr));
   padding: 6px;
   background: color-mix(in srgb, var(--surface-low) 88%, transparent);
   border: 1px solid var(--outline);

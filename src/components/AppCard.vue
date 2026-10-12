@@ -4,27 +4,40 @@
       <AppIcon
         :src="app.iconUrl"
         :fallback-icon="app.icon"
-        :alt="`Icône de ${app.name}`"
+        :alt="ui('Icône de {p0}', { p0: app.name })"
       />
     </div>
     <h3>{{ app.name }}</h3>
-    <p>{{ app.publisher || app.category }}</p>
+    <p>{{ app.publisher || ui(app.category) }}</p>
     <div class="card-meta">
       <span class="price">{{
-        app.price > 0 ? `${app.price} FCFA` : 'Gratuit'
+        app.price > 0 ? priceLabel(app.price) : ui('Gratuit')
       }}</span>
       <span v-if="app.rating" class="rating"
-        ><q-icon name="star" />{{ app.rating }}</span
+        ><q-icon name="star" />{{ ratingLabel(app.rating) }}</span
       >
-      <span v-else class="rating new">Nouveau</span>
+      <span v-else class="rating new">{{ ui('Nouveau') }}</span>
       <HostingBadge :source-type="app.sourceType" compact :focusable="false" />
     </div>
   </router-link>
 </template>
 <script setup>
+import { ui } from '@/i18n/text'
+
 import AppIcon from '@/components/AppIcon.vue'
 import HostingBadge from '@/components/HostingBadge.vue'
+import { currentLocale } from '@/i18n'
 defineProps({ app: { type: Object, required: true } })
+const priceLabel = value =>
+  new Intl.NumberFormat(currentLocale(), {
+    style: 'currency',
+    currency: 'XOF',
+    maximumFractionDigits: 0
+  }).format(value)
+const ratingLabel = value =>
+  new Intl.NumberFormat(currentLocale(), { maximumFractionDigits: 1 }).format(
+    Number(value)
+  )
 </script>
 <style scoped>
 .app-card {
@@ -43,7 +56,7 @@ defineProps({ app: { type: Object, required: true } })
 }
 .app-card:hover,
 .app-card:focus-visible {
-  transform: translateY(-4px);
+  transform: translateY(-1px);
   background: var(--surface-high);
   border-color: color-mix(in srgb, var(--primary) 35%, transparent);
 }
@@ -54,7 +67,7 @@ defineProps({ app: { type: Object, required: true } })
 }
 .app-card:hover .app-icon,
 .app-card:focus-visible .app-icon {
-  transform: translateY(-3px) scale(1.05);
+  transform: none;
   box-shadow: 0 12px 24px rgba(2, 5, 20, 0.24);
 }
 @media (prefers-reduced-motion: reduce) {
@@ -87,7 +100,7 @@ h3 {
   max-width: 100%;
   margin: 0;
   overflow: hidden;
-  font-size: 12px;
+  font-size: 14px;
   font-weight: 700;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -97,7 +110,7 @@ p {
   margin: 2px 0 6px;
   overflow: hidden;
   color: var(--muted);
-  font-size: 10px;
+  font-size: 12px;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -105,7 +118,8 @@ p {
   display: flex;
   width: 100%;
   align-items: center;
-  justify-content: space-between;
+  justify-content: center;
+  flex-wrap: wrap;
   gap: 6px;
   font-size: 11px;
 }
@@ -124,6 +138,6 @@ p {
   font-size: 12px;
 }
 .rating.new {
-  font-size: 10px;
+  font-size: 12px;
 }
 </style>

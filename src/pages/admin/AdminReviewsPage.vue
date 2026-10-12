@@ -1,11 +1,13 @@
 <template>
   <q-page class="workspace-page">
     <header class="workspace-heading"
-      ><span class="eyebrow">Administration</span><h1>Modération des avis</h1
-      ><p
-        >Un avis masqué disparaît de la fiche et de la note moyenne. Son auteur
-        voit le motif dans son espace.</p
-      ></header
+      ><span class="eyebrow">{{ ui('Administration') }}</span
+      ><h1>{{ ui('Modération des avis') }}</h1
+      ><p>{{
+        ui(
+          'Un avis masqué disparaît de la fiche et de la note moyenne. Son auteur voit le motif dans son espace.'
+        )
+      }}</p></header
     >
     <AdminNav />
     <div class="row q-col-gutter-sm q-mb-md items-center">
@@ -16,7 +18,7 @@
           dense
           clearable
           debounce="400"
-          label="Texte de l’avis"
+          :label="ui('Texte de l’avis')"
           @update:model-value="reload"
         />
       </div>
@@ -29,20 +31,20 @@
           clearable
           outlined
           dense
-          label="Statut"
+          :label="ui('Statut')"
           @update:model-value="reload"
         />
       </div>
       <div class="col-6 col-md-3">
         <q-toggle
           v-model="filters.reported"
-          label="Signalés uniquement"
+          :label="ui('Signalés uniquement')"
           @update:model-value="reload"
         />
       </div>
     </div>
     <q-banner v-if="error" class="workspace-alert q-mb-md" role="alert">{{
-      error
+      ui(error)
     }}</q-banner>
     <q-linear-progress v-if="loading" indeterminate />
     <q-list bordered separator class="rounded-borders">
@@ -52,17 +54,18 @@
             ><strong>{{ review.application?.name }}</strong> ·
             {{ review.rating }}/5 · {{ review.user?.name }}
             <q-badge v-if="review.open_reports_count" color="negative"
-              >{{ review.open_reports_count }} signalement(s)</q-badge
+              >{{ review.open_reports_count }}
+              {{ ui('signalement(s)') }}</q-badge
             >
-            <q-badge v-if="review.status === 'hidden'" color="grey-7"
-              >Masqué</q-badge
-            ></q-item-label
+            <q-badge v-if="review.status === 'hidden'" color="grey-7">{{
+              ui('Masqué')
+            }}</q-badge></q-item-label
           >
           <q-item-label>{{
-            review.comment || 'Sans commentaire'
+            review.comment || ui('Sans commentaire')
           }}</q-item-label>
           <q-item-label v-if="review.moderation_reason" caption
-            >Motif : {{ review.moderation_reason }}</q-item-label
+            >{{ ui('Motif :') }} {{ review.moderation_reason }}</q-item-label
           >
         </q-item-section>
         <q-item-section side>
@@ -70,14 +73,18 @@
             flat
             no-caps
             :color="review.status === 'visible' ? 'negative' : 'positive'"
-            :label="review.status === 'visible' ? 'Masquer' : 'Rétablir'"
+            :label="
+              review.status === 'visible' ? ui('Masquer') : ui('Rétablir')
+            "
             :disable="busy"
             @click="moderate(review)"
           />
         </q-item-section>
       </q-item>
       <q-item v-if="!loading && !reviews.length"
-        ><q-item-section>Aucun avis pour ce filtre.</q-item-section></q-item
+        ><q-item-section>{{
+          ui('Aucun avis pour ce filtre.')
+        }}</q-item-section></q-item
       >
     </q-list>
     <q-pagination
@@ -90,6 +97,8 @@
   </q-page>
 </template>
 <script setup>
+import { ui } from '@/i18n/text'
+
 import { onMounted, reactive, ref } from 'vue'
 import { useQuasar } from 'quasar'
 import AdminNav from '@/components/AdminNav.vue'
@@ -105,8 +114,18 @@ const reviews = ref([]),
   lastPage = ref(1)
 const filters = reactive({ search: '', status: null, reported: false })
 const statusOptions = [
-  { value: 'visible', label: 'Visibles' },
-  { value: 'hidden', label: 'Masqués' }
+  {
+    value: 'visible',
+    get label() {
+      return ui('Visibles')
+    }
+  },
+  {
+    value: 'hidden',
+    get label() {
+      return ui('Masqués')
+    }
+  }
 ]
 async function load() {
   loading.value = true
@@ -133,8 +152,11 @@ function reload() {
 function moderate(review) {
   const status = review.status === 'visible' ? 'hidden' : 'visible'
   $q.dialog({
-    title: status === 'hidden' ? 'Masquer cet avis' : 'Rétablir cet avis',
-    message: 'Indiquez le motif, conservé dans le journal.',
+    title:
+      status === 'hidden' ? ui('Masquer cet avis') : ui('Rétablir cet avis'),
+    get message() {
+      return ui('Indiquez le motif, conservé dans le journal.')
+    },
     prompt: { model: '', type: 'textarea', isValid: v => v.trim().length >= 3 },
     cancel: true,
     persistent: true

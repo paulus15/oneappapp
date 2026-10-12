@@ -1,3 +1,4 @@
+import { ui } from '@/i18n/text'
 import { api } from '@/boot/axios'
 
 export const adminApi = {
@@ -36,12 +37,28 @@ export const adminApi = {
 }
 
 export const PERMISSION_LABELS = {
-  'developers.review': 'Vérifier les développeurs',
-  'apps.moderate': 'Modérer les applications',
-  'reviews.moderate': 'Modérer les avis',
-  'reports.handle': 'Traiter les signalements',
-  'catalog.manage': 'Gérer le catalogue',
-  'users.manage': 'Gérer les utilisateurs',
-  'settings.manage': 'Gérer les paramètres et les permissions',
-  'audit.view': 'Consulter le journal et les statistiques'
+  get 'developers.review'() {
+    return ui('Vérifier les développeurs')
+  },
+  get 'apps.moderate'() {
+    return ui('Modérer les applications')
+  },
+  get 'reviews.moderate'() {
+    return ui('Modérer les avis')
+  },
+  get 'reports.handle'() {
+    return ui('Traiter les signalements')
+  },
+  get 'catalog.manage'() {
+    return ui('Gérer le catalogue')
+  },
+  get 'users.manage'() {
+    return ui('Gérer les utilisateurs')
+  },
+  get 'settings.manage'() {
+    return ui('Gérer les paramètres et les permissions')
+  },
+  get 'audit.view'() {
+    return ui('Consulter le journal et les statistiques')
+  }
 }

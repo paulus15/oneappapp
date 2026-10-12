@@ -2,11 +2,11 @@
   <q-page class="auth-page">
     <q-card flat class="auth-card">
       <q-card-section class="card-header">
-        <span class="auth-eyebrow">Ravi de vous revoir</span>
-        <h1 class="auth-title">Connectez-vous</h1>
-        <p class="auth-subtitle"
-          >Retrouvez votre espace et vos applications sur PWA Store.</p
-        >
+        <span class="auth-eyebrow">{{ ui('Ravi de vous revoir') }}</span>
+        <h1 class="auth-title">{{ ui('Connectez-vous') }}</h1>
+        <p class="auth-subtitle">{{
+          ui('Retrouvez votre espace et vos applications sur PWA Store.')
+        }}</p>
       </q-card-section>
 
       <q-card-section>
@@ -15,14 +15,14 @@
             v-model="email"
             type="email"
             autocomplete="email"
-            label="Adresse e-mail"
+            :label="ui('Adresse e-mail')"
             filled
             dense
             hide-bottom-space
             color="primary"
             required
             lazy-rules
-            :rules="[val => (val && val.length > 0) || 'Email requis']"
+            :rules="[val => (val && val.length > 0) || ui('Email requis')]"
           >
             <template #prepend><q-icon name="alternate_email" /></template>
           </q-input>
@@ -31,14 +31,16 @@
             v-model="password"
             autocomplete="current-password"
             :type="showPassword ? 'text' : 'password'"
-            label="Mot de passe"
+            :label="ui('Mot de passe')"
             filled
             dense
             hide-bottom-space
             color="primary"
             required
             lazy-rules
-            :rules="[val => (val && val.length > 0) || 'Mot de passe requis']"
+            :rules="[
+              val => (val && val.length > 0) || ui('Mot de passe requis')
+            ]"
           >
             <template #prepend><q-icon name="lock" /></template>
             <template #append>
@@ -49,8 +51,8 @@
                 :icon="showPassword ? 'visibility_off' : 'visibility'"
                 :aria-label="
                   showPassword
-                    ? 'Masquer le mot de passe'
-                    : 'Afficher le mot de passe'
+                    ? ui('Masquer le mot de passe')
+                    : ui('Afficher le mot de passe')
                 "
                 @click="showPassword = !showPassword"
               />
@@ -61,21 +63,21 @@
             <q-checkbox
               v-model="rememberMe"
               dense
-              label="Rester connecté"
+              :label="ui('Rester connecté')"
               color="primary"
             />
-            <router-link to="/forgot-password" class="text-action"
-              >Mot de passe oublié ?</router-link
-            >
+            <router-link to="/forgot-password" class="text-action">{{
+              ui('Mot de passe oublié ?')
+            }}</router-link>
           </div>
 
           <div v-if="error" class="form-error" role="alert">
-            {{ error }}
+            {{ ui(error) }}
           </div>
 
           <div class="auth-submit">
             <q-btn
-              label="Continuer"
+              :label="ui('Continuer')"
               type="submit"
               unelevated
               no-caps
@@ -88,9 +90,9 @@
 
       <q-card-section class="card-footer">
         <div class="footer-text">
-          Pas encore de compte ?
+          {{ ui('Pas encore de compte ?') }}
           <router-link to="/register" class="register-link">
-            Inscrivez-vous
+            {{ ui('Inscrivez-vous') }}
           </router-link>
         </div>
       </q-card-section>
@@ -99,6 +101,8 @@
 </template>
 
 <script setup>
+import { ui } from '@/i18n/text'
+
 import { ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
@@ -142,7 +146,7 @@ async function onSubmit() {
       )
     }
   } catch (err) {
-    error.value = authStore.error || 'Erreur de connexion'
+    error.value = authStore.error || ui('Erreur de connexion')
   } finally {
     loading.value = false
   }

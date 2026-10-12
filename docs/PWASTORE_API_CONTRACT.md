@@ -8,6 +8,8 @@ Auth : `—` public · `U` compte connecté · `D` profil développeur · `A` ad
 ## Conventions
 
 - Langue : le front envoie `Accept-Language: fr|en` (choix mémorisé dans le navigateur) ; l'API répond avec `Content-Language`. Le français est la langue source et la valeur par défaut. Messages traduits : manques de soumission et blocages éditeur (`lang/en.json`) ; les autres messages restent en français pour l'instant.
+- Pays : connecté, le pays du profil s’applique ; visiteur, l’en-tête `X-Country: CI` (choix explicite mémorisé dans le navigateur, jamais déduit de l’IP). Sans pays, seules les applications disponibles partout sont listées. Une fiche non proposée dans le pays répond `403` « Cette application n’est pas disponible dans votre pays. ».
+- Médias : adresses relatives `/api/media/...` (le front les complète avec l’origine de l’API). Couvertures : `/api/media/covers/{uuid}/{640|1280|1920}.{avif|webp|jpg}`, cache d’un an.
 - Erreurs de validation : `422` avec `{ message, errors: { champ: [..] } }`.
 - Refus de droit : `403` avec `message` en français, lisible par l'utilisateur.
 - Conflit d'état (transition interdite, quota) : `409` avec `message`.
@@ -169,3 +171,13 @@ Performance et accessibilité nécessitent un navigateur headless (Lighthouse). 
 - Les routes existantes gardent leur forme. Les changements de réponse sont additifs (nouveaux champs).
 - `applications.status` : pendant la migration, l'API renvoie le nouveau statut et un champ `legacy_status` pour la vitrine Blade, jusqu'à son retrait.
 - Toute route modifiée reçoit un test de non-régression avant d'être changée.
+
+## Ajouts du 12 octobre 2026 (couverture, classements, pays, vues)
+
+| Méthode | Route                                                    | Notes                                                                                                                                       |
+| ------- | -------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
+| GET     | `/rankings?type=popular\|trending\|new\|top_rated&page=` | Classements sur données réelles ; `rank` sur chaque application ; « mieux notées » exige au moins 3 avis                                    |
+| GET     | `/home`                                                  | Ajoute `trending` et `recommended` ; `featured` = mises en avant avec couverture, sinon les plus récentes                                   |
+| PUT     | `/apps/{id}`                                             | Champs `cover` (fichier JPEG/PNG/WebP, 3 Mo, 16:9, ≥ 1280 × 720, réencodé en variantes), `remove_cover`, `availability` (`all`\|`selected`) |
+| POST    | `/apps/{application}/view`                               | Une vue par compte, ou par empreinte d’IP pour un visiteur, avec la date ; éditeur et modérateurs non comptés                               |
+| PUT     | `/account`                                               | `country_id` ne peut pas être vidé ; un changement tous les 30 jours, journalisé                                                            |

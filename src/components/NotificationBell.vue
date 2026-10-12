@@ -5,7 +5,7 @@
     round
     icon="notifications_none"
     :class="{ 'motion-ring': ringing }"
-    :aria-label="`Notifications${store.unread ? `, ${store.unread} non lues` : ''}`"
+    :aria-label="`Notifications${store.unread ? ui(', {p0} non lues', { p0: store.unread }) : ''}`"
     @click="open"
   >
     <q-badge v-if="store.unread" color="negative" floating rounded>{{
@@ -14,14 +14,14 @@
     <q-menu v-model="menu" anchor="bottom right" self="top right">
       <q-list class="notif-menu" separator>
         <q-item-label header class="row items-center justify-between">
-          <span>Notifications</span>
+          <span>{{ ui('Notifications') }}</span>
           <q-btn
             v-if="store.unread"
             flat
             dense
             no-caps
             size="sm"
-            label="Tout marquer comme lu"
+            :label="ui('Tout marquer comme lu')"
             @click.stop="store.markRead()"
           />
         </q-item-label>
@@ -39,18 +39,22 @@
           </q-item-section>
         </q-item>
         <q-item v-if="!store.latest.length">
-          <q-item-section class="text-muted"
-            >Aucune notification.</q-item-section
-          >
+          <q-item-section class="text-muted">{{
+            ui('Aucune notification.')
+          }}</q-item-section>
         </q-item>
         <q-item clickable to="/notifications">
-          <q-item-section class="text-primary">Tout voir</q-item-section>
+          <q-item-section class="text-primary">{{
+            ui('Tout voir')
+          }}</q-item-section>
         </q-item>
       </q-list>
     </q-menu>
   </q-btn>
 </template>
 <script setup>
+import { ui } from '@/i18n/text'
+
 import { onBeforeUnmount, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'

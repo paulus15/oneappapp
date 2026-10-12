@@ -8,15 +8,20 @@ export function toCard(app) {
     to: `/apps/${app.id}`,
     category:
       category?.name || (typeof app.category === 'string' ? app.category : ''),
+    categorySlug: category?.slug || '',
     color: category?.color || 'var(--pwa-primary)',
     icon: category?.icon || 'widgets',
     iconUrl: app.icon_url || '',
+    cover: app.cover && typeof app.cover === 'object' ? app.cover : null,
+    shortDescription: app.short_description || '',
     sourceType: app.source_type || 'build',
     publisher: app.developer?.developer_profile?.public_name || '',
     price: Number(app.price || 0),
     downloads: Number(app.downloads_count || 0),
     reviews,
     // No reviews means no rating, never a default score.
-    rating: reviews ? Number(app.average_rating || 0).toFixed(1) : null
+    rating: reviews ? Number(app.average_rating || 0).toFixed(1) : null,
+    // Only the rankings endpoint sends a rank.
+    rank: Number(app.rank) > 0 ? Number(app.rank) : null
   }
 }

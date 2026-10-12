@@ -106,6 +106,17 @@ test('an administrator verifies the developer profile', async ({
   await expect(notice(page, 'Décision enregistrée.')).toBeVisible()
 })
 
+/** Saves the visible workspace section and waits for the server's answer (not a previous toast). */
+async function save(page) {
+  const [response] = await Promise.all([
+    page.waitForResponse(
+      r => /\/api\/apps\/\d+$/.test(r.url()) && r.request().method() === 'POST'
+    ),
+    page.getByRole('button', { name: 'Enregistrer' }).click()
+  ])
+  expect(response.status(), await response.text()).toBe(200)
+}
+
 /** Opens a workspace tab and waits for the panel transition to end. */
 async function openTab(page, name) {
   await page.getByRole('tab', { name }).click()
@@ -164,16 +175,22 @@ test('the developer prepares a PWA listed by URL and submits it', async ({
     .getByLabel('Lien officiel de votre PWA')
     .fill('https://squoosh.app/')
   await page.getByLabel('E-mail de contact').fill('studio-awa@e2e.test')
-  await page.getByRole('button', { name: 'Enregistrer' }).click()
-  await expect(notice(page, 'Brouillon enregistré.')).toBeVisible()
+  await save(page)
 
   // 3. Images: an uploaded icon and a screenshot.
   await openTab(page, /Images/)
-  const files = page.locator('.q-tab-panel:visible input[type=file]')
+  // The cover is checked and uploaded as soon as it is chosen.
+  await page
+    .locator('.cover-uploader input[type=file]')
+    .setInputFiles(await png(page, 1920, 1080, 'cover.png'))
+  await expect(notice(page, 'Brouillon enregistré.')).toBeVisible()
+  await expect(page.getByText('Aperçu sur ordinateur')).toBeVisible()
+  const files = page.locator(
+    '.q-tab-panel:visible .plain-fieldset input[type=file]'
+  )
   await files.nth(0).setInputFiles(await png(page, 512, 512, 'icon.png'))
   await files.nth(1).setInputFiles(await png(page, 540, 960, 'screen.png'))
-  await page.getByRole('button', { name: 'Enregistrer' }).click()
-  await expect(notice(page, 'Brouillon enregistré.')).toBeVisible()
+  await save(page)
 
   // 4. Privacy.
   await openTab(page, /Confidentialité/)
@@ -181,8 +198,7 @@ test('the developer prepares a PWA listed by URL and submits it', async ({
     .getByLabel('Politique de confidentialité')
     .fill('https://squoosh.app/privacy')
   await page.getByText('Aucune donnée').click()
-  await page.getByRole('button', { name: 'Enregistrer' }).click()
-  await expect(notice(page, 'Brouillon enregistré.')).toBeVisible()
+  await save(page)
 
   // 5. Summary: nothing missing; the help explains the journey.
   await openTab(page, /Récapitulatif/)
@@ -257,7 +273,9 @@ test('the published app appears in the Store with its hosting badge', async ({
   await expect(card).toBeVisible()
   await card.click()
   await expect(guest).toHaveURL(new RegExp(`/apps/${appId}$`))
-  await expect(guest.getByRole('link', { name: 'Studio Awa' })).toBeVisible()
+  await expect(
+    guest.getByRole('link', { name: 'Studio Awa' }).first()
+  ).toBeVisible()
   const badge = guest.getByRole('img', { name: /Hébergée par l’éditeur/ })
   await badge.hover()
   await expect(

@@ -1,12 +1,13 @@
 <template>
   <q-page class="workspace-page">
     <header class="workspace-heading"
-      ><span class="eyebrow">Administration</span><h1>Signalements</h1
-      ><p
-        >Signalements envoyés par les utilisateurs. Traitez le contenu (avis
-        masqué, application suspendue) depuis l’écran concerné, puis clôturez
-        ici avec un motif.</p
-      ></header
+      ><span class="eyebrow">{{ ui('Administration') }}</span
+      ><h1>{{ ui('Signalements') }}</h1
+      ><p>{{
+        ui(
+          'Signalements envoyés par les utilisateurs. Traitez le contenu (avis masqué, application suspendue) depuis l’écran concerné, puis clôturez ici avec un motif.'
+        )
+      }}</p></header
     >
     <AdminNav />
     <div class="row q-col-gutter-sm q-mb-md">
@@ -18,7 +19,7 @@
           map-options
           outlined
           dense
-          label="État"
+          :label="ui('État')"
           @update:model-value="reload"
         />
       </div>
@@ -31,18 +32,18 @@
           clearable
           outlined
           dense
-          label="Contenu"
+          :label="ui('Contenu')"
           @update:model-value="reload"
         />
       </div>
     </div>
     <q-banner v-if="error" class="workspace-alert q-mb-md" role="alert">{{
-      error
+      ui(error)
     }}</q-banner>
     <q-linear-progress v-if="loading" indeterminate />
-    <p v-if="!loading && !reports.length" class="text-muted"
-      >Aucun signalement pour ce filtre.</p
-    >
+    <p v-if="!loading && !reports.length" class="text-muted">{{
+      ui('Aucun signalement pour ce filtre.')
+    }}</p>
     <div class="workspace-grid">
       <q-card
         v-for="report in reports"
@@ -56,30 +57,30 @@
         }}</q-badge>
         <h2>{{ REPORT_REASONS[report.reason] }}</h2>
         <p v-if="isApp(report)"
-          >Application :
+          >{{ ui('Application :') }}
           <router-link
             v-if="report.target"
             :to="`/developer/apps/${report.target.id}/publication`"
             >{{ report.target.name }}</router-link
-          ><span v-else>supprimée</span></p
+          ><span v-else>{{ ui('supprimée') }}</span></p
         >
         <template v-else-if="report.target">
           <p
-            >Avis de {{ report.target.user?.name }} sur
+            >{{ ui('Avis de') }} {{ report.target.user?.name }} {{ ui('sur') }}
             {{ report.target.application?.name }} ({{
               report.target.rating
             }}/5)</p
           >
           <blockquote>{{
-            report.target.comment || 'Sans commentaire'
+            report.target.comment || ui('Sans commentaire')
           }}</blockquote>
         </template>
         <p v-if="report.details"
           ><em>« {{ report.details }} »</em></p
         >
         <p class="text-caption text-muted"
-          >Par {{ report.reporter?.name || 'compte supprimé' }} le
-          {{ date(report.created_at) }}</p
+          >{{ ui('Par') }} {{ report.reporter?.name || ui('compte supprimé') }}
+          {{ ui('le') }} {{ date(report.created_at) }}</p
         >
         <p v-if="report.resolution" class="text-caption"
           >{{ report.handler?.name }} : {{ report.resolution }}</p
@@ -89,14 +90,14 @@
             outline
             no-caps
             color="positive"
-            label="Traité"
+            :label="ui('Traité')"
             :disable="busy"
             @click="resolve(report, 'resolved')"
           />
           <q-btn
             flat
             no-caps
-            label="Classer sans suite"
+            :label="ui('Classer sans suite')"
             :disable="busy"
             @click="resolve(report, 'dismissed')"
           />
@@ -113,6 +114,9 @@
   </q-page>
 </template>
 <script setup>
+import { currentLocale } from '@/i18n'
+import { ui } from '@/i18n/text'
+
 import { onMounted, reactive, ref } from 'vue'
 import { useQuasar } from 'quasar'
 import AdminNav from '@/components/AdminNav.vue'
@@ -129,20 +133,38 @@ const reports = ref([]),
   lastPage = ref(1)
 const filters = reactive({ status: 'open', target_type: null })
 const statusLabels = {
-  open: 'À traiter',
-  resolved: 'Traité',
-  dismissed: 'Sans suite'
+  get open() {
+    return ui('À traiter')
+  },
+  get resolved() {
+    return ui('Traité')
+  },
+  get dismissed() {
+    return ui('Sans suite')
+  }
 }
-const statusOptions = Object.entries(statusLabels).map(([value, label]) => ({
+const statusOptions = Object.keys(statusLabels).map(value => ({
   value,
-  label
+  get label() {
+    return statusLabels[value]
+  }
 }))
 const typeOptions = [
-  { value: 'application', label: 'Applications' },
-  { value: 'review', label: 'Avis' }
+  {
+    value: 'application',
+    get label() {
+      return ui('Applications')
+    }
+  },
+  {
+    value: 'review',
+    get label() {
+      return ui('Avis')
+    }
+  }
 ]
 const isApp = report => report.target_type.endsWith('Application')
-const date = value => new Date(value).toLocaleDateString('fr-FR')
+const date = value => new Date(value).toLocaleDateString(currentLocale())
 
 async function load() {
   loading.value = true
@@ -167,9 +189,15 @@ function reload() {
 }
 function resolve(report, status) {
   $q.dialog({
-    title: status === 'resolved' ? 'Signalement traité' : 'Classer sans suite',
-    message:
-      'Indiquez la décision prise. Elle est visible par l’auteur du signalement.',
+    title:
+      status === 'resolved'
+        ? ui('Signalement traité')
+        : ui('Classer sans suite'),
+    get message() {
+      return ui(
+        'Indiquez la décision prise. Elle est visible par l’auteur du signalement.'
+      )
+    },
     prompt: { model: '', type: 'textarea', isValid: v => v.trim().length >= 3 },
     cancel: true,
     persistent: true

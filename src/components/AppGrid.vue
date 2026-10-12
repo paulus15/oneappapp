@@ -17,42 +17,27 @@
   </div>
   <div v-else class="empty-state glass-panel">
     <q-icon :name="emptyIcon" />
-    <p>{{ empty }}</p>
+    <p>{{ empty || t('store.empty.default') }}</p>
   </div>
 </template>
 <script setup>
-import { computed, onBeforeUnmount, ref, watch } from 'vue'
-import { prefersReducedMotion } from '@/motion/signature'
+import { computed, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 import AppCard from '@/components/AppCard.vue'
+import { useCascade } from '@/composables/useCascade'
 import { toCard } from '@/utils/appCard'
 const props = defineProps({
   apps: { type: Array, default: () => [] },
   loading: Boolean,
-  empty: { type: String, default: 'Aucune application pour le moment.' },
+  empty: { type: String, default: '' },
   emptyIcon: { type: String, default: 'apps' }
 })
+const { t } = useI18n()
 const cards = computed(() => props.apps.map(toCard))
 
 // Tiles fill in, in reading order, the first time the grid scrolls into view.
-const grid = ref(null),
-  landed = ref(false)
-const cascade =
-  !prefersReducedMotion() && typeof IntersectionObserver !== 'undefined'
-let observer
-watch(grid, el => {
-  observer?.disconnect()
-  if (!el || !cascade || landed.value) return
-  observer = new IntersectionObserver(
-    ([entry]) => {
-      if (!entry.isIntersecting) return
-      landed.value = true
-      observer.disconnect()
-    },
-    { rootMargin: '0px 0px -10% 0px' }
-  )
-  observer.observe(el)
-})
-onBeforeUnmount(() => observer?.disconnect())
+const grid = ref(null)
+const { enabled: cascade, landed } = useCascade(grid)
 </script>
 <style scoped>
 .app-grid {

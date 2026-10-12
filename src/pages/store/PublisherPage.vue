@@ -1,15 +1,17 @@
 <template>
   <q-page class="workspace-page">
     <q-banner v-if="error" class="workspace-alert" role="alert">{{
-      error
+      ui(error)
     }}</q-banner>
     <q-skeleton v-if="loading" height="140px" class="q-mb-md" />
     <template v-else-if="profile">
       <header class="workspace-heading"
         ><span class="eyebrow"
-          ><q-icon name="verified" /> Éditeur vérifié ·
+          ><q-icon name="verified" /> {{ ui('Éditeur vérifié ·') }}
           {{
-            profile.type === 'organization' ? 'Organisation' : 'Développeur'
+            profile.type === 'organization'
+              ? ui('Organisation')
+              : ui('Développeur')
           }}</span
         ><h1>{{ profile.public_name }}</h1
         ><p v-if="profile.description">{{ profile.description }}</p
@@ -25,13 +27,18 @@
           ></p
         ></header
       >
-      <h2 class="section-title">Applications publiées</h2>
-      <AppGrid :apps="applications" empty="Aucune application publiée." />
+      <h2 class="section-title">{{ ui('Applications publiées') }}</h2>
+      <AppGrid
+        :apps="applications"
+        :empty="ui('Aucune application publiée.')"
+      />
     </template>
     <AppFooter />
   </q-page>
 </template>
 <script setup>
+import { ui } from '@/i18n/text'
+
 import { ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import AppFooter from '@/components/AppFooter.vue'
@@ -65,7 +72,7 @@ watch(
       profile.value = null
       error.value =
         e.response?.status === 404
-          ? 'Cet éditeur n’existe pas ou n’est plus vérifié.'
+          ? ui('Cet éditeur n’existe pas ou n’est plus vérifié.')
           : apiMessage(e)
     } finally {
       loading.value = false

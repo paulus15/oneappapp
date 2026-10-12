@@ -292,15 +292,37 @@
                 :label="t('workspace.field.languages')"
                 :hint="t('workspace.hint.languages')"
               />
-              <CountrySelect
-                v-model="form.countries"
-                multiple
-                value-field="code"
-                :label="t('workspace.field.countries')"
-              />
-              <p class="text-caption text-muted field-note">{{
-                t('workspace.hint.countries')
-              }}</p>
+              <fieldset class="checkbox-fieldset availability">
+                <legend>{{ t('geo.title') }}</legend>
+                <q-option-group
+                  v-model="form.availability"
+                  :options="[
+                    { label: t('geo.all'), value: 'all' },
+                    { label: t('geo.selected'), value: 'selected' }
+                  ]"
+                  type="radio"
+                  inline
+                />
+                <template v-if="form.availability === 'selected'">
+                  <p class="text-caption text-muted">{{ t('geo.choose') }}</p>
+                  <CountrySelect
+                    v-model="form.countries"
+                    multiple
+                    value-field="code"
+                    :label="t('workspace.field.countries')"
+                    class="full-width"
+                  />
+                  <p class="text-caption">{{
+                    form.countries.length
+                      ? t(
+                          'geo.count',
+                          { n: form.countries.length },
+                          form.countries.length
+                        )
+                      : t('geo.none')
+                  }}</p>
+                </template>
+              </fieldset>
               <div class="form-row">
                 <q-input
                   v-model="form.official_site_url"
@@ -350,6 +372,14 @@
         <!-- 2. Médias -->
         <q-tab-panel name="media">
           <q-form class="workspace-form section-form" @submit="saveMedia">
+            <CoverUploader
+              :cover="form.cover"
+              :disable="locked"
+              :busy="coverBusy"
+              :progress="coverProgress"
+              @upload="uploadCover"
+              @remove="removeCover"
+            />
             <fieldset :disabled="locked" class="plain-fieldset">
               <section class="media-block">
                 <h3>{{ t('workspace.field.icon') }}</h3>
@@ -695,7 +725,7 @@
                 }}</dd>
                 <dt>{{ t('workspace.recap.availability') }}</dt>
                 <dd>{{
-                  form.countries.length
+                  form.availability === 'selected'
                     ? t(
                         'workspace.recap.countries',
                         { n: form.countries.length },
@@ -827,70 +857,74 @@
 
         <!-- 6. Suivi -->
         <q-tab-panel name="history">
-          <h3>{{ t('workspace.history.requests') }}</h3>
-          <p v-if="!requests.length" class="text-muted">{{
-            t('workspace.history.noRequest')
-          }}</p>
-          <q-list separator bordered class="rounded-borders">
-            <q-item v-for="r in requests" :key="r.id">
-              <q-item-section>
-                <q-item-label>
-                  {{ t(`requests.kind.${r.kind}`) }}
-                  <span v-if="r.version">
-                    ·
+          <section class="workspace-card history-card">
+            <h3>{{ t('workspace.history.requests') }}</h3>
+            <p v-if="!requests.length" class="text-muted">{{
+              t('workspace.history.noRequest')
+            }}</p>
+            <q-list separator class="history-list">
+              <q-item v-for="r in requests" :key="r.id">
+                <q-item-section>
+                  <q-item-label>
+                    {{ t(`requests.kind.${r.kind}`) }}
+                    <span v-if="r.version">
+                      ·
+                      {{
+                        t('publication.versions.version', {
+                          number: r.version.version_number
+                        })
+                      }}</span
+                    >
+                  </q-item-label>
+                  <q-item-label caption>
                     {{
-                      t('publication.versions.version', {
-                        number: r.version.version_number
+                      t('workspace.history.sent', {
+                        date: formatDate(r.submitted_at)
                       })
-                    }}</span
-                  >
-                </q-item-label>
-                <q-item-label caption>
-                  {{
-                    t('workspace.history.sent', {
-                      date: formatDate(r.submitted_at)
-                    })
-                  }}
-                  <span v-if="r.decided_at">
-                    ·
+                    }}
+                    <span v-if="r.decided_at">
+                      ·
+                      {{
+                        t('workspace.history.decided', {
+                          date: formatDate(r.decided_at)
+                        })
+                      }}</span
+                    >
+                  </q-item-label>
+                  <q-item-label v-if="r.reason" class="decision-reason">{{
+                    r.reason
+                  }}</q-item-label>
+                </q-item-section>
+                <q-item-section side>
+                  <q-chip
+                    dense
+                    :color="REQUEST_COLORS[r.status]"
+                    text-color="white"
+                    :label="t(`requests.status.${r.status}`)"
+                  />
+                </q-item-section>
+              </q-item>
+            </q-list>
+          </section>
+          <section class="workspace-card history-card">
+            <h3>{{ t('publication.history.title') }}</h3>
+            <q-list dense separator>
+              <q-item v-for="event in events" :key="event.id">
+                <q-item-section>
+                  <q-item-label>{{ eventLabel(event.action) }}</q-item-label>
+                  <q-item-label caption
+                    >{{ formatDate(event.created_at) }} ·
                     {{
-                      t('workspace.history.decided', {
-                        date: formatDate(r.decided_at)
-                      })
-                    }}</span
+                      event.actor?.name || t('publication.history.automatic')
+                    }}</q-item-label
                   >
-                </q-item-label>
-                <q-item-label v-if="r.reason" class="decision-reason">{{
-                  r.reason
-                }}</q-item-label>
-              </q-item-section>
-              <q-item-section side>
-                <q-chip
-                  dense
-                  :color="REQUEST_COLORS[r.status]"
-                  text-color="white"
-                  :label="t(`requests.status.${r.status}`)"
-                />
-              </q-item-section>
-            </q-item>
-          </q-list>
-          <h3 class="q-mt-lg">{{ t('publication.history.title') }}</h3>
-          <q-list dense separator>
-            <q-item v-for="event in events" :key="event.id">
-              <q-item-section>
-                <q-item-label>{{ eventLabel(event.action) }}</q-item-label>
-                <q-item-label caption
-                  >{{ formatDate(event.created_at) }} ·
-                  {{
-                    event.actor?.name || t('publication.history.automatic')
-                  }}</q-item-label
-                >
-                <q-item-label v-if="event.reason" caption>{{
-                  event.reason
-                }}</q-item-label>
-              </q-item-section>
-            </q-item>
-          </q-list>
+                  <q-item-label v-if="event.reason" caption>{{
+                    event.reason
+                  }}</q-item-label>
+                </q-item-section>
+              </q-item>
+            </q-list>
+          </section>
         </q-tab-panel>
       </q-tab-panels>
     </template>
@@ -921,6 +955,7 @@ import { statusColor, statusLabel } from '@/utils/appStatus'
 import AppIcon from '@/components/AppIcon.vue'
 import HostingBadge from '@/components/HostingBadge.vue'
 import BuildUploader from '@/components/BuildUploader.vue'
+import CoverUploader from '@/components/CoverUploader.vue'
 import CountrySelect from '@/components/CountrySelect.vue'
 import ExternalResourcesReport from '@/components/ExternalResourcesReport.vue'
 
@@ -971,7 +1006,9 @@ const FIELD_TAB = {
   languages: 'info',
   official_site_url: 'info',
   contact_email: 'info',
+  countries: 'info',
   icon_url: 'media',
+  cover: 'media',
   media: 'media',
   privacy_policy_url: 'privacy',
   privacy: 'privacy'
@@ -1058,8 +1095,12 @@ const form = reactive({
   privacy_policy_url: '',
   data_collected: [],
   compatibility: [],
-  icon_url: ''
+  icon_url: '',
+  availability: 'all',
+  cover: null
 })
+const coverBusy = ref(false),
+  coverProgress = ref(0)
 const source = reactive({ source_type: 'build', external_url: '' })
 const retained = reactive({ mobile: [], tablet: [] })
 const newScreens = reactive({ mobile: [], tablet: [] })
@@ -1191,7 +1232,9 @@ function fill() {
     compatibility: Object.entries(l.compatibility || {})
       .filter(([, on]) => on && on !== '0')
       .map(([k]) => k),
-    icon_url: l.icon_url || ''
+    icon_url: l.icon_url || '',
+    availability: l.availability || 'all',
+    cover: l.cover || null
   })
   retained.mobile = [...(l.media?.screenshots?.mobile || [])]
   retained.tablet = [...(l.media?.screenshots?.tablet || [])]
@@ -1277,7 +1320,12 @@ function saveInfo() {
           data.append(key, form[key] || '')
         if (form.category_id) data.append('category_id', form.category_id)
         appendList(data, 'languages', form.languages)
-        appendList(data, 'countries', form.countries)
+        data.append('availability', form.availability)
+        appendList(
+          data,
+          'countries',
+          form.availability === 'selected' ? form.countries : []
+        )
         COMPATIBILITY.forEach(key =>
           data.append(
             `compatibility[${key}]`,
@@ -1314,6 +1362,25 @@ function savePrivacy() {
       }),
     savedMessage()
   )
+}
+async function uploadCover(file) {
+  coverBusy.value = true
+  coverProgress.value = 0
+  const data = new FormData()
+  data.append('_method', 'PUT')
+  data.append('cover', file)
+  await run(
+    () =>
+      accountApi.updateApp(app.value.id, data, {
+        onUploadProgress: e =>
+          (coverProgress.value = e.total ? e.loaded / e.total : 0)
+      }),
+    savedMessage()
+  )
+  coverBusy.value = false
+}
+function removeCover() {
+  return run(() => put(data => data.append('remove_cover', 1)), savedMessage())
 }
 function toggleData(item, checked) {
   // "No data" excludes every other choice, and the reverse.
@@ -1437,6 +1504,7 @@ onMounted(async () => {
 <style scoped>
 .app-heading {
   display: flex;
+  flex-direction: row;
   align-items: center;
   gap: 16px;
   flex-wrap: wrap;
@@ -1452,9 +1520,6 @@ onMounted(async () => {
 .app-heading-text {
   flex: 1;
   min-width: 200px;
-}
-.app-heading-text h1 {
-  margin: 0;
 }
 .app-heading-meta {
   display: flex;
@@ -1481,9 +1546,6 @@ onMounted(async () => {
 .decision-reason {
   white-space: pre-line;
   font-weight: 500;
-}
-.workspace-tabs {
-  border-bottom: 1px solid var(--outline);
 }
 .workspace-panels {
   background: transparent;
@@ -1528,12 +1590,6 @@ onMounted(async () => {
   gap: 12px;
   flex-wrap: wrap;
   margin-top: 8px;
-}
-.media-block h3,
-.version-source h3,
-.version-build h3 {
-  font-size: 16px;
-  margin: 0 0 4px;
 }
 .icon-row {
   display: flex;
@@ -1693,6 +1749,12 @@ onMounted(async () => {
 }
 .submit-button {
   width: 100%;
+}
+.history-card {
+  margin-bottom: 16px;
+}
+.history-card :deep(.q-item) {
+  padding: 10px 4px;
 }
 .help-card {
   width: min(640px, 100vw);

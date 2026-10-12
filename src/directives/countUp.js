@@ -1,8 +1,9 @@
+import { currentLocale } from '@/i18n'
 import { DURATION, prefersReducedMotion } from '@/motion/signature'
 
 // Same curve as --motion-settle, for numbers animated with requestAnimationFrame.
 const settle = t => 1 - Math.pow(1 - t, 4)
-const format = n => Math.round(n).toLocaleString('fr-FR')
+const format = n => Math.round(n).toLocaleString(currentLocale())
 
 function run(el, to) {
   cancelAnimationFrame(el.__countFrame)
@@ -44,8 +45,7 @@ function schedule(el, value) {
 /** v-count-up="number": counts up to the value the first time it becomes visible. */
 export const countUp = {
   mounted: (el, { value }) => schedule(el, value),
-  updated: (el, { value, oldValue }) =>
-    value !== oldValue && schedule(el, value),
+  updated: (el, { value }) => schedule(el, value),
   unmounted(el) {
     cancelAnimationFrame(el.__countFrame)
     el.__countObserver?.disconnect()

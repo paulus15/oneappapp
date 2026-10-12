@@ -1,22 +1,23 @@
 <template>
   <q-page class="workspace-page">
     <header class="workspace-heading"
-      ><span class="eyebrow">Un compte, deux usages</span
-      ><h1>Votre espace développeur</h1
-      ><p
-        >Complétez votre profil et faites-le valider avant de créer une
-        application.</p
-      ></header
+      ><span class="eyebrow">{{ ui('Un compte, deux usages') }}</span
+      ><h1>{{ ui('Votre espace développeur') }}</h1
+      ><p>{{
+        ui(
+          'Complétez votre profil et faites-le valider avant de créer une application.'
+        )
+      }}</p></header
     >
     <q-linear-progress
       v-if="loading"
       indeterminate
-      aria-label="Chargement du profil"
+      :aria-label="ui('Chargement du profil')"
     />
     <q-banner v-if="error" class="workspace-alert" role="alert"
-      >{{ error
+      >{{ ui(error)
       }}<template #action
-        ><q-btn flat label="Réessayer" @click="load" /></template
+        ><q-btn flat :label="ui('Réessayer')" @click="load" /></template
     ></q-banner>
     <template v-if="loaded && !loading">
       <q-card
@@ -25,23 +26,24 @@
         bordered
         class="workspace-card activation-card"
       >
-        <h2>Devenez développeur sur PWA Store</h2
-        ><p
-          >L’activation est gratuite. Votre compte et vos favoris restent les
-          mêmes.</p
-        >
+        <h2>{{ ui('Devenez développeur sur PWA Store') }}</h2
+        ><p>{{
+          ui(
+            'L’activation est gratuite. Votre compte et vos favoris restent les mêmes.'
+          )
+        }}</p>
         <q-option-group
           v-model="type"
           :options="[
-            { label: 'Développeur individuel', value: 'individual' },
-            { label: 'Organisation', value: 'organization' }
+            { label: ui('Développeur individuel'), value: 'individual' },
+            { label: ui('Organisation'), value: 'organization' }
           ]"
           color="primary"
         />
         <q-btn
           no-caps
           color="primary"
-          label="Activer mon espace développeur"
+          :label="ui('Activer mon espace développeur')"
           :loading="busy"
           @click="activate"
         />
@@ -55,24 +57,29 @@
             flat
             no-caps
             to="/developer"
-            label="Mes applications" /><q-btn
+            :label="ui('Mes applications')" /><q-btn
             flat
             no-caps
             to="/account"
-            label="Mon compte utilisateur"
+            :label="ui('Mon compte utilisateur')"
         /></div>
         <q-banner v-if="profile.validation" class="workspace-alert">
-          Dernière validation par
+          {{ ui('Dernière validation par') }}
           {{
-            profile.validation.administrator_name || 'Administrateur supprimé'
+            profile.validation.administrator_name ||
+            ui('Administrateur supprimé')
           }}
-          (n° {{ profile.validation.administrator_id || 'indisponible' }}), le
+          {{ ui('(n°') }}
+          {{ profile.validation.administrator_id || 'indisponible'
+          }}{{ ui('), le') }}
           {{
-            new Date(profile.validation.validated_at).toLocaleString('fr-FR')
+            new Date(profile.validation.validated_at).toLocaleString(
+              currentLocale()
+            )
           }}.
         </q-banner>
         <q-banner v-if="profile.missing_fields?.length" class="workspace-alert">
-          À compléter avant validation :
+          {{ ui('À compléter avant validation :') }}
           {{
             profile.missing_fields
               .map(field => fieldLabels[field] || field)
@@ -83,22 +90,31 @@
           profile.decision_reason
         }}</q-banner>
         <q-banner v-if="!auth.user?.email_verified_at" class="workspace-alert"
-          >Votre e-mail doit être vérifié avant la soumission.<template #action
+          >{{ ui('Votre e-mail doit être vérifié avant la soumission.')
+          }}<template #action
             ><q-btn
               flat
               no-caps
               to="/account"
-              label="Vérifier mon e-mail" /></template
+              :label="ui('Vérifier mon e-mail')" /></template
         ></q-banner>
-        <q-banner v-if="profile.status === 'suspended'" class="workspace-alert"
-          >La publication est suspendue. Votre compte utilisateur reste
-          disponible.</q-banner
+        <q-banner
+          v-if="profile.status === 'suspended'"
+          class="workspace-alert"
+          >{{
+            ui(
+              'La publication est suspendue. Votre compte utilisateur reste disponible.'
+            )
+          }}</q-banner
         >
         <q-banner
           v-if="profile.status === 'pending_verification'"
           class="workspace-alert"
-          >Votre profil est en cours de vérification. La création d’applications
-          sera disponible après validation.</q-banner
+          >{{
+            ui(
+              'Votre profil est en cours de vérification. La création d’applications sera disponible après validation.'
+            )
+          }}</q-banner
         >
         <DeveloperDocuments
           :key="profile.events?.length"
@@ -108,26 +124,26 @@
           <q-card flat bordered class="workspace-card">
             <h2>{{
               profile.type === 'organization'
-                ? 'Votre organisation'
-                : 'Votre profil individuel'
+                ? ui('Votre organisation')
+                : ui('Votre profil individuel')
             }}</h2>
             <q-form class="workspace-form" @submit="save">
               <q-select
                 v-model="form.type"
                 :options="[
-                  { label: 'Individuel', value: 'individual' },
-                  { label: 'Organisation', value: 'organization' }
+                  { label: ui('Individuel'), value: 'individual' },
+                  { label: ui('Organisation'), value: 'organization' }
                 ]"
                 emit-value
                 map-options
                 outlined
-                label="Type de profil"
+                :label="ui('Type de profil')"
                 :disable="!editable"
               />
               <q-input
                 v-model="form.public_name"
                 outlined
-                label="Nom public"
+                :label="ui('Nom public')"
                 maxlength="255"
                 :readonly="!editable"
               />
@@ -136,8 +152,8 @@
                 outlined
                 :label="
                   form.type === 'organization'
-                    ? 'Raison sociale'
-                    : 'Nom légal complet'
+                    ? ui('Raison sociale')
+                    : ui('Nom légal complet')
                 "
                 maxlength="255"
                 :readonly="!editable"
@@ -146,8 +162,8 @@
                 v-model="form.country_id"
                 :label="
                   form.type === 'organization'
-                    ? 'Pays d’enregistrement'
-                    : 'Pays de résidence du développeur'
+                    ? ui('Pays d’enregistrement')
+                    : ui('Pays de résidence du développeur')
                 "
                 :disable="!editable"
               />
@@ -155,49 +171,50 @@
                 ><q-input
                   v-model="form.representative_name"
                   outlined
-                  label="Nom du représentant"
+                  :label="ui('Nom du représentant')"
                   :readonly="!editable" /><q-input
                   v-model="form.business_email"
                   outlined
                   type="email"
-                  label="E-mail professionnel"
+                  :label="ui('E-mail professionnel')"
                   :readonly="!editable" /><q-input
                   v-model="form.legal_information"
                   outlined
                   type="textarea"
-                  label="Informations légales (facultatif)"
+                  :label="ui('Informations légales (facultatif)')"
                   maxlength="3000"
                   :readonly="!editable"
               /></template>
               <q-input
                 v-model="form.website"
                 outlined
-                label="Site ou portfolio HTTPS (facultatif)"
+                :label="ui('Site ou portfolio HTTPS (facultatif)')"
                 :readonly="!editable"
               />
               <q-input
                 v-model="form.description"
                 outlined
                 type="textarea"
-                label="Présentation"
+                :label="ui('Présentation')"
                 maxlength="3000"
                 :readonly="!editable"
               />
-              <p class="text-muted"
-                >Les informations légales et la pièce d’identité sont réservées
-                à la vérification.</p
-              >
+              <p class="text-muted">{{
+                ui(
+                  'Les informations légales et la pièce d’identité sont réservées à la vérification.'
+                )
+              }}</p>
               <div v-if="editable" class="workspace-actions"
                 ><q-btn
                   type="submit"
                   no-caps
                   color="primary"
-                  label="Enregistrer le brouillon"
+                  :label="ui('Enregistrer le brouillon')"
                   :loading="busy" /><q-btn
                   outline
                   no-caps
                   color="primary"
-                  label="Soumettre à vérification"
+                  :label="ui('Soumettre à vérification')"
                   :disable="
                     !auth.user?.email_verified_at || !identityValid || busy
                   "
@@ -207,23 +224,28 @@
           </q-card>
           <div>
             <q-card flat bordered class="workspace-card q-mb-md"
-              ><h2>Pièce d’identité</h2
+              ><h2>{{ ui('Pièce d’identité') }}</h2
               ><p v-if="profile.identity_document_type"
-                >{{ identityLabels[profile.identity_document_type] }} · expire
-                le
+                >{{ identityLabels[profile.identity_document_type] }}
+                {{ ui('· expire le') }}
                 {{
                   new Date(
                     profile.identity_document_expires_at
-                  ).toLocaleDateString('fr-FR')
+                  ).toLocaleDateString(currentLocale())
                 }}</p
               ><q-banner
                 v-if="profile.identity_document_type && !identityValid"
                 class="workspace-alert"
-                >Cette pièce a expiré. Déposez-en une nouvelle pour publier à
-                nouveau.</q-banner
-              ><p v-if="!profile.identity_document_type" class="text-muted"
-                >Obligatoire pour soumettre votre profil et publier. Pour une
-                organisation, déposez la pièce du représentant.</p
+                >{{
+                  ui(
+                    'Cette pièce a expiré. Déposez-en une nouvelle pour publier à nouveau.'
+                  )
+                }}</q-banner
+              ><p v-if="!profile.identity_document_type" class="text-muted">{{
+                ui(
+                  'Obligatoire pour soumettre votre profil et publier. Pour une organisation, déposez la pièce du représentant.'
+                )
+              }}</p
               ><q-form
                 v-if="identityEditable"
                 class="workspace-form"
@@ -234,41 +256,46 @@
                   emit-value
                   map-options
                   outlined
-                  label="Type de pièce"
+                  :label="ui('Type de pièce')"
                   :rules="[
-                    v => !!v || 'Choisissez un type de pièce'
+                    v => !!v || ui('Choisissez un type de pièce')
                   ]" /><q-input
                   v-model="identity.expires_at"
                   type="date"
                   outlined
                   stack-label
-                  label="Date d’expiration"
+                  :label="ui('Date d’expiration')"
                   :min="tomorrow"
                   :rules="[
-                    v => (!!v && v >= tomorrow) || 'La pièce doit être valide'
+                    v =>
+                      (!!v && v >= tomorrow) || ui('La pièce doit être valide')
                   ]" /><q-file
                   v-model="identity.file"
                   outlined
                   accept=".pdf,.jpg,.jpeg,.png"
                   max-file-size="5242880"
-                  label="Fichier (PDF, JPEG ou PNG, 5 Mo maximum)"
-                  :rules="[v => !!v || 'Ajoutez le fichier']" /><q-btn
+                  :label="ui('Fichier (PDF, JPEG ou PNG, 5 Mo maximum)')"
+                  :rules="[v => !!v || ui('Ajoutez le fichier')]" /><q-btn
                   type="submit"
                   no-caps
                   color="primary"
-                  label="Déposer la pièce d’identité"
+                  :label="ui('Déposer la pièce d’identité')"
                   :loading="busy"
               /></q-form>
             </q-card>
             <q-card flat bordered class="workspace-card"
-              ><h2>Votre publication</h2
-              ><p v-if="auth.canSubmit"
-                >Votre profil est vérifié. Chaque application et chaque version
-                restent soumises à une revue indépendante.</p
+              ><h2>{{ ui('Votre publication') }}</h2
+              ><p v-if="auth.canSubmit">{{
+                ui(
+                  'Votre profil est vérifié. Chaque application et chaque version restent soumises à une revue indépendante.'
+                )
+              }}</p
               ><template v-else
-                ><p class="text-muted"
-                  >La création et la publication d’applications sont bloquées
-                  tant que :</p
+                ><p class="text-muted">{{
+                  ui(
+                    'La création et la publication d’applications sont bloquées tant que :'
+                  )
+                }}</p
                 ><ul
                   ><li
                     v-for="reason in auth.user?.publication_blockers || []"
@@ -279,33 +306,42 @@
               ><q-btn
                 no-caps
                 color="primary"
-                label="Préparer une application"
+                :label="ui('Préparer une application')"
                 to="/developer/apps/create"
                 :disable="!auth.canCreateApp"
             /></q-card>
             <q-card v-if="quotas" flat bordered class="workspace-card q-mt-md"
-              ><h2>Quotas de publication</h2
+              ><h2>{{ ui('Quotas de publication') }}</h2
               ><p
-                >{{ quotas.published_or_reserved }} application(s) publiée(s) ou
-                en revue.</p
+                >{{ quotas.published_or_reserved }}
+                {{ ui('application(s) publiée(s) ou en revue.') }}</p
               ><p>{{
                 quotas.free_applications === null
-                  ? 'Le quota gratuit n’est pas encore fixé.'
-                  : `Quota gratuit : ${quotas.free_applications}`
+                  ? ui('Le quota gratuit n’est pas encore fixé.')
+                  : ui('Quota gratuit : {p0}', { p0: quotas.free_applications })
               }}</p
               ><p
-                >Stockage :
-                {{ (quotas.storage_bytes / 1024 / 1024).toFixed(1) }} Mo</p
+                >{{ ui('Stockage :') }}
+                {{ (quotas.storage_bytes / 1024 / 1024).toFixed(1) }}
+                {{ ui('Mo') }}</p
               ><p
-                >Build : {{ Math.floor(quotas.build_max_kb / 1024) }} Mo
-                maximum</p
-              ><q-banner v-if="!quotas.can_publish_more" class="workspace-alert"
-                >Quota atteint : vos applications existantes restent
-                conservées.</q-banner
-              ><p class="text-muted">Aucun paiement n’est activé.</p></q-card
+                >{{ ui('Build :') }}
+                {{ Math.floor(quotas.build_max_kb / 1024) }}
+                {{ ui('Mo maximum') }}</p
+              ><q-banner
+                v-if="!quotas.can_publish_more"
+                class="workspace-alert"
+                >{{
+                  ui(
+                    'Quota atteint : vos applications existantes restent conservées.'
+                  )
+                }}</q-banner
+              ><p class="text-muted">{{
+                ui('Aucun paiement n’est activé.')
+              }}</p></q-card
             >
             <q-card flat bordered class="workspace-card q-mt-md"
-              ><h2>Historique</h2
+              ><h2>{{ ui('Historique') }}</h2
               ><q-list separator
                 ><q-item v-for="event in profile.events" :key="event.id"
                   ><q-item-section
@@ -313,9 +349,11 @@
                       labels[event.to_status] || event.to_status
                     }}</q-item-label
                     ><q-item-label caption
-                      >{{ event.reason || 'Changement de statut' }} ·
+                      >{{ event.reason || ui('Changement de statut') }} ·
                       {{
-                        new Date(event.created_at).toLocaleDateString('fr-FR')
+                        new Date(event.created_at).toLocaleDateString(
+                          currentLocale()
+                        )
                       }}</q-item-label
                     ></q-item-section
                   ></q-item
@@ -329,6 +367,9 @@
   </q-page>
 </template>
 <script setup>
+import { currentLocale } from '@/i18n'
+import { ui } from '@/i18n/text'
+
 import CountrySelect from '@/components/CountrySelect.vue'
 import DeveloperDocuments from '@/components/DeveloperDocuments.vue'
 import { computed, onMounted, reactive, ref } from 'vue'
@@ -350,12 +391,24 @@ const profile = ref(null),
   error = ref(''),
   type = ref('individual')
 const fieldLabels = {
-  type: 'type de profil',
-  public_name: 'nom public',
-  legal_name: 'nom légal',
-  country_id: 'pays',
-  representative_name: 'représentant',
-  business_email: 'e-mail professionnel'
+  get type() {
+    return ui('type de profil')
+  },
+  get public_name() {
+    return ui('nom public')
+  },
+  get legal_name() {
+    return ui('nom légal')
+  },
+  get country_id() {
+    return ui('Pays')
+  },
+  get representative_name() {
+    return ui('représentant')
+  },
+  get business_email() {
+    return ui('e-mail professionnel')
+  }
 }
 const fields = [
   'type',
@@ -370,13 +423,25 @@ const fields = [
 ]
 const form = reactive(Object.fromEntries(fields.map(k => [k, ''])))
 const labels = {
-  draft: 'Profil à compléter',
-  pending_verification: 'Vérification en attente',
-  verified: 'Profil vérifié',
-  rejected: 'Corrections demandées',
-  suspended: 'Publication suspendue'
+  get draft() {
+    return ui('Profil à compléter')
+  },
+  get pending_verification() {
+    return ui('Vérification en attente')
+  },
+  get verified() {
+    return ui('Profil vérifié')
+  },
+  get rejected() {
+    return ui('Corrections demandées')
+  },
+  get suspended() {
+    return ui('Publication suspendue')
+  }
 }
-const statusLabel = computed(() => labels[profile.value?.status] || 'Brouillon')
+const statusLabel = computed(
+  () => labels[profile.value?.status] || ui('Brouillon')
+)
 const statusColor = computed(
   () =>
     ({
@@ -444,7 +509,12 @@ async function save() {
   error.value = ''
   try {
     await persist()
-    q.notify({ type: 'positive', message: 'Profil enregistré.' })
+    q.notify({
+      type: 'positive',
+      get message() {
+        return ui('Profil enregistré.')
+      }
+    })
   } catch (e) {
     error.value = apiMessage(e)
   } finally {
@@ -460,7 +530,9 @@ async function submit() {
     await auth.fetchUser()
     q.notify({
       type: 'positive',
-      message: 'Votre profil a été soumis à vérification.'
+      get message() {
+        return ui('Votre profil a été soumis à vérification.')
+      }
     })
   } catch (e) {
     error.value = apiMessage(e)
@@ -480,7 +552,12 @@ async function uploadIdentity() {
     accept(data.profile)
     auth.setUser(data.user)
     Object.assign(identity, { type: null, expires_at: '', file: null })
-    q.notify({ type: 'positive', message: 'Pièce d’identité déposée.' })
+    q.notify({
+      type: 'positive',
+      get message() {
+        return ui('Pièce d’identité déposée.')
+      }
+    })
   } catch (e) {
     error.value = apiMessage(e)
   } finally {

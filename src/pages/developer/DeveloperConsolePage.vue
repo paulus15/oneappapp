@@ -3,18 +3,24 @@
     <div class="console-hero row justify-between items-center q-mb-lg">
       <div>
         <span class="console-eyebrow"
-          ><q-icon name="code" /> Votre workspace</span
+          ><q-icon name="code" /> {{ ui('Votre workspace') }}</span
         >
-        <h1 class="console-title">Construisez la prochaine expérience.</h1>
+        <h1 class="console-title">{{
+          ui('Construisez la prochaine expérience.')
+        }}</h1>
         <div class="console-subtitle">
-          Soumettez vos applications Web et gérez vos builds (.oap / ZIP)
+          {{
+            ui(
+              'Soumettez vos applications Web et gérez vos builds (.oap / ZIP)'
+            )
+          }}
         </div>
       </div>
       <q-btn
         unelevated
         no-caps
         icon="add"
-        label="Créer une application"
+        :label="ui('Créer une application')"
         class="create-btn"
         to="/developer/apps/create"
         :disable="!authStore.canCreateApp"
@@ -22,9 +28,12 @@
     </div>
 
     <q-banner v-if="!authStore.canCreateApp" class="workspace-alert"
-      >Votre profil doit être complet et validé avant toute création
-      d’application, même en brouillon.
-      <q-btn flat to="/developer/profile" label="Compléter mon profil"
+      >{{
+        ui(
+          'Votre profil doit être complet et validé avant toute création d’application, même en brouillon.'
+        )
+      }}
+      <q-btn flat to="/developer/profile" :label="ui('Compléter mon profil')"
     /></q-banner>
     <!-- Apps list -->
     <div v-if="loading" class="row justify-center q-my-xl" id="applications">
@@ -39,14 +48,16 @@
       <q-avatar size="64px" class="bg-blue-grey-900 q-mb-md">
         <q-icon name="code" color="blue-grey-200" size="36px" />
       </q-avatar>
-      <div class="text-h6 text-blue-grey-200">Aucune application soumise</div>
+      <div class="text-h6 text-blue-grey-200">{{
+        ui('Aucune application soumise')
+      }}</div>
       <div class="text-caption text-blue-grey-400 q-mb-md">
-        Commencez par soumettre votre première application Web.
+        {{ ui('Commencez par soumettre votre première application Web.') }}
       </div>
       <q-btn
         unelevated
         no-caps
-        label="Créer une application"
+        :label="ui('Créer une application')"
         class="create-btn"
         to="/developer/apps/create"
         :disable="!authStore.canCreateApp"
@@ -70,7 +81,7 @@
                 >
                   <AppIcon
                     :src="app.icon_url"
-                    :alt="`Icône de ${app.name}`"
+                    :alt="ui('Icône de {p0}', { p0: app.name })"
                     fallback-icon="apps"
                   />
                 </q-avatar>
@@ -104,7 +115,7 @@
                 color="amber-9"
                 class="q-py-xs q-px-sm text-weight-bold"
               >
-                INACTIVE
+                {{ ui('INACTIVE') }}
               </q-badge>
               <q-badge
                 :color="statusColor(app.status)"
@@ -119,7 +130,7 @@
               {{
                 app.short_description ||
                 app.description ||
-                'Pas de description renseignée.'
+                ui('Pas de description renseignée.')
               }}
             </div>
           </div>
@@ -155,7 +166,7 @@
                 dense
                 icon="archive"
                 class="delete-btn"
-                aria-label="Archiver l'application"
+                :aria-label="ui('Archiver l\'application')"
                 @click="confirmDeleteApp(app)"
               />
             </div>
@@ -167,6 +178,8 @@
 </template>
 
 <script setup>
+import { ui } from '@/i18n/text'
+
 import { computed, ref, onMounted } from 'vue'
 import { api } from '@/boot/axios'
 import AppIcon from '@/components/AppIcon.vue'
@@ -198,10 +211,27 @@ async function fetchMyApps() {
 
 function confirmDeleteApp(app) {
   $q.dialog({
-    title: 'Archiver l’application',
-    message: `Archiver "${app.name}" ? Elle sera retirée du Store ; ses builds et son historique sont conservés.`,
-    cancel: { label: 'Annuler', flat: true },
-    ok: { label: 'Archiver', color: 'negative' },
+    get title() {
+      return ui('Archiver l’application')
+    },
+    get message() {
+      return ui(
+        'Archiver "{p0}" ? Elle sera retirée du Store ; ses builds et son historique sont conservés.',
+        { p0: app.name }
+      )
+    },
+    cancel: {
+      get label() {
+        return ui('Annuler')
+      },
+      flat: true
+    },
+    ok: {
+      get label() {
+        return ui('Archiver')
+      },
+      color: 'negative'
+    },
     persistent: true
   }).onOk(() => deleteApp(app))
 }
@@ -209,12 +239,18 @@ function confirmDeleteApp(app) {
 async function deleteApp(app) {
   try {
     await api.delete(`/apps/${app.id}`)
-    $q.notify({ type: 'positive', message: 'Application archivée.' })
+    $q.notify({
+      type: 'positive',
+      get message() {
+        return ui('Application archivée.')
+      }
+    })
     await fetchMyApps()
   } catch (err) {
     $q.notify({
       type: 'negative',
-      message: err.response?.data?.message || 'Erreur lors de la suppression'
+      message:
+        err.response?.data?.message || ui('Erreur lors de la suppression')
     })
   }
 }

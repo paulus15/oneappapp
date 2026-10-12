@@ -1,9 +1,292 @@
 export default {
+  store: {
+    nav: { primary: 'Main navigation' },
+    hero: {
+      eyebrow: 'The universal platform',
+      line1: 'One installation.',
+      line2: 'Every platform.',
+      lead: 'Discover, try and use modern web apps.',
+      explore: 'Explore apps',
+      becomeDeveloper: 'Become a developer',
+      phone1: 'Install anywhere.',
+      phone2: 'Open instantly.'
+    },
+    search: {
+      resultsFor: 'Results for “{query}”',
+      clear: 'Clear search',
+      kicker: 'Search',
+      count: 'No apps found | {n} app found | {n} apps found',
+      empty: 'No app matches. Try other filters or keywords.'
+    },
+    filters: {
+      platform: 'Platform',
+      price: 'Price',
+      sort: 'Sort by',
+      reset: 'Reset',
+      allPlatforms: 'All platforms',
+      allPrices: 'Any price',
+      free: 'Free',
+      paid: 'Paid'
+    },
+    sort: {
+      latest: 'Newest',
+      downloads: 'Downloads',
+      rating: 'Average rating',
+      price_asc: 'Price: low to high',
+      price_desc: 'Price: high to low',
+      name: 'Name (A → Z)'
+    },
+    home: {
+      featured: 'Featured',
+      featuredKicker: 'Picked by our team',
+      trending: 'Trending',
+      trendingKicker: 'Right now',
+      latest: 'New releases',
+      latestKicker: 'Just published',
+      recommended: 'Recommended',
+      recommendedKicker: 'For you',
+      collectionKicker: 'Collection',
+      categories: 'Popular categories',
+      categoriesKicker: 'Browse',
+      discover: 'Discover more',
+      discoverKicker: 'Catalogue',
+      emptyTitle: 'The Store is getting ready',
+      emptyText: 'The first published apps will appear here.',
+      developerTitle: 'Do you build apps?',
+      developerText:
+        'Publish your PWAs on PWA Store and follow their review from your workspace.',
+      learnMore: 'Learn more'
+    },
+    features: {
+      label: 'Why PWA Store',
+      modern: {
+        title: 'Modern web apps',
+        text: 'Open them in the browser, and install them when your device allows it.'
+      },
+      verified: {
+        title: 'Verified publishers',
+        text: 'Every publisher and every app is reviewed before publication.'
+      },
+      reviews: {
+        title: 'Reviews from real accounts',
+        text: 'Ratings come from registered users; no rating is ever made up.'
+      },
+      africa: {
+        title: 'Made in Africa',
+        text: 'A platform built for the world.'
+      }
+    },
+    row: {
+      previous: 'Previous',
+      next: 'Next',
+      seeAll: 'See all',
+      seeAllOf: 'See all: {title}'
+    },
+    card: { iconAlt: '{name} icon' },
+    featured: { cta: 'Discover' },
+    empty: { default: 'No apps yet.' },
+    categories: {
+      eyebrow: 'Catalogue',
+      title: 'Categories',
+      lead: 'Browse published apps by theme.',
+      count: 'No apps | {n} app | {n} apps',
+      empty: 'No categories yet.',
+      error: 'Categories could not be loaded. Try again.'
+    },
+    apps: {
+      all: {
+        eyebrow: 'Catalogue',
+        title: 'Apps',
+        lead: 'Every app published on PWA Store.'
+      },
+      popular: {
+        eyebrow: 'Must-haves',
+        title: 'Popular apps',
+        lead: 'The apps rated highest by the community.'
+      },
+      trending: {
+        eyebrow: 'Right now',
+        title: 'Trending',
+        lead: 'The apps installed the most lately.'
+      },
+      recommended: {
+        eyebrow: 'PWA Store picks',
+        title: 'Recommended',
+        lead: 'Apps chosen for their quality and reliability.'
+      },
+      searchPlaceholder: 'Search the catalogue…',
+      searchLabel: 'Search for an app',
+      categoryFilter: 'Filter by category',
+      allCategories: 'All',
+      count: 'No apps | {n} app | {n} apps',
+      empty: 'The first published apps will appear here.',
+      emptyFiltered: 'No app matches. Try another search or category.',
+      error: 'Apps could not be loaded. Try again.'
+    },
+    rankings: {
+      eyebrow: 'Best of the Store',
+      title: 'Top charts',
+      lead: 'The apps that stand out, computed from real data.',
+      tabs: {
+        popular: 'Popular',
+        trending: 'Trending',
+        new: 'New',
+        top_rated: 'Top rated'
+      },
+      hint: {
+        popular: 'Based on installations and user ratings.',
+        trending: 'Based on installations over the last 7 days.',
+        new: 'The latest published apps.',
+        top_rated: 'Apps with at least 3 reviews.'
+      },
+      empty: {
+        popular: 'No app is ranked here yet.',
+        trending: 'No recent installations yet.',
+        new: 'No published apps yet.',
+        top_rated: 'No app has enough reviews to be ranked yet.'
+      },
+      emptyTitle: 'Nothing to rank yet',
+      soonTitle: 'Top charts are coming soon',
+      soonText:
+        'They will be computed from real installations and reviews. Meanwhile, browse the catalogue.',
+      errorTitle: 'Charts unavailable',
+      errorText: 'The service is not responding right now. Try again.',
+      browse: 'Browse apps',
+      reviews: '({n} reviews) | ({n} review) | ({n} reviews)'
+    },
+    details: {
+      back: 'Back to the Store',
+      backToStore: 'Back to the Store',
+      unavailable: 'This app is not available in your country.',
+      unavailableHelp:
+        'Its publisher has limited it to certain countries. Plenty of other apps are waiting for you in the Store.',
+      errorTitle: 'This app cannot be shown',
+      loadError: 'The app details could not be loaded.',
+      publishedBy: 'Published by',
+      reviews: '({n} reviews) | ({n} review) | ({n} reviews)',
+      open: 'Launch the app',
+      addFavorite: 'Add to favourites',
+      inFavorites: 'In your favourites',
+      share: 'Share',
+      edit: 'Edit the app',
+      screenshots: 'Screenshots',
+      screenshotAlt: 'Screenshot {n} of {name}',
+      about: 'About',
+      noDescription: 'The publisher has not provided a description yet.',
+      information: 'Information',
+      info: {
+        version: 'Version',
+        category: 'Category',
+        languages: 'Languages',
+        availability: 'Availability',
+        dataCollected: 'Data collected',
+        compatibility: 'Compatibility',
+        contact: 'Contact',
+        website: 'Official website',
+        support: 'Support',
+        privacyPolicy: 'Privacy policy',
+        terms: 'Terms of use'
+      },
+      allCountries: 'All countries',
+      moreCountries: 'and {n} more | and {n} more | and {n} more',
+      noDataCollected: 'No data collected',
+      install: 'Installation',
+      version: 'Version {version}',
+      openToInstall: 'Open to install',
+      declareInstalled: 'I installed this PWA',
+      installNote:
+        'Installation is offered by your browser, when it supports it.',
+      pwaInfo:
+        'This app is a PWA. Once it is open, you can install it on your home screen.',
+      sandbox: 'PWA Store sandbox',
+      sandboxIntro:
+        'This app runs in a secure sandbox and declares the following access.',
+      permissions: 'Required permissions',
+      noPermissions: 'No special permission required.',
+      domains: 'External domains detected',
+      noDomains: 'No external domain reported by the static analysis.',
+      versions: 'Version history',
+      noVersions: 'No version history.',
+      download: 'Download version {version}',
+      similar: 'Similar apps',
+      opening: 'Opening…',
+      openingHelp: 'Checking that the app is available.',
+      installDialog: {
+        title: 'Installation on this device',
+        message:
+          'Did you install this PWA from your browser? Confirm to find it in your library. This does not start the installation.'
+      },
+      noStorage: 'Local storage is unavailable.',
+      installSaved: 'Installation saved for this device.',
+      installFailed: 'This installation could not be saved.',
+      downloadNotSaved:
+        'Archive received, but adding it to your library failed.',
+      downloadFailed: 'This version could not be downloaded.',
+      unsafeLaunch: 'Unsafe launch address.',
+      launchFailed: 'This app could not be opened.',
+      favoriteAdded: 'App added to your favourites.',
+      favoriteFailed: 'This favourite could not be saved.',
+      shareText: '{name} on PWA Store',
+      linkCopied: 'Link copied.',
+      shareFailed: 'This link could not be shared.'
+    }
+  },
+  cover: {
+    title: 'Cover image',
+    help: 'Add an image that presents your app. It is used in the catalogue and on its page.',
+    spec: {
+      format: 'Landscape format, 16:9.',
+      recommended: 'Recommended size: 1920 × 1080 pixels.',
+      minimum: 'Minimum size: 1280 × 720 pixels.',
+      weight: 'Maximum file size: 3 MB.',
+      types: 'Accepted formats: JPEG, PNG and WebP.'
+    },
+    choose: 'Choose a cover image',
+    drop: 'Drop an image here or click to choose one.',
+    uploading: 'Uploading cover image',
+    previewDesktop: 'Desktop preview',
+    previewMobile: 'Mobile preview',
+    replace: 'Replace image',
+    remove: 'Remove image',
+    error: {
+      type: 'This file is not a valid JPG, PNG or WebP image.',
+      weight: 'The maximum file size is 3 MB.',
+      small: 'Your image is too small. Use at least 1280 × 720 pixels.',
+      ratio: 'Use a 16:9 landscape image.'
+    }
+  },
+  geo: {
+    profileHint:
+      'The catalogue you see depends on this country. You can change it once every 30 days.',
+    visitor: {
+      change: 'Choose my country',
+      short: 'Country',
+      title: 'Your country',
+      help: 'Available apps depend on the country. Without a choice, only apps available in every country are shown.',
+      label: 'Country',
+      clear: 'Do not choose',
+      confirm: 'Show the catalogue'
+    },
+    missing: {
+      text: 'Add your country to see every app available where you live.',
+      action: 'Complete my profile'
+    },
+    title: 'Geographic availability',
+    all: 'All countries',
+    selected: 'Selected countries',
+    choose: 'Select the countries where your app will be available.',
+    count:
+      'Your app will be available in {n} country. | Your app will be available in {n} countries.',
+    none: 'No countries selected.'
+  },
   language: {
     label: 'Language',
     change: 'Change language'
   },
   nav: {
+    discover: 'Discover',
+    applications: 'Apps',
+    rankings: 'Charts',
     home: 'Home',
     popular: 'Popular',
     recommended: 'Recommended',
@@ -319,6 +602,8 @@ export default {
     missing:
       '{n} item to complete | {n} item to complete | {n} items to complete',
     field: {
+      cover: 'Cover image',
+      availability: 'Geographic availability',
       name: 'App name',
       shortDescription: 'Short description',
       description: 'Full description',
@@ -490,6 +775,8 @@ export default {
     },
     backToQueue: 'Back to requests',
     dossier: {
+      noCover: 'No cover image provided.',
+      previousCover: 'Previous cover image',
       listing: 'Submitted listing',
       changed: 'Changed: {fields}',
       before: 'Before: {value}',

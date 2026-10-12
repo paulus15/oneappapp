@@ -2,34 +2,41 @@
   <q-page class="workspace-page">
     <header class="workspace-heading"
       ><span class="eyebrow">{{
-        developerView ? 'Votre activité développeur' : 'Votre compte unique'
+        developerView
+          ? ui('Votre activité développeur')
+          : ui('Votre compte unique')
       }}</span
       ><h1>{{
-        developerView ? 'Tableau de bord développeur' : 'Mon espace PWA Store'
+        developerView
+          ? ui('Tableau de bord développeur')
+          : ui('Mon espace PWA Store')
       }}</h1
       ><p>{{
         developerView
-          ? 'Vos publications, leur suivi et les ressources de votre compte.'
-          : 'Vos applications, vos favoris et vos réglages personnels.'
+          ? ui(
+              'Vos publications, leur suivi et les ressources de votre compte.'
+            )
+          : ui('Vos applications, vos favoris et vos réglages personnels.')
       }}</p></header
     >
     <q-banner v-if="error" class="workspace-alert" role="alert"
-      >{{ error
+      >{{ ui(error)
       }}<template #action
-        ><q-btn flat label="Réessayer" @click="load" /></template
+        ><q-btn flat :label="ui('Réessayer')" @click="load" /></template
     ></q-banner>
     <q-linear-progress
       v-if="loading"
       indeterminate
-      aria-label="Chargement du compte"
+      :aria-label="ui('Chargement du compte')"
     />
     <template v-if="auth.user && !loading">
       <q-banner v-if="!auth.user.email_verified_at" class="workspace-alert"
-        >Confirmez votre adresse e-mail.<template #action
+        >{{ ui('Confirmez votre adresse e-mail.')
+        }}<template #action
           ><q-btn
             flat
             no-caps
-            label="Recevoir un code"
+            :label="ui('Recevoir un code')"
             :loading="sending"
             @click="resend" /></template
       ></q-banner>
@@ -43,17 +50,17 @@
       >
         <q-tab
           name="activity"
-          :label="developerView ? 'Vue d’ensemble' : 'Mes applications'"
+          :label="developerView ? ui('Vue d’ensemble') : ui('Mes applications')"
         />
         <q-tab
           v-if="developerView"
           name="library"
-          label="Mes applications personnelles"
+          :label="ui('Mes applications personnelles')"
         />
-        <q-tab name="favorites" label="Favoris" />
-        <q-tab name="reviews" label="Mes avis" />
-        <q-tab name="profile" label="Profil et sécurité" />
-        <q-tab name="preferences" label="Préférences et données" />
+        <q-tab name="favorites" :label="ui('Favoris')" />
+        <q-tab name="reviews" :label="ui('Mes avis')" />
+        <q-tab name="profile" :label="ui('Profil et sécurité')" />
+        <q-tab name="preferences" :label="ui('Préférences et données')" />
       </q-tabs>
       <div class="q-mt-lg">
         <DeveloperOverview v-if="tab === 'activity' && developerView" />
@@ -61,9 +68,9 @@
         <MyReviews v-else-if="tab === 'reviews'" />
         <AccountPreferences v-else-if="tab === 'preferences'" />
         <section v-else-if="tab === 'favorites'">
-          <p v-if="!favorites.length && !error"
-            >Vous n’avez pas encore de favoris.</p
-          >
+          <p v-if="!favorites.length && !error">{{
+            ui('Vous n’avez pas encore de favoris.')
+          }}</p>
           <div class="workspace-grid"
             ><q-card
               v-for="item in favorites"
@@ -77,11 +84,11 @@
                 ><q-btn
                   flat
                   no-caps
-                  label="Voir l’application"
+                  :label="ui('Voir l’application')"
                   :to="`/apps/${item.id}`" /><q-btn
                   flat
                   no-caps
-                  label="Retirer"
+                  :label="ui('Retirer')"
                   :loading="removing === item.id"
                   @click="remove(item.id)" /></div></q-card
           ></div>
@@ -94,11 +101,11 @@
         </section>
         <div v-else-if="tab === 'profile'" class="workspace-grid">
           <q-card flat bordered class="workspace-card"
-            ><h2>Mon profil</h2>
+            ><h2>{{ ui('Mon profil') }}</h2>
             <q-form class="workspace-form" @submit="save">
               <q-input
                 v-model="form.name"
-                label="Nom complet"
+                :label="ui('Nom complet')"
                 autocomplete="name"
                 outlined
                 required
@@ -106,11 +113,13 @@
               />
               <CountrySelect
                 v-model="form.country_id"
-                label="Pays de résidence déclaré"
+                required
+                :label="ui('Pays de résidence déclaré')"
               />
+              <p class="text-caption text-muted">{{ t('geo.profileHint') }}</p>
               <q-input
                 v-model="form.email"
-                label="Adresse e-mail"
+                :label="ui('Adresse e-mail')"
                 type="email"
                 autocomplete="email"
                 outlined
@@ -119,22 +128,22 @@
               <template v-if="form.email !== auth.user.email"
                 ><q-input
                   v-model="form.current_password"
-                  label="Mot de passe actuel"
+                  :label="ui('Mot de passe actuel')"
                   type="password"
                   autocomplete="current-password"
                   outlined
                   required
-                /><p class="text-caption"
-                  >Votre adresse actuelle restera valide jusqu’à confirmation de
-                  la nouvelle. Si la double authentification est activée, un
-                  premier code sera demandé sur l’ancienne adresse.</p
-                ></template
+                /><p class="text-caption">{{
+                  ui(
+                    'Votre adresse actuelle restera valide jusqu’à confirmation de la nouvelle. Si la double authentification est activée, un premier code sera demandé sur l’ancienne adresse.'
+                  )
+                }}</p></template
               >
               <q-btn
                 type="submit"
                 no-caps
                 color="primary"
-                label="Enregistrer"
+                :label="ui('Enregistrer')"
                 :loading="saving"
               />
             </q-form>
@@ -145,12 +154,14 @@
             flat
             bordered
             class="workspace-card developer-invite"
-            ><h2>Vous développez des applications ?</h2
-            ><p>Devenez développeur sur PWA Store avec ce même compte.</p
+            ><h2>{{ ui('Vous développez des applications ?') }}</h2
+            ><p>{{
+              ui('Devenez développeur sur PWA Store avec ce même compte.')
+            }}</p
             ><q-btn
               color="primary"
               no-caps
-              label="Devenir développeur"
+              :label="ui('Devenir développeur')"
               to="/developer/activate"
           /></q-card>
         </div>
@@ -159,6 +170,9 @@
   </q-page>
 </template>
 <script setup>
+import { useI18n } from 'vue-i18n'
+import { ui } from '@/i18n/text'
+
 import { onMounted, reactive, ref, watch } from 'vue'
 import { useQuasar } from 'quasar'
 import { useRouter } from 'vue-router'
@@ -171,6 +185,7 @@ import AccountPreferences from '@/components/AccountPreferences.vue'
 import MyReviews from '@/components/MyReviews.vue'
 import DeveloperOverview from '@/components/DeveloperOverview.vue'
 import PersonalLibrary from '@/components/PersonalLibrary.vue'
+const { t } = useI18n()
 const auth = useAuthStore(),
   q = useQuasar(),
   router = useRouter(),
@@ -233,7 +248,12 @@ async function save() {
       return
     }
     auth.setUser(data.user)
-    q.notify({ type: 'positive', message: 'Profil enregistré.' })
+    q.notify({
+      type: 'positive',
+      get message() {
+        return ui('Profil enregistré.')
+      }
+    })
   } catch (e) {
     error.value = apiMessage(e)
   } finally {

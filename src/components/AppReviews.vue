@@ -12,7 +12,7 @@
           icon-half="star_half"
           readonly
         />
-        <small>{{ data.total }} avis</small>
+        <small>{{ data.total }} {{ ui('avis') }}</small>
       </div>
       <div class="bars" aria-hidden="true">
         <div v-for="star in [5, 4, 3, 2, 1]" :key="star" class="bar">
@@ -30,7 +30,7 @@
     </div>
 
     <div class="row items-center justify-between q-mb-sm">
-      <h2 id="reviews-title">Notes et avis</h2>
+      <h2 id="reviews-title">{{ ui('Notes et avis') }}</h2>
       <q-select
         v-model="sort"
         :options="sortOptions"
@@ -39,13 +39,13 @@
         dense
         outlined
         class="sort"
-        aria-label="Trier les avis"
+        :aria-label="ui('Trier les avis')"
       />
     </div>
 
     <q-card v-if="canReview" flat bordered class="workspace-card q-mb-md">
       <q-form @submit="save">
-        <h3>{{ data.mine ? 'Votre avis' : 'Donner votre avis' }}</h3>
+        <h3>{{ data.mine ? ui('Votre avis') : ui('Donner votre avis') }}</h3>
         <q-rating v-model="form.rating" max="5" size="26px" color="orange-6" />
         <q-input
           v-model="form.comment"
@@ -54,11 +54,11 @@
           outlined
           maxlength="2000"
           counter
-          label="Votre commentaire (facultatif)"
+          :label="ui('Votre commentaire (facultatif)')"
           class="q-mt-sm"
         />
         <p v-if="data.mine?.status === 'hidden'" class="text-negative"
-          >Votre avis a été masqué par la modération :
+          >{{ ui('Votre avis a été masqué par la modération :') }}
           {{ data.mine.moderation_reason }}</p
         >
         <div class="workspace-actions">
@@ -66,7 +66,7 @@
             type="submit"
             color="primary"
             no-caps
-            :label="data.mine ? 'Mettre à jour' : 'Publier mon avis'"
+            :label="data.mine ? ui('Mettre à jour') : ui('Publier mon avis')"
             :loading="busy"
           />
           <q-btn
@@ -74,7 +74,7 @@
             flat
             no-caps
             color="negative"
-            label="Supprimer"
+            :label="ui('Supprimer')"
             :disable="busy"
             @click="remove"
           />
@@ -82,26 +82,27 @@
       </q-form>
     </q-card>
     <p v-else-if="!auth.isAuthenticated" class="text-muted">
-      <router-link :to="{ path: '/login', query: { redirect: route.fullPath } }"
-        >Connectez-vous</router-link
+      <router-link
+        :to="{ path: '/login', query: { redirect: route.fullPath } }"
+        >{{ ui('Connectez-vous') }}</router-link
       >
-      pour donner votre avis.
+      {{ ui('pour donner votre avis.') }}
     </p>
-    <p v-else-if="!auth.user?.email_verified_at" class="text-muted"
-      >Confirmez votre adresse e-mail pour donner votre avis.</p
-    >
+    <p v-else-if="!auth.user?.email_verified_at" class="text-muted">{{
+      ui('Confirmez votre adresse e-mail pour donner votre avis.')
+    }}</p>
 
     <q-banner v-if="error" class="workspace-alert" role="alert">{{
-      error
+      ui(error)
     }}</q-banner>
-    <p v-if="!loading && !data.data.length" class="text-muted"
-      >Aucun avis pour le moment.</p
-    >
+    <p v-if="!loading && !data.data.length" class="text-muted">{{
+      ui('Aucun avis pour le moment.')
+    }}</p>
     <q-list separator>
       <q-item v-for="review in data.data" :key="review.id" class="review">
         <q-item-section>
           <div class="row items-center justify-between">
-            <strong>{{ review.user?.name || 'Utilisateur' }}</strong>
+            <strong>{{ review.user?.name || ui('Utilisateur') }}</strong>
             <q-rating
               :model-value="review.rating"
               max="5"
@@ -113,7 +114,7 @@
           <small class="text-muted">{{ date(review.updated_at) }}</small>
           <p v-if="review.comment" class="comment">{{ review.comment }}</p>
           <div v-if="review.reply" class="reply">
-            <strong>Réponse de l’éditeur</strong>
+            <strong>{{ ui('Réponse de l’éditeur') }}</strong>
             <p>{{ review.reply.body }}</p>
           </div>
           <div class="row items-center q-gutter-xs">
@@ -123,7 +124,9 @@
                 dense
                 no-caps
                 color="primary"
-                :label="review.reply ? 'Modifier la réponse' : 'Répondre'"
+                :label="
+                  review.reply ? ui('Modifier la réponse') : ui('Répondre')
+                "
                 @click="reply(review)"
               />
               <q-btn
@@ -132,7 +135,7 @@
                 dense
                 no-caps
                 color="negative"
-                label="Retirer la réponse"
+                :label="ui('Retirer la réponse')"
                 @click="removeReply(review)"
               />
             </template>
@@ -152,6 +155,9 @@
   </section>
 </template>
 <script setup>
+import { currentLocale } from '@/i18n'
+import { ui } from '@/i18n/text'
+
 import { computed, reactive, ref, watch } from 'vue'
 import { useQuasar } from 'quasar'
 import { useRoute } from 'vue-router'
@@ -180,16 +186,31 @@ const loading = ref(true),
   sort = ref('recent')
 const form = reactive({ rating: 5, comment: '' })
 const sortOptions = [
-  { value: 'recent', label: 'Plus récents' },
-  { value: 'best', label: 'Meilleures notes' },
-  { value: 'worst', label: 'Notes les plus basses' }
+  {
+    value: 'recent',
+    get label() {
+      return ui('Plus récents')
+    }
+  },
+  {
+    value: 'best',
+    get label() {
+      return ui('Meilleures notes')
+    }
+  },
+  {
+    value: 'worst',
+    get label() {
+      return ui('Notes les plus basses')
+    }
+  }
 ]
 const isPublisher = computed(() => props.app.developer_id === auth.user?.id)
 const canReview = computed(
   () =>
     auth.isAuthenticated && !!auth.user?.email_verified_at && !isPublisher.value
 )
-const date = value => new Date(value).toLocaleDateString('fr-FR')
+const date = value => new Date(value).toLocaleDateString(currentLocale())
 
 async function load() {
   loading.value = true
@@ -233,24 +254,30 @@ function save() {
         rating: form.rating,
         comment: form.comment || null
       }),
-    'Avis enregistré.'
+    ui('Avis enregistré.')
   )
 }
 function remove() {
   $q.dialog({
-    title: 'Supprimer votre avis ?',
+    get title() {
+      return ui('Supprimer votre avis ?')
+    },
     cancel: true
   }).onOk(() =>
     run(async () => {
       await communityApi.deleteReview(data.value.mine.id)
       Object.assign(form, { rating: 5, comment: '' })
-    }, 'Avis supprimé.')
+    }, ui('Avis supprimé.'))
   )
 }
 function reply(review) {
   $q.dialog({
-    title: 'Répondre à cet avis',
-    message: 'Votre réponse sera publique, sous l’avis.',
+    get title() {
+      return ui('Répondre à cet avis')
+    },
+    get message() {
+      return ui('Votre réponse sera publique, sous l’avis.')
+    },
     prompt: {
       model: review.reply?.body || '',
       type: 'textarea',
@@ -258,11 +285,11 @@ function reply(review) {
     },
     cancel: true
   }).onOk(body =>
-    run(() => communityApi.reply(review.id, body), 'Réponse publiée.')
+    run(() => communityApi.reply(review.id, body), ui('Réponse publiée.'))
   )
 }
 function removeReply(review) {
-  return run(() => communityApi.deleteReply(review.id), 'Réponse retirée.')
+  return run(() => communityApi.deleteReply(review.id), ui('Réponse retirée.'))
 }
 watch(() => props.app.id, load, { immediate: true })
 watch([page, sort], load)

@@ -32,6 +32,14 @@ const routes = [
         component: () => import('@/pages/store/StoreCatalogPage.vue')
       },
       {
+        path: 'applications',
+        component: () => import('@/pages/store/AppListPage.vue')
+      },
+      {
+        path: 'rankings',
+        component: () => import('@/pages/store/RankingsPage.vue')
+      },
+      {
         path: 'recommended',
         component: () => import('@/pages/store/AppListPage.vue')
       },

@@ -13,13 +13,16 @@
       <q-form @submit="send">
         <q-card-section>
           <h2
-            >Signaler
-            {{ targetType === 'review' ? 'cet avis' : 'cette application' }}</h2
+            >{{ ui('Signaler') }}
+            {{
+              targetType === 'review' ? ui('cet avis') : ui('cette application')
+            }}</h2
           >
-          <p class="text-muted"
-            >Votre signalement est confidentiel et examiné par l’équipe de
-            modération.</p
-          >
+          <p class="text-muted">{{
+            ui(
+              'Votre signalement est confidentiel et examiné par l’équipe de modération.'
+            )
+          }}</p>
         </q-card-section>
         <q-card-section class="workspace-form">
           <q-option-group v-model="reason" :options="reasons" type="radio" />
@@ -29,19 +32,19 @@
             type="textarea"
             autogrow
             maxlength="2000"
-            label="Précisions (facultatif)"
+            :label="ui('Précisions (facultatif)')"
           />
           <q-banner v-if="error" class="workspace-alert" role="alert">{{
-            error
+            ui(error)
           }}</q-banner>
         </q-card-section>
         <q-card-actions align="right">
-          <q-btn flat no-caps label="Annuler" v-close-popup />
+          <q-btn flat no-caps :label="ui('Annuler')" v-close-popup />
           <q-btn
             type="submit"
             color="negative"
             no-caps
-            label="Envoyer le signalement"
+            :label="ui('Envoyer le signalement')"
             :disable="!reason"
             :loading="busy"
           />
@@ -51,6 +54,8 @@
   </q-dialog>
 </template>
 <script setup>
+import { ui } from '@/i18n/text'
+
 import { ref } from 'vue'
 import { useQuasar } from 'quasar'
 import { useRoute, useRouter } from 'vue-router'
@@ -74,9 +79,11 @@ const dialog = ref(false),
   details = ref(''),
   busy = ref(false),
   error = ref('')
-const reasons = Object.entries(REPORT_REASONS).map(([value, label]) => ({
+const reasons = Object.keys(REPORT_REASONS).map(value => ({
   value,
-  label
+  get label() {
+    return REPORT_REASONS[value]
+  }
 }))
 
 function open() {

@@ -1,12 +1,12 @@
 <template>
   <section>
     <q-banner v-if="error" class="workspace-alert" role="alert">{{
-      error
+      ui(error)
     }}</q-banner>
     <q-linear-progress v-if="loading" indeterminate />
-    <p v-if="!loading && !reviews.length" class="text-muted"
-      >Vous n’avez pas encore publié d’avis.</p
-    >
+    <p v-if="!loading && !reviews.length" class="text-muted">{{
+      ui('Vous n’avez pas encore publié d’avis.')
+    }}</p>
     <div class="workspace-grid">
       <q-card
         v-for="review in reviews"
@@ -28,14 +28,14 @@
           />
         </div>
         <small class="text-muted"
-          >{{ new Date(review.updated_at).toLocaleDateString('fr-FR') }}
+          >{{ new Date(review.updated_at).toLocaleDateString(currentLocale()) }}
           <span v-if="review.status === 'hidden'" class="text-negative">
-            · masqué par la modération</span
+            {{ ui('· masqué par la modération') }}</span
           ></small
         >
         <p v-if="review.comment">{{ review.comment }}</p>
         <div v-if="review.reply" class="reply"
-          ><strong>Réponse de l’éditeur</strong>
+          ><strong>{{ ui('Réponse de l’éditeur') }}</strong>
           <p>{{ review.reply.body }}</p></div
         >
       </q-card>
@@ -46,15 +46,17 @@
       :max="lastPage"
       @update:model-value="load"
     />
-    <h2 class="q-mt-lg">Mes signalements</h2>
-    <p v-if="!reports.length" class="text-muted">Aucun signalement envoyé.</p>
+    <h2 class="q-mt-lg">{{ ui('Mes signalements') }}</h2>
+    <p v-if="!reports.length" class="text-muted">{{
+      ui('Aucun signalement envoyé.')
+    }}</p>
     <q-list v-else bordered separator class="rounded-borders">
       <q-item v-for="report in reports" :key="report.id">
         <q-item-section>
           <q-item-label
             >{{ REPORT_REASONS[report.reason] }} ·
             {{
-              new Date(report.created_at).toLocaleDateString('fr-FR')
+              new Date(report.created_at).toLocaleDateString(currentLocale())
             }}</q-item-label
           >
           <q-item-label caption
@@ -69,6 +71,9 @@
   </section>
 </template>
 <script setup>
+import { currentLocale } from '@/i18n'
+import { ui } from '@/i18n/text'
+
 import { onMounted, ref } from 'vue'
 import { communityApi, REPORT_REASONS } from '@/services/community'
 import { apiMessage } from '@/services/account'
@@ -80,9 +85,15 @@ const reviews = ref([]),
   page = ref(1),
   lastPage = ref(1)
 const reportStatus = {
-  open: 'En cours d’examen',
-  resolved: 'Traité',
-  dismissed: 'Classé sans suite'
+  get open() {
+    return ui('En cours d’examen')
+  },
+  get resolved() {
+    return ui('Traité')
+  },
+  get dismissed() {
+    return ui('Classé sans suite')
+  }
 }
 async function load() {
   loading.value = true

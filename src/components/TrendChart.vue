@@ -2,7 +2,7 @@
   <figure class="trend">
     <figcaption>
       <span class="title">{{ title }}</span>
-      <strong class="total">{{ total.toLocaleString('fr-FR') }}</strong>
+      <strong class="total">{{ total.toLocaleString(currentLocale()) }}</strong>
     </figcaption>
     <div
       ref="plot"
@@ -14,7 +14,7 @@
         :viewBox="`0 0 ${W} ${H}`"
         preserveAspectRatio="none"
         role="img"
-        :aria-label="`${title} : ${total} sur la période`"
+        :aria-label="ui('{p0} : {p1} sur la période', { p0: title, p1: total })"
       >
         <line
           v-for="t in ticks"
@@ -65,6 +65,9 @@
   </figure>
 </template>
 <script setup>
+import { currentLocale } from '@/i18n'
+import { ui } from '@/i18n/text'
+
 import { computed, ref } from 'vue'
 
 // Single-series trend: one hue, no legend (the title names the series).
@@ -93,7 +96,7 @@ const area = computed(() =>
 )
 const dayLabel = day =>
   day
-    ? new Date(`${day}T00:00:00`).toLocaleDateString('fr-FR', {
+    ? new Date(`${day}T00:00:00`).toLocaleDateString(currentLocale(), {
         day: 'numeric',
         month: 'short'
       })

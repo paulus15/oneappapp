@@ -10,30 +10,30 @@
         <div class="hero-orb hero-orb-two" />
         <div class="hero-copy">
           <span class="eyebrow"
-            ><q-icon name="auto_awesome" /> La plateforme universelle</span
+            ><q-icon name="auto_awesome" /> {{ t('store.hero.eyebrow') }}</span
           >
           <h1 id="hero-title">
             <span class="line"
-              ><span class="line-inner">Une seule installation.</span></span
+              ><span class="line-inner">{{ t('store.hero.line1') }}</span></span
             >
             <span class="line"
-              ><span class="line-inner">Toutes les plateformes.</span></span
+              ><span class="line-inner">{{ t('store.hero.line2') }}</span></span
             >
           </h1>
-          <p>Découvrez, testez et utilisez des applications Web modernes.</p>
+          <p>{{ t('store.hero.lead') }}</p>
           <div class="hero-actions">
             <q-btn
               unelevated
               no-caps
-              label="Découvrir PWA Store"
-              href="#popular"
+              :label="t('store.hero.explore')"
+              to="/applications"
               class="primary-cta"
             />
             <q-btn
+              v-if="!isMobile"
               outline
               no-caps
-              v-if="!isMobile"
-              label="Devenir développeur"
+              :label="t('store.hero.becomeDeveloper')"
               to="/developer/activate"
               class="secondary-cta"
             />
@@ -41,7 +41,7 @@
         </div>
 
         <div class="device-scene" aria-hidden="true">
-          <div class="floating-apps" v-if="home?.latest?.length">
+          <div v-if="home?.latest?.length" class="floating-apps">
             <div
               v-for="entry in home.latest.slice(0, 3)"
               :key="entry.id"
@@ -66,302 +66,252 @@
                 alt=""
               />
               <strong>PWA Store</strong>
-              <small>Installer partout.<br />Ouvrir instantanément.</small>
+              <small
+                >{{ t('store.hero.phone1') }}<br />{{
+                  t('store.hero.phone2')
+                }}</small
+              >
             </div>
           </div>
         </div>
         <div class="hero-dots" aria-hidden="true"><i /><i /><i /><i /></div>
       </section>
 
-      <div v-if="activeSearch" class="search-notice">
-        <span>Résultats pour « {{ activeSearch }} »</span>
-        <q-btn
-          flat
-          round
-          dense
-          icon="close"
-          aria-label="Effacer la recherche"
-          @click="clearSearch"
-        />
-      </div>
-
-      <!-- Advanced Filter Panel -->
-      <div
-        class="filter-bar-panel glass-panel row items-center justify-between q-pa-md q-mb-sm"
-      >
-        <div class="filter-controls">
-          <!-- Platform Filter -->
-          <q-select
-            v-model="selectedPlatform"
-            :options="platformOptions"
-            label="Plateforme"
+      <!-- Search results (?search=) -->
+      <template v-if="activeSearch">
+        <div class="search-notice">
+          <span>{{
+            t('store.search.resultsFor', { query: activeSearch })
+          }}</span>
+          <q-btn
+            flat
+            round
             dense
-            outlined
-            emit-value
-            map-options
-            class="filter-select"
-          >
-            <template v-slot:prepend>
-              <q-icon name="devices" size="xs" />
-            </template>
-          </q-select>
-
-          <!-- Price Filter -->
-          <q-select
-            v-model="selectedPriceType"
-            :options="priceOptions"
-            label="Prix"
-            dense
-            outlined
-            emit-value
-            map-options
-            class="filter-select"
-          >
-            <template v-slot:prepend>
-              <q-icon name="payments" size="xs" />
-            </template>
-          </q-select>
-
-          <!-- Sort By Filter -->
-          <q-select
-            v-model="sortBy"
-            :options="sortOptions"
-            label="Trier par"
-            dense
-            outlined
-            emit-value
-            map-options
-            class="filter-select"
-          >
-            <template v-slot:prepend>
-              <q-icon name="sort" size="xs" />
-            </template>
-          </q-select>
+            icon="close"
+            :aria-label="t('store.search.clear')"
+            @click="clearSearch"
+          />
         </div>
 
-        <q-btn
-          v-if="selectedPlatform || selectedPriceType || sortBy !== 'latest'"
-          flat
-          dense
-          no-caps
-          label="Réinitialiser"
-          icon="refresh"
-          color="primary"
-          @click="resetFilters"
-        />
-      </div>
-
-      <div class="content-grid">
-        <div class="main-column">
-          <!-- Search, filters or a category: catalogue results -->
-          <section v-if="filtering" class="home-section">
-            <header class="section-heading">
-              <div>
-                <span class="section-kicker">Catalogue</span>
-                <h2>Applications correspondantes ({{ total }})</h2>
-              </div>
-            </header>
-            <AppGrid
-              :apps="rawApps"
-              :loading="loading"
-              empty="Aucune application ne correspond. Essayez d’autres filtres ou mots-clés."
-              empty-icon="search_off"
-            />
-          </section>
-
-          <div v-else>
-            <section v-if="featuredApps.length" class="home-section">
-              <header class="section-heading">
-                <div>
-                  <span class="section-kicker">Sélection de l'équipe</span>
-                  <h2>À la une</h2>
-                </div>
-              </header>
-              <div class="featured-scroll-container">
-                <router-link
-                  v-for="app in featuredApps"
-                  :key="app.id"
-                  :to="app.to"
-                  class="glass-panel featured-app-card"
-                >
-                  <div
-                    class="featured-card-bg"
-                    :style="{ background: app.color }"
-                  />
-                  <div class="featured-card-content row no-wrap items-center">
-                    <div class="featured-card-icon">
-                      <AppIcon
-                        :src="app.iconUrl"
-                        :fallback-icon="app.icon"
-                        :alt="`Icône de ${app.name}`"
-                      />
-                    </div>
-                    <div class="featured-card-text col q-ml-md">
-                      <h3>{{ app.name }}</h3>
-                      <p>{{ app.publisher || app.category }}</p>
-                      <div class="row items-center q-gutter-x-sm q-mt-xs">
-                        <span class="badge-custom price-badge">{{
-                          app.price > 0 ? app.price + ' FCFA' : 'Gratuit'
-                        }}</span>
-                        <span class="badge-custom rating-badge"
-                          ><q-icon name="star" size="xs" />
-                          {{ app.rating || 'Nouveau' }}</span
-                        >
-                      </div>
-                    </div>
-                  </div>
-                </router-link>
-              </div>
-            </section>
-
-            <section id="popular" class="home-section">
-              <header class="section-heading">
-                <div>
-                  <span class="section-kicker">Les incontournables</span>
-                  <h2>Applications populaires</h2>
-                </div>
-                <router-link to="/popular"
-                  >Voir tout <q-icon name="arrow_forward"
-                /></router-link>
-              </header>
-              <AppGrid
-                :apps="home?.popular || []"
-                :loading="!home && loading"
-                empty="Les premières applications publiées apparaîtront ici."
-              />
-            </section>
-
-            <section class="home-section">
-              <header class="section-heading">
-                <div>
-                  <span class="section-kicker">Fraîchement publiées</span>
-                  <h2>Nouveautés</h2>
-                </div>
-              </header>
-              <AppGrid :apps="home?.latest || []" :loading="!home && loading" />
-            </section>
-
-            <section
-              v-for="collection in home?.collections || []"
-              :key="collection.id"
-              class="home-section"
+        <div class="filter-bar-panel glass-panel">
+          <div class="filter-controls">
+            <q-select
+              v-model="selectedPlatform"
+              :options="platformOptions"
+              :label="t('store.filters.platform')"
+              dense
+              outlined
+              emit-value
+              map-options
+              class="filter-select"
             >
-              <header class="section-heading">
-                <div>
-                  <span class="section-kicker">Sélection</span>
-                  <h2>{{ collection.title }}</h2>
-                  <p v-if="collection.description" class="section-lead">{{
-                    collection.description
-                  }}</p>
-                </div>
-                <router-link :to="`/collections/${collection.slug}`"
-                  >Voir tout <q-icon name="arrow_forward"
-                /></router-link>
-              </header>
-              <AppGrid :apps="collection.applications.slice(0, 8)" />
-            </section>
-
-            <section class="home-section">
-              <header class="section-heading">
-                <div>
-                  <span class="section-kicker">Mises à jour</span>
-                  <h2>Récemment mises à jour</h2>
-                </div>
-              </header>
-              <AppGrid
-                :apps="home?.recently_updated || []"
-                :loading="!home && loading"
-              />
-            </section>
+              <template #prepend><q-icon name="devices" size="xs" /></template>
+            </q-select>
+            <q-select
+              v-model="selectedPriceType"
+              :options="priceOptions"
+              :label="t('store.filters.price')"
+              dense
+              outlined
+              emit-value
+              map-options
+              class="filter-select"
+            >
+              <template #prepend><q-icon name="payments" size="xs" /></template>
+            </q-select>
+            <q-select
+              v-model="sortBy"
+              :options="sortOptions"
+              :label="t('store.filters.sort')"
+              dense
+              outlined
+              emit-value
+              map-options
+              class="filter-select"
+            >
+              <template #prepend><q-icon name="sort" size="xs" /></template>
+            </q-select>
           </div>
-
-          <section
-            id="features"
-            class="feature-grid"
-            aria-label="Avantages PWA Store"
-          >
-            <article
-              v-for="feature in features"
-              :key="feature.title"
-              class="glass-panel feature-card"
-            >
-              <q-icon :name="feature.icon" :style="{ color: feature.color }" />
-              <h3>{{ feature.title }}</h3>
-              <p>{{ feature.text }}</p>
-            </article>
-          </section>
+          <q-btn
+            v-if="selectedPlatform || selectedPriceType || sortBy !== 'latest'"
+            flat
+            dense
+            no-caps
+            :label="t('store.filters.reset')"
+            icon="refresh"
+            color="primary"
+            @click="resetFilters"
+          />
         </div>
 
-        <aside class="aside-column">
-          <section id="categories" class="glass-panel side-card">
-            <header
-              ><h2>Catégories</h2
-              ><router-link to="/categories">Voir tout</router-link></header
-            >
-            <router-link
-              v-for="category in (home?.categories || []).slice(0, 8)"
-              :key="category.id"
-              :to="`/categories/${category.slug}`"
-              class="category-row"
-            >
-              <span>
-                <q-icon
-                  :name="category.icon || 'category'"
-                  :style="{ color: category.color || 'var(--pwa-primary)' }"
-                />{{ category.name }}
-              </span>
-              <small>{{ category.applications_count }}</small>
-            </router-link>
-          </section>
-
-          <section v-if="!isMobile" id="business" class="developer-card">
-            <q-icon name="developer_mode" class="developer-watermark" />
-            <h2>Développeur ?</h2>
-            <p
-              >Vous développez des applications ? Devenez développeur sur PWA
-              Store.</p
-            >
-            <div class="developer-actions">
-              <q-btn
-                unelevated
-                no-caps
-                label="Devenir développeur"
-                to="/developer/activate"
-              />
-              <q-btn flat no-caps label="En savoir plus" to="/developers" />
+        <section class="home-section" aria-labelledby="results-title">
+          <header class="section-heading">
+            <div>
+              <span class="section-kicker">{{ t('store.search.kicker') }}</span>
+              <h2 id="results-title">{{
+                t('store.search.count', { n: total }, total)
+              }}</h2>
             </div>
-          </section>
+          </header>
+          <AppGrid
+            :apps="rawApps"
+            :loading="loading"
+            :empty="t('store.search.empty')"
+            empty-icon="search_off"
+          />
+        </section>
+      </template>
 
-          <section id="trending" class="glass-panel side-card trending-card">
-            <header
-              ><h2>Top tendances</h2
-              ><router-link to="/trending">Voir tout</router-link></header
-            >
+      <!-- Discover -->
+      <template v-else>
+        <AppRow
+          id="featured"
+          variant="featured"
+          priority
+          :title="t('store.home.featured')"
+          :kicker="t('store.home.featuredKicker')"
+          :apps="sections.featured"
+          :loading="pending"
+        />
+        <AppRow
+          id="trending"
+          :title="t('store.home.trending')"
+          :kicker="t('store.home.trendingKicker')"
+          to="/rankings?type=trending"
+          :apps="sections.trending"
+          :loading="pending"
+        />
+        <AppRow
+          id="latest"
+          :title="t('store.home.latest')"
+          :kicker="t('store.home.latestKicker')"
+          to="/rankings?type=new"
+          :apps="sections.latest"
+          :loading="pending"
+        />
+        <AppRow
+          id="recommended"
+          :title="t('store.home.recommended')"
+          :kicker="t('store.home.recommendedKicker')"
+          to="/recommended"
+          :apps="sections.recommended"
+          :loading="pending"
+        />
+        <AppRow
+          v-for="collection in sections.collections"
+          :key="collection.id"
+          :title="collection.title"
+          :kicker="t('store.home.collectionKicker')"
+          :to="`/collections/${collection.slug}`"
+          :apps="collection.applications || []"
+        />
+
+        <section
+          v-if="pending || sections.categories.length"
+          id="categories"
+          class="home-section"
+          aria-labelledby="categories-title"
+        >
+          <header class="section-heading">
+            <div>
+              <span class="section-kicker">{{
+                t('store.home.categoriesKicker')
+              }}</span>
+              <h2 id="categories-title">{{ t('store.home.categories') }}</h2>
+            </div>
             <router-link
-              v-for="(app, index) in trendingApps"
-              :key="app.id"
-              :to="app.to"
-              class="trend-row"
-            >
-              <b>{{ index + 1 }}</b>
-              <div class="trend-icon" :style="{ background: app.color }">
-                <AppIcon
-                  :src="app.iconUrl"
-                  :fallback-icon="app.icon"
-                  :alt="`Icône de ${app.name}`"
-                />
-              </div>
-              <div>
-                <h3>{{ app.name }}</h3>
-                <p>{{ app.category }}</p>
-              </div>
-              <span v-if="app.rating"
-                ><q-icon name="star" /> {{ app.rating }}</span
-              >
-            </router-link>
-          </section>
-        </aside>
-      </div>
+              to="/categories"
+              :aria-label="
+                t('store.row.seeAllOf', { title: t('store.home.categories') })
+              "
+              >{{ t('store.row.seeAll') }} <q-icon name="arrow_forward"
+            /></router-link>
+          </header>
+          <div v-if="pending" class="category-tiles">
+            <q-skeleton
+              v-for="n in 4"
+              :key="n"
+              height="68px"
+              class="tile-skeleton"
+            />
+          </div>
+          <div v-else class="category-tiles">
+            <CategoryTile
+              v-for="category in sections.categories"
+              :key="category.id"
+              :category="category"
+            />
+          </div>
+        </section>
+
+        <section
+          v-if="sections.discover.length"
+          id="discover"
+          class="home-section"
+          aria-labelledby="discover-title"
+        >
+          <header class="section-heading">
+            <div>
+              <span class="section-kicker">{{
+                t('store.home.discoverKicker')
+              }}</span>
+              <h2 id="discover-title">{{ t('store.home.discover') }}</h2>
+            </div>
+            <router-link
+              to="/applications"
+              :aria-label="
+                t('store.row.seeAllOf', { title: t('store.home.discover') })
+              "
+              >{{ t('store.row.seeAll') }} <q-icon name="arrow_forward"
+            /></router-link>
+          </header>
+          <AppGrid :apps="sections.discover" />
+        </section>
+
+        <div v-if="home && !hasApps" class="home-empty glass-panel">
+          <q-icon name="storefront" />
+          <h2>{{ t('store.home.emptyTitle') }}</h2>
+          <p>{{ t('store.home.emptyText') }}</p>
+        </div>
+
+        <section v-if="!isMobile" id="business" class="developer-band">
+          <q-icon name="developer_mode" class="developer-watermark" />
+          <div>
+            <h2>{{ t('store.home.developerTitle') }}</h2>
+            <p>{{ t('store.home.developerText') }}</p>
+          </div>
+          <div class="developer-actions">
+            <q-btn
+              unelevated
+              no-caps
+              :label="t('store.hero.becomeDeveloper')"
+              to="/developer/activate"
+            />
+            <q-btn
+              flat
+              no-caps
+              :label="t('store.home.learnMore')"
+              to="/developers"
+            />
+          </div>
+        </section>
+      </template>
+
+      <section
+        id="features"
+        class="feature-grid"
+        :aria-label="t('store.features.label')"
+      >
+        <article
+          v-for="feature in features"
+          :key="feature.key"
+          class="glass-panel feature-card"
+        >
+          <q-icon :name="feature.icon" :style="{ color: feature.color }" />
+          <h3>{{ t(`store.features.${feature.key}.title`) }}</h3>
+          <p>{{ t(`store.features.${feature.key}.text`) }}</p>
+        </article>
+      </section>
     </main>
 
     <AppFooter />
@@ -369,102 +319,138 @@
 </template>
 
 <script setup>
-import { useWorkspaceAccess } from '@/composables/useWorkspaceAccess'
-const { isMobile } = useWorkspaceAccess()
-import { ref, computed, onMounted, watch } from 'vue'
-import { useHeroIntro } from '@/composables/useHeroIntro'
-const motionRoot = ref(null)
-const { intro } = useHeroIntro(motionRoot)
+import { computed, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import AppIcon from '@/components/AppIcon.vue'
+import { useI18n } from 'vue-i18n'
 import AppFooter from '@/components/AppFooter.vue'
 import AppGrid from '@/components/AppGrid.vue'
+import AppRow from '@/components/AppRow.vue'
+import CategoryTile from '@/components/CategoryTile.vue'
+import { useHeroIntro } from '@/composables/useHeroIntro'
+import { useWorkspaceAccess } from '@/composables/useWorkspaceAccess'
 import { catalogApi } from '@/services/catalog'
-import { toCard } from '@/utils/appCard'
 
+const { t } = useI18n()
+const { isMobile } = useWorkspaceAccess()
+const motionRoot = ref(null)
+const { intro } = useHeroIntro(motionRoot)
 const route = useRoute()
 const router = useRouter()
 const activeSearch = computed(() => String(route.query.search || '').trim())
 
+const home = ref(null)
+const homeLoading = ref(true)
+const pending = computed(() => !home.value && homeLoading.value)
+
 const rawApps = ref([])
 const total = ref(0)
-const home = ref(null)
 const loading = ref(false)
-
 const selectedPriceType = ref('')
 const selectedPlatform = ref('')
 const sortBy = ref('latest')
-const filtering = computed(
-  () =>
-    !!activeSearch.value ||
-    !!selectedPlatform.value ||
-    !!selectedPriceType.value ||
-    sortBy.value !== 'latest'
-)
 
-const platformOptions = [
-  { label: 'Toutes plateformes', value: '' },
+const platformOptions = computed(() => [
+  { label: t('store.filters.allPlatforms'), value: '' },
   { label: 'Web / PWA', value: 'web' },
   { label: 'Android', value: 'android' },
   { label: 'Windows', value: 'windows' },
   { label: 'iOS', value: 'ios' }
-]
+])
+const priceOptions = computed(() => [
+  { label: t('store.filters.allPrices'), value: '' },
+  { label: t('store.filters.free'), value: 'free' },
+  { label: t('store.filters.paid'), value: 'paid' }
+])
+const sortOptions = computed(() =>
+  ['latest', 'downloads', 'rating', 'price_asc', 'price_desc'].map(value => ({
+    label: t(`store.sort.${value}`),
+    value
+  }))
+)
 
-const priceOptions = [
-  { label: 'Tous tarifs', value: '' },
-  { label: 'Gratuites', value: 'free' },
-  { label: 'Payantes', value: 'paid' }
-]
+const list = value => (Array.isArray(value) ? value : [])
+const uniqueApps = (...groups) => {
+  const seen = new Set()
+  return groups.flat().filter(app => {
+    if (!app || seen.has(app.id)) return false
+    seen.add(app.id)
+    return true
+  })
+}
 
-const sortOptions = [
-  { label: 'Nouveautés', value: 'latest' },
-  { label: 'Téléchargements', value: 'downloads' },
-  { label: 'Note moyenne', value: 'rating' },
-  { label: 'Prix croissant', value: 'price_asc' },
-  { label: 'Prix décroissant', value: 'price_desc' }
-]
+// Only what /home returns. Older APIs have no `trending` / `recommended`: popular stands in
+// for the first, and the second stays hidden rather than repeating the same row.
+const sections = computed(() => {
+  const data = home.value || {}
+  const popular = list(data.popular)
+  const trending = data.trending ? list(data.trending) : popular
+  const recommended = data.recommended
+    ? list(data.recommended)
+    : data.trending
+      ? popular
+      : []
+  const featured = list(data.featured).length
+    ? list(data.featured)
+    : list(data.latest).slice(0, 6)
+  const categories = [...list(data.categories)]
+    .filter(c => c?.slug)
+    .sort(
+      (a, b) =>
+        Number(b.applications_count || 0) - Number(a.applications_count || 0)
+    )
+    .slice(0, 8)
+  return {
+    featured,
+    trending,
+    latest: list(data.latest),
+    recommended,
+    collections: list(data.collections).filter(
+      c => list(c.applications).length
+    ),
+    categories,
+    discover: uniqueApps(
+      list(data.recently_updated),
+      popular,
+      list(data.latest)
+    ).slice(0, 12)
+  }
+})
+const hasApps = computed(() =>
+  ['featured', 'trending', 'latest', 'recommended', 'discover'].some(
+    key => sections.value[key].length
+  )
+)
+
+async function loadHome() {
+  homeLoading.value = true
+  try {
+    home.value = (await catalogApi.home()).data || {}
+  } catch (err) {
+    console.error('Error fetching home sections', err)
+    home.value = {}
+  } finally {
+    homeLoading.value = false
+  }
+}
 
 async function fetchApps() {
-  if (!filtering.value) return
+  if (!activeSearch.value) return
   loading.value = true
   try {
-    const params = { sort_by: sortBy.value }
-    if (activeSearch.value) params.search = activeSearch.value
+    const params = { sort_by: sortBy.value, search: activeSearch.value }
     if (selectedPriceType.value) params.price_type = selectedPriceType.value
     if (selectedPlatform.value) params.platform = selectedPlatform.value
     const { data } = await catalogApi.apps(params)
-    rawApps.value = data.data
-    total.value = data.total
+    rawApps.value = list(data?.data)
+    total.value = Number(data?.total ?? rawApps.value.length)
   } catch (err) {
     console.error('Error fetching applications', err)
+    rawApps.value = []
+    total.value = 0
   } finally {
     loading.value = false
   }
 }
-
-async function loadHome() {
-  loading.value = true
-  try {
-    home.value = (await catalogApi.home()).data
-  } catch (err) {
-    console.error('Error fetching home sections', err)
-    home.value = {
-      featured: [],
-      popular: [],
-      latest: [],
-      recently_updated: [],
-      collections: [],
-      categories: []
-    }
-  } finally {
-    loading.value = false
-  }
-}
-
-const featuredApps = computed(() => (home.value?.featured || []).map(toCard))
-const trendingApps = computed(() =>
-  (home.value?.popular || []).slice(0, 3).map(toCard)
-)
 
 function clearSearch() {
   router.push({ path: '/' })
@@ -476,6 +462,9 @@ function resetFilters() {
   sortBy.value = 'latest'
 }
 
+watch(activeSearch, value => {
+  if (!value) resetFilters()
+})
 watch([activeSearch, selectedPlatform, selectedPriceType, sortBy], fetchApps)
 
 onMounted(() => {
@@ -484,65 +473,36 @@ onMounted(() => {
 })
 
 const features = [
-  {
-    icon: 'devices',
-    title: 'Applications Web modernes',
-    text: 'Ouvrez-les dans le navigateur, et installez-les quand votre appareil le permet.',
-    color: 'var(--pwa-primary)'
-  },
-  {
-    icon: 'fact_check',
-    title: 'Éditeurs vérifiés',
-    text: 'Chaque éditeur et chaque application sont examinés avant publication.',
-    color: 'var(--pwa-primary)'
-  },
-  {
-    icon: 'reviews',
-    title: 'Avis de vrais comptes',
-    text: 'Les notes viennent d’utilisateurs inscrits ; aucune note n’est inventée.',
-    color: 'var(--pwa-muted)'
-  },
-  {
-    icon: 'public',
-    title: 'Fait en Afrique',
-    text: 'Une plateforme pensée pour le monde.',
-    color: 'var(--q-warning)'
-  }
-]
-
-const categories = [
-  { label: 'Jeux', icon: 'sports_esports', color: 'var(--pwa-accent)' },
-  { label: 'Productivité', icon: 'task_alt', color: 'var(--pwa-primary)' },
-  { label: 'Social', icon: 'forum', color: 'var(--pwa-secondary)' },
-  { label: 'Utilitaires', icon: 'widgets', color: 'var(--pwa-primary)' }
+  { key: 'modern', icon: 'devices', color: 'var(--pwa-primary)' },
+  { key: 'verified', icon: 'fact_check', color: 'var(--pwa-primary)' },
+  { key: 'reviews', icon: 'reviews', color: 'var(--pwa-secondary)' },
+  { key: 'africa', icon: 'public', color: 'var(--pwa-accent)' }
 ]
 </script>
 
 <style scoped lang="scss">
-.section-lead {
-  margin: 4px 0 0;
-  color: var(--muted);
-  font-size: 12px;
-}
 .home-page {
   min-height: 100vh;
+  overflow-x: clip;
   color: var(--text);
   background: var(--page);
 }
 .home-content {
   position: relative;
   z-index: 1;
+  min-width: 0;
+  max-width: 1320px;
   display: flex;
   flex-direction: column;
-  gap: 14px;
-  padding: 14px var(--ui-page-gutter);
+  gap: 28px;
+  margin: 0 auto;
+  padding: 14px var(--ui-page-gutter) 28px;
 }
-.glass-panel {
-  background: var(--glass);
-  border: 1px solid var(--outline);
-  box-shadow: 0 12px 30px rgba(4, 9, 25, 0.06);
-  backdrop-filter: blur(16px);
+.home-content > * {
+  min-width: 0;
 }
+
+/* Hero (useHeroIntro drives .eyebrow, .line-inner, .phone-wrap, .platform-badge…). */
 .hero-panel {
   position: relative;
   min-height: 240px;
@@ -663,20 +623,6 @@ const categories = [
   background: var(--surface-highest);
   border-radius: 8px;
 }
-.install-logo {
-  width: 52px;
-  height: 52px;
-  display: grid;
-  place-items: center;
-  margin-bottom: 12px;
-  color: var(--pwa-on-primary);
-  background: var(--primary);
-  border-radius: 14px;
-  box-shadow: 0 0 25px color-mix(in srgb, var(--primary) 35%, transparent);
-}
-.install-logo .q-icon {
-  font-size: 26px;
-}
 .phone-card strong {
   font-size: 15px;
 }
@@ -722,7 +668,6 @@ const categories = [
   bottom: 40px;
   color: var(--pwa-platform-windows);
 }
-/* Hero intro (useHeroIntro): first-paint state, motion layers. */
 .hero-copy h1 .line {
   display: block;
   overflow: hidden;
@@ -761,784 +706,6 @@ const categories = [
 .hero-intro .line-inner {
   transform: translateY(110%);
 }
-.search-notice {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: -10px;
-  padding: 8px 12px;
-  color: var(--text);
-  background: var(--surface);
-  border: 1px solid var(--outline);
-  border-radius: 10px;
-  font-size: 12px;
-  font-weight: 600;
-}
-.content-grid {
-  display: grid;
-  grid-template-columns: minmax(0, 3fr) minmax(230px, 1fr);
-  gap: 14px;
-}
-.main-column,
-.aside-column {
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-}
-.aside-column {
-  gap: 16px;
-}
-.section-heading {
-  display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
-  margin-bottom: 12px;
-}
-.section-heading h2 {
-  margin: 0;
-  font-size: 18px;
-  font-weight: 750;
-  line-height: 1.2;
-  letter-spacing: -0.02em;
-}
-.section-heading a,
-.side-card header a {
-  display: inline-flex;
-  align-items: center;
-  gap: 3px;
-  color: var(--pwa-link);
-  text-decoration: none;
-  font-size: 11px;
-  font-weight: 700;
-}
-.app-grid {
-  display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
-  gap: 10px;
-}
-.app-card {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 12px 10px 10px;
-  border-radius: 15px;
-  transition:
-    transform 0.25s var(--ui-ease),
-    background 0.2s,
-    border-color 0.2s;
-}
-.app-card:hover {
-  transform: translateY(-5px);
-  background: var(--surface-high);
-  border-color: color-mix(in srgb, var(--primary) 35%, transparent);
-}
-.app-icon {
-  width: 52px;
-  height: 52px;
-  display: grid;
-  place-items: center;
-  margin-bottom: 8px;
-  color: var(--pwa-on-primary);
-  border-radius: 12px;
-  box-shadow: 0 8px 18px rgba(2, 5, 20, 0.18);
-}
-.app-icon .q-icon {
-  font-size: 24px;
-}
-.app-icon strong {
-  font-size: 16px;
-}
-.app-card h3 {
-  max-width: 100%;
-  margin: 0;
-  overflow: hidden;
-  font-size: 12px;
-  font-weight: 700;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-.app-card p {
-  margin: 2px 0;
-  color: var(--muted);
-  font-size: 10px;
-}
-.rating {
-  display: flex;
-  align-items: center;
-  gap: 2px;
-  margin: 0 0 8px;
-  color: var(--muted);
-  font-size: 10px;
-}
-.rating .q-icon,
-.meta .q-icon,
-.compact-copy span .q-icon,
-.trend-row > span .q-icon {
-  color: var(--pwa-secondary);
-  font-size: 12px;
-}
-.app-card .q-btn {
-  width: 100%;
-  min-height: 28px;
-  margin-top: auto;
-  color: var(--pwa-link);
-  background: var(--surface-highest);
-  border-radius: 6px;
-  font-size: 10px;
-  font-weight: 800;
-}
-.empty-state {
-  padding: 30px 16px;
-  color: var(--muted);
-  text-align: center;
-  border-radius: 12px;
-}
-.empty-state > .q-icon {
-  font-size: 36px;
-}
-.empty-state h3 {
-  margin: 6px 0 2px;
-  color: var(--text);
-  font-size: 14px;
-}
-.empty-state p {
-  margin: 0;
-  font-size: 11px;
-}
-.recommendation-grid {
-  display: grid;
-  grid-template-columns: 1.1fr 1fr;
-  gap: 10px;
-}
-.featured-game {
-  position: relative;
-  min-height: 180px;
-  overflow: hidden;
-  background: var(--pwa-dark);
-  border: 1px solid var(--outline);
-  border-radius: 12px;
-}
-.featured-game::after {
-  content: '';
-  position: absolute;
-  inset: 45% 0 0;
-  background: var(--pwa-primary-soft);
-  transform: perspective(350px) rotateX(28deg) scale(1.2);
-  transform-origin: bottom;
-}
-.stadium-lights {
-  position: absolute;
-  inset: 0;
-  background: none;
-}
-.ball {
-  position: absolute;
-  z-index: 1;
-  top: 30px;
-  right: 12%;
-  font-size: 40px;
-  filter: drop-shadow(0 8px 8px rgba(0, 0, 0, 0.4));
-  transform: rotate(-18deg);
-}
-.featured-overlay {
-  position: absolute;
-  z-index: 3;
-  inset: 0;
-  display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
-  padding: 40px 14px 12px;
-  color: var(--pwa-on-primary);
-  background: rgba(4, 9, 28, 0.65);
-}
-.featured-overlay h3 {
-  margin: 2px 0 1px;
-  font-size: 15px;
-}
-.featured-overlay p {
-  margin: 0 0 4px;
-  color: var(--pwa-dark-muted);
-  font-size: 10px;
-}
-.feature-tag {
-  color: var(--pwa-secondary);
-  font-size: 8px;
-  font-weight: 800;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-}
-.meta {
-  font-size: 11px;
-  font-weight: 700;
-}
-.meta small {
-  margin-left: 6px;
-  color: var(--pwa-dark-muted);
-  font-weight: 400;
-}
-.featured-overlay .q-btn {
-  color: var(--pwa-text);
-  background: var(--pwa-surface);
-  border-radius: 6px;
-  font-size: 10px;
-  font-weight: 800;
-  min-height: 28px;
-  padding: 0 10px;
-}
-.compact-apps {
-  display: grid;
-  grid-template-rows: 1fr 1fr;
-  gap: 10px;
-}
-.compact-card {
-  display: grid;
-  grid-template-columns: auto 1fr auto;
-  align-items: center;
-  gap: 10px;
-  padding: 10px 12px;
-  border-radius: 12px;
-}
-.compact-icon {
-  width: 44px;
-  height: 44px;
-  display: grid;
-  place-items: center;
-  color: var(--pwa-on-primary);
-  border-radius: 10px;
-  box-shadow: 0 6px 14px rgba(4, 7, 20, 0.15);
-}
-.compact-icon .q-icon {
-  font-size: 22px;
-}
-.compact-copy {
-  min-width: 0;
-}
-.compact-copy h3 {
-  margin: 0;
-  overflow: hidden;
-  font-size: 12px;
-  font-weight: 700;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-.compact-copy p {
-  margin: 1px 0 2px;
-  color: var(--muted);
-  font-size: 10px;
-}
-.compact-copy span {
-  color: var(--muted);
-  font-size: 10px;
-}
-.compact-card > .q-btn {
-  color: var(--pwa-link);
-  background: var(--surface-highest);
-  border-radius: 6px;
-  font-size: 10px;
-  font-weight: 800;
-  min-height: 26px;
-  padding: 0 8px;
-}
-.feature-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 10px;
-}
-.feature-card {
-  padding: 12px 8px;
-  text-align: center;
-  border-radius: 14px;
-  transition:
-    transform 0.25s var(--ui-ease),
-    border-color 0.2s ease;
-}
-.feature-card:hover {
-  border-color: color-mix(in srgb, var(--primary) 25%, var(--outline));
-  transform: translateY(-3px);
-}
-.feature-card > .q-icon {
-  font-size: 22px;
-}
-.feature-card h3 {
-  margin: 4px 0 2px;
-  font-size: 10px;
-  font-weight: 700;
-}
-.feature-card p {
-  margin: 0;
-  color: var(--muted);
-  font-size: 8px;
-  line-height: 1.35;
-}
-.side-card {
-  padding: 12px 14px;
-  border-radius: 16px;
-}
-.side-card header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 8px;
-}
-.side-card h2 {
-  margin: 0;
-  font-size: 13px;
-  font-weight: 750;
-}
-.category-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 8px 6px;
-  color: var(--muted);
-  text-decoration: none;
-  border-radius: 6px;
-  font-size: 11px;
-}
-.category-row:hover {
-  color: var(--text);
-  background: var(--surface-high);
-}
-.category-row > span {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-.category-row > span .q-icon {
-  font-size: 16px;
-}
-.category-row > .q-icon {
-  font-size: 14px;
-}
-.developer-card {
-  position: relative;
-  overflow: hidden;
-  padding: 14px;
-  background: color-mix(in srgb, var(--primary) 12%, var(--surface));
-  border: 1px solid color-mix(in srgb, var(--primary) 20%, transparent);
-  border-radius: 16px;
-}
-.developer-card h2 {
-  position: relative;
-  margin: 0 0 4px;
-  font-size: 15px;
-  font-weight: 750;
-}
-.developer-card p {
-  position: relative;
-  max-width: 90%;
-  margin: 0 0 10px;
-  color: var(--muted);
-  font-size: 10px;
-  line-height: 1.45;
-}
-.developer-actions {
-  position: relative;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-.developer-card .q-btn {
-  position: relative;
-  color: var(--pwa-on-primary);
-  background: var(--primary);
-  border-radius: 6px;
-  font-size: 10px;
-  font-weight: 800;
-  min-height: 28px;
-  padding: 0 10px;
-}
-.developer-watermark {
-  position: absolute;
-  right: -10px;
-  bottom: -15px;
-  color: var(--pwa-link);
-  font-size: 80px;
-  opacity: 0.1;
-}
-.trending-card {
-  padding-bottom: 8px;
-}
-.trend-row {
-  display: grid;
-  grid-template-columns: 10px 32px minmax(0, 1fr) auto;
-  align-items: center;
-  gap: 8px;
-  padding: 6px 0;
-}
-.trend-row > b {
-  color: var(--muted);
-  font-size: 10px;
-}
-.trend-icon {
-  width: 32px;
-  height: 32px;
-  display: grid;
-  place-items: center;
-  color: var(--pwa-on-primary);
-  border-radius: 8px;
-}
-.trend-icon .q-icon {
-  font-size: 16px;
-}
-.trend-row h3 {
-  margin: 0;
-  overflow: hidden;
-  font-size: 10px;
-  line-height: 1.3;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  font-weight: 700;
-}
-.trend-row p {
-  margin: 0;
-  color: var(--muted);
-  font-size: 8px;
-}
-.trend-row > span {
-  color: var(--muted);
-  font-size: 8px;
-  white-space: nowrap;
-}
-
-@media (max-width: 1350px) {
-  .app-grid {
-    grid-template-columns: repeat(4, 1fr);
-  }
-  .app-card:last-child {
-    display: none;
-  }
-  .device-scene {
-    right: 2%;
-    transform: translateY(-50%) scale(0.8);
-  }
-  .hero-copy {
-    max-width: 60%;
-  }
-}
-@media (max-width: 1199px) {
-  .home-content {
-    padding: 16px;
-  }
-  .content-grid {
-    grid-template-columns: 1fr;
-  }
-  .aside-column {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    align-items: start;
-  }
-  .developer-card {
-    min-height: 100%;
-  }
-  .hero-panel {
-    padding-left: 4%;
-  }
-  .recommendation-grid {
-    grid-template-columns: 1fr 1fr;
-  }
-}
-@media (max-width: 899px) {
-  .hero-panel {
-    min-height: 280px;
-  }
-  .hero-copy {
-    max-width: 65%;
-  }
-  .device-scene {
-    right: -5%;
-    transform: translateY(-50%) scale(0.65);
-  }
-  .app-grid {
-    grid-template-columns: repeat(4, 1fr);
-  }
-  .recommendation-grid {
-    grid-template-columns: 1fr;
-  }
-  .aside-column {
-    grid-template-columns: 1fr 1fr;
-  }
-  .trending-card {
-    grid-column: 1 / -1;
-  }
-  .feature-grid {
-    grid-template-columns: 1fr 1fr;
-  }
-}
-@media (max-width: 699px) {
-  .home-content {
-    gap: 12px;
-    padding: 12px;
-  }
-  .hero-panel {
-    min-height: 286px;
-    align-items: flex-start;
-    padding: 18px 16px;
-  }
-  .hero-copy {
-    max-width: none;
-  }
-  .hero-copy h1 {
-    font-size: 28px;
-  }
-  .hero-copy p {
-    font-size: 12px;
-  }
-  .device-scene {
-    top: auto;
-    right: 50%;
-    bottom: -140px;
-    transform: translateX(50%) scale(0.58);
-  }
-  .content-grid,
-  .main-column {
-    gap: 12px;
-  }
-  .app-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-  .app-card:last-child {
-    display: flex;
-  }
-  .aside-column {
-    display: flex;
-    flex-direction: column;
-    align-items: stretch;
-  }
-  .developer-card {
-    min-height: auto;
-  }
-  .compact-card {
-    grid-template-columns: auto 1fr;
-  }
-  .compact-card > .q-btn {
-    grid-column: 1 / -1;
-    width: 100%;
-  }
-}
-@media (max-width: 420px) {
-  .hero-panel {
-    min-height: 360px;
-    padding: 16px 12px;
-  }
-  .hero-copy h1 {
-    font-size: 24px;
-  }
-  .hero-actions {
-    flex-direction: column;
-  }
-  .hero-actions .q-btn {
-    width: 100%;
-  }
-  .section-heading h2 {
-    font-size: 16px;
-  }
-  .section-kicker {
-    font-size: 8px;
-  }
-  .feature-grid {
-    grid-template-columns: 1fr;
-  }
-}
-@media (prefers-reduced-motion: reduce) {
-  .platform-badge {
-    animation: none;
-  }
-  * {
-    scroll-behavior: auto !important;
-  }
-}
-
-.filter-bar-panel {
-  background: var(--glass);
-  border: 1px solid var(--outline);
-  border-radius: 16px;
-  backdrop-filter: blur(16px);
-  gap: 16px;
-}
-
-.filter-controls {
-  min-width: 0;
-  display: flex;
-  flex: 1;
-  align-items: center;
-  gap: 16px;
-}
-
-.filter-select {
-  min-width: 170px;
-  background: var(--surface-highest);
-  border-radius: 8px;
-
-  :deep(.q-field__control) {
-    border-radius: 8px;
-  }
-}
-
-.price-text {
-  font-size: 14px;
-  color: var(--pwa-link);
-}
-
-.featured-scroll-container {
-  display: flex;
-  gap: 16px;
-  overflow-x: auto;
-  padding: 8px 4px 16px;
-  scroll-snap-type: x mandatory;
-  -webkit-overflow-scrolling: touch;
-
-  &::-webkit-scrollbar {
-    height: 6px;
-  }
-  &::-webkit-scrollbar-thumb {
-    background: var(--outline);
-    border-radius: 4px;
-  }
-}
-
-.featured-app-card {
-  position: relative;
-  flex: 0 0 320px;
-  height: 140px;
-  border-radius: 16px;
-  overflow: hidden;
-  display: flex;
-  align-items: flex-end;
-  padding: 16px;
-  scroll-snap-align: start;
-  transition:
-    transform 0.25s var(--ui-ease),
-    box-shadow 0.25s ease;
-
-  &:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-  }
-}
-
-.featured-card-bg {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  opacity: 0.85;
-  z-index: 1;
-}
-
-.featured-card-content {
-  position: relative;
-  z-index: 2;
-  width: 100%;
-  color: var(--pwa-on-primary);
-}
-
-.featured-card-icon {
-  width: 64px;
-  height: 64px;
-  background: rgba(255, 255, 255, 0.15);
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.25);
-  border-radius: 14px;
-  display: grid;
-  place-items: center;
-
-  .q-icon {
-    font-size: 32px;
-    color: var(--pwa-on-primary);
-  }
-}
-
-.featured-card-text {
-  h3 {
-    margin: 0;
-    font-size: 16px;
-    font-weight: 700;
-    line-height: 1.2;
-    color: var(--pwa-on-primary);
-  }
-  p {
-    margin: 2px 0 6px;
-    font-size: 11px;
-    opacity: 0.8;
-    color: var(--pwa-on-primary);
-  }
-}
-
-.badge-custom {
-  font-size: 10px;
-  font-weight: 700;
-  padding: 2px 6px;
-  border-radius: 6px;
-  display: inline-flex;
-  align-items: center;
-  gap: 2px;
-  color: var(--pwa-on-primary);
-  background: rgba(255, 255, 255, 0.2);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-@media (max-width: 699px) {
-  .home-page,
-  .home-content,
-  .content-grid,
-  .main-column,
-  .home-section,
-  .featured-scroll-container {
-    width: 100%;
-    max-width: 100%;
-    min-width: 0;
-  }
-
-  .home-page {
-    overflow-x: clip;
-  }
-
-  .filter-bar-panel {
-    width: 100%;
-    max-width: 100%;
-    align-items: stretch;
-    flex-direction: column;
-    overflow: hidden;
-    padding: 12px !important;
-  }
-
-  .filter-controls {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 10px;
-  }
-
-  .filter-select {
-    width: 100%;
-    max-width: 100%;
-    min-width: 0;
-    overflow: hidden;
-  }
-
-  .filter-select:last-child {
-    grid-column: 1 / -1;
-  }
-
-  .featured-app-card {
-    flex-basis: min(320px, calc(100vw - 48px));
-  }
-}
-
-@media (max-width: 420px) {
-  .filter-controls {
-    grid-template-columns: 1fr;
-  }
-
-  .filter-select:last-child {
-    grid-column: auto;
-  }
-}
-</style>
-
-<style scoped lang="scss">
 .floating-apps {
   position: absolute;
   inset: 15% -5%;
@@ -1570,5 +737,270 @@ const categories = [
 .floating-app:nth-child(3) {
   left: 2%;
   bottom: 0;
+}
+
+/* Search mode */
+.search-notice {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: -16px;
+  padding: 8px 12px;
+  color: var(--text);
+  background: var(--surface);
+  border: 1px solid var(--outline);
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 600;
+}
+.search-notice span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.filter-bar-panel {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: -12px;
+  padding: 14px;
+  border-radius: 16px;
+}
+.filter-controls {
+  min-width: 0;
+  display: flex;
+  flex: 1;
+  align-items: center;
+  gap: 16px;
+}
+.filter-select {
+  min-width: 170px;
+  background: var(--surface-highest);
+  border-radius: 8px;
+  :deep(.q-field__control) {
+    border-radius: 8px;
+  }
+}
+
+/* Sections */
+.section-heading {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+.section-heading h2 {
+  margin: 0;
+  font-size: clamp(17px, 2vw, 20px);
+  font-weight: 750;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+}
+.section-heading a {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  color: var(--pwa-link);
+  font-size: 12px;
+  font-weight: 700;
+  text-decoration: none;
+}
+.category-tiles {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 10px;
+}
+.tile-skeleton {
+  border-radius: var(--ui-radius-md);
+}
+.home-empty {
+  display: grid;
+  justify-items: center;
+  gap: 4px;
+  padding: 36px 20px;
+  color: var(--muted);
+  text-align: center;
+  border-radius: var(--ui-radius-lg);
+}
+.home-empty > .q-icon {
+  color: var(--pwa-link);
+  font-size: 40px;
+}
+.home-empty h2 {
+  margin: 6px 0 0;
+  color: var(--text);
+  font-size: 18px;
+}
+.home-empty p {
+  max-width: 420px;
+  margin: 0;
+}
+.developer-band {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 14px;
+  overflow: hidden;
+  padding: 18px 20px;
+  background: color-mix(in srgb, var(--primary) 10%, var(--surface));
+  border: 1px solid color-mix(in srgb, var(--primary) 20%, transparent);
+  border-radius: var(--ui-radius-lg);
+}
+.developer-band > div {
+  position: relative;
+}
+.developer-band h2 {
+  margin: 0 0 4px;
+  font-size: 17px;
+  font-weight: 750;
+}
+.developer-band p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 13px;
+}
+.developer-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.developer-actions .q-btn:first-child {
+  color: var(--pwa-on-primary);
+  background: var(--primary);
+}
+.developer-watermark {
+  position: absolute;
+  right: 30%;
+  bottom: -24px;
+  color: var(--pwa-link);
+  font-size: 96px;
+  opacity: 0.08;
+}
+.feature-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+}
+.feature-card {
+  padding: 14px 12px;
+  text-align: center;
+  border-radius: 14px;
+}
+.feature-card > .q-icon {
+  font-size: 22px;
+}
+.feature-card h3 {
+  margin: 6px 0 2px;
+  font-size: 13px;
+  font-weight: 700;
+}
+.feature-card p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+@media (max-width: 1350px) {
+  .device-scene {
+    right: 2%;
+    transform: translateY(-50%) scale(0.8);
+  }
+  .hero-copy {
+    max-width: 60%;
+  }
+}
+@media (max-width: 899px) {
+  .hero-panel {
+    min-height: 280px;
+  }
+  .hero-copy {
+    max-width: 65%;
+  }
+  .device-scene {
+    right: -5%;
+    transform: translateY(-50%) scale(0.65);
+  }
+  .feature-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (max-width: 699px) {
+  .home-content {
+    gap: 22px;
+    padding: 12px 12px 20px;
+  }
+  .hero-panel {
+    min-height: 286px;
+    align-items: flex-start;
+    padding: 18px 16px;
+  }
+  .hero-copy {
+    max-width: none;
+  }
+  .hero-copy h1 {
+    font-size: 28px;
+  }
+  .hero-copy p {
+    font-size: 12px;
+  }
+  .device-scene {
+    top: auto;
+    right: 50%;
+    bottom: -140px;
+    transform: translateX(50%) scale(0.58);
+  }
+  .filter-bar-panel {
+    align-items: stretch;
+    flex-direction: column;
+    padding: 12px;
+  }
+  .filter-controls {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+  }
+  .filter-select {
+    width: 100%;
+    min-width: 0;
+  }
+  .filter-select:last-child {
+    grid-column: 1 / -1;
+  }
+  .category-tiles {
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  }
+}
+@media (max-width: 420px) {
+  .hero-panel {
+    min-height: 360px;
+    padding: 16px 12px;
+  }
+  .hero-copy h1 {
+    font-size: 24px;
+  }
+  .hero-actions {
+    flex-direction: column;
+  }
+  .hero-actions .q-btn {
+    width: 100%;
+  }
+  .filter-controls {
+    grid-template-columns: 1fr;
+  }
+  .filter-select:last-child {
+    grid-column: auto;
+  }
+  .category-tiles {
+    grid-template-columns: 1fr;
+  }
+  .feature-grid {
+    grid-template-columns: 1fr;
+  }
 }
 </style>

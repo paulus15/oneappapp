@@ -9,21 +9,23 @@
           <router-link
             to="/"
             class="auth-brand"
-            aria-label="Retour à PWA Store"
+            :aria-label="ui('Retour à PWA Store')"
           >
             <BrandLogo />
           </router-link>
           <div class="auth-header-actions">
             <router-link to="/" class="auth-back-link">
               <q-icon name="arrow_back" size="16px" />
-              <span>Retour au store</span>
+              <span>{{ ui('Retour au store') }}</span>
             </router-link>
             <q-btn
               flat
               round
               :icon="isDark ? 'light_mode' : 'dark_mode'"
               :aria-label="
-                isDark ? 'Activer le thème clair' : 'Activer le thème sombre'
+                isDark
+                  ? ui('Activer le thème clair')
+                  : ui('Activer le thème sombre')
               "
               class="auth-theme-toggle"
               @click="toggleTheme"
@@ -31,16 +33,24 @@
             <LanguageSwitcher />
           </div>
         </header>
-        <aside class="auth-story" aria-label="Présentation PWA Store">
+        <aside class="auth-story" :aria-label="ui('Présentation PWA Store')">
           <div class="story-grid" aria-hidden="true" />
           <div class="story-content">
             <span class="story-kicker"
-              ><q-icon name="auto_awesome" /> Expérience universelle</span
+              ><q-icon name="auto_awesome" />
+              {{ ui('Expérience universelle') }}</span
             >
-            <h2>Vos applications.<br /><em>Partout avec vous.</em></h2>
+            <h2
+              >{{ ui('Vos applications.') }}<br /><em>{{
+                ui('Partout avec vous.')
+              }}</em></h2
+            >
             <p>
-              Découvrez vos prochaines applications ou partagez vos créations,
-              depuis un seul et même espace.
+              {{
+                ui(
+                  'Découvrez vos prochaines applications ou partagez vos créations, depuis un seul et même espace.'
+                )
+              }}
             </p>
 
             <div class="story-benefits">
@@ -56,7 +66,7 @@
 
           <p class="story-note"
             ><q-icon name="language" size="18px" />
-            Le web, à portée de main.
+            {{ ui('Le web, à portée de main.') }}
           </p>
         </aside>
 
@@ -69,6 +79,8 @@
 </template>
 
 <script setup>
+import { ui } from '@/i18n/text'
+
 import LanguageSwitcher from '@/components/LanguageSwitcher.vue'
 import BrandLogo from '@/components/BrandLogo.vue'
 import { useTheme } from '@/composables/useTheme'
@@ -78,18 +90,30 @@ const { isDark, toggleTheme } = useTheme()
 const benefits = [
   {
     icon: 'explore',
-    label: 'Découvrez de nouvelles applications',
-    text: 'Explorez le catalogue à votre rythme.'
+    get label() {
+      return ui('Découvrez de nouvelles applications')
+    },
+    get text() {
+      return ui('Explorez le catalogue à votre rythme.')
+    }
   },
   {
     icon: 'devices',
-    label: 'Toutes les plateformes',
-    text: 'Une expérience cohérente partout.'
+    get label() {
+      return ui('Toutes les plateformes')
+    },
+    get text() {
+      return ui('Une expérience cohérente partout.')
+    }
   },
   {
     icon: 'bolt',
-    label: 'Simple et rapide',
-    text: 'Commencez en quelques secondes.'
+    get label() {
+      return ui('Simple et rapide')
+    },
+    get text() {
+      return ui('Commencez en quelques secondes.')
+    }
   }
 ]
 </script>

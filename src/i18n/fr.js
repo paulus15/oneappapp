@@ -1,9 +1,298 @@
 export default {
+  store: {
+    nav: { primary: 'Navigation principale' },
+    hero: {
+      eyebrow: 'La plateforme universelle',
+      line1: 'Une seule installation.',
+      line2: 'Toutes les plateformes.',
+      lead: 'Découvrez, testez et utilisez des applications Web modernes.',
+      explore: 'Explorer les applications',
+      becomeDeveloper: 'Devenir développeur',
+      phone1: 'Installer partout.',
+      phone2: 'Ouvrir instantanément.'
+    },
+    search: {
+      resultsFor: 'Résultats pour « {query} »',
+      clear: 'Effacer la recherche',
+      kicker: 'Recherche',
+      count:
+        'Aucune application trouvée | {n} application trouvée | {n} applications trouvées',
+      empty:
+        'Aucune application ne correspond. Essayez d’autres filtres ou mots-clés.'
+    },
+    filters: {
+      platform: 'Plateforme',
+      price: 'Prix',
+      sort: 'Trier par',
+      reset: 'Réinitialiser',
+      allPlatforms: 'Toutes plateformes',
+      allPrices: 'Tous tarifs',
+      free: 'Gratuites',
+      paid: 'Payantes'
+    },
+    sort: {
+      latest: 'Nouveautés',
+      downloads: 'Téléchargements',
+      rating: 'Note moyenne',
+      price_asc: 'Prix croissant',
+      price_desc: 'Prix décroissant',
+      name: 'Nom (A → Z)'
+    },
+    home: {
+      featured: 'À la une',
+      featuredKicker: 'Sélection de l’équipe',
+      trending: 'Tendances',
+      trendingKicker: 'En ce moment',
+      latest: 'Nouveautés',
+      latestKicker: 'Fraîchement publiées',
+      recommended: 'Recommandées',
+      recommendedKicker: 'Pour vous',
+      collectionKicker: 'Sélection',
+      categories: 'Catégories populaires',
+      categoriesKicker: 'Parcourir',
+      discover: 'À découvrir',
+      discoverKicker: 'Catalogue',
+      emptyTitle: 'Le Store se prépare',
+      emptyText: 'Les premières applications publiées apparaîtront ici.',
+      developerTitle: 'Vous développez des applications ?',
+      developerText:
+        'Publiez vos PWA sur PWA Store et suivez leur validation depuis votre espace.',
+      learnMore: 'En savoir plus'
+    },
+    features: {
+      label: 'Avantages PWA Store',
+      modern: {
+        title: 'Applications Web modernes',
+        text: 'Ouvrez-les dans le navigateur, et installez-les quand votre appareil le permet.'
+      },
+      verified: {
+        title: 'Éditeurs vérifiés',
+        text: 'Chaque éditeur et chaque application sont examinés avant publication.'
+      },
+      reviews: {
+        title: 'Avis de vrais comptes',
+        text: 'Les notes viennent d’utilisateurs inscrits ; aucune note n’est inventée.'
+      },
+      africa: {
+        title: 'Fait en Afrique',
+        text: 'Une plateforme pensée pour le monde.'
+      }
+    },
+    row: {
+      previous: 'Précédent',
+      next: 'Suivant',
+      seeAll: 'Voir tout',
+      seeAllOf: 'Voir tout : {title}'
+    },
+    card: { iconAlt: 'Icône de {name}' },
+    featured: { cta: 'Découvrir' },
+    empty: { default: 'Aucune application pour le moment.' },
+    categories: {
+      eyebrow: 'Catalogue',
+      title: 'Catégories',
+      lead: 'Parcourez les applications publiées par thème.',
+      count: 'Aucune application | {n} application | {n} applications',
+      empty: 'Aucune catégorie pour le moment.',
+      error: 'Impossible de charger les catégories. Réessayez.'
+    },
+    apps: {
+      all: {
+        eyebrow: 'Catalogue',
+        title: 'Applications',
+        lead: 'Toutes les applications publiées sur PWA Store.'
+      },
+      popular: {
+        eyebrow: 'Les incontournables',
+        title: 'Applications populaires',
+        lead: 'Les applications les mieux notées par la communauté.'
+      },
+      trending: {
+        eyebrow: 'En ce moment',
+        title: 'Tendances',
+        lead: 'Les applications les plus installées ces derniers temps.'
+      },
+      recommended: {
+        eyebrow: 'Sélection PWA Store',
+        title: 'Recommandées',
+        lead: 'Des applications choisies pour leur qualité et leur fiabilité.'
+      },
+      searchPlaceholder: 'Rechercher dans le catalogue…',
+      searchLabel: 'Rechercher une application',
+      categoryFilter: 'Filtrer par catégorie',
+      allCategories: 'Toutes',
+      count: 'Aucune application | {n} application | {n} applications',
+      empty: 'Les premières applications publiées apparaîtront ici.',
+      emptyFiltered:
+        'Aucune application ne correspond. Essayez une autre recherche ou catégorie.',
+      error: 'Impossible de charger les applications. Réessayez.'
+    },
+    rankings: {
+      eyebrow: 'Le meilleur du Store',
+      title: 'Classements',
+      lead: 'Les applications qui se distinguent, calculées sur des données réelles.',
+      tabs: {
+        popular: 'Populaires',
+        trending: 'Tendances',
+        new: 'Nouveautés',
+        top_rated: 'Mieux notées'
+      },
+      hint: {
+        popular: 'Selon les installations et la note des utilisateurs.',
+        trending: 'Selon les installations des 7 derniers jours.',
+        new: 'Les dernières applications publiées.',
+        top_rated: 'Applications ayant reçu au moins 3 avis.'
+      },
+      empty: {
+        popular: 'Aucune application n’est encore classée ici.',
+        trending: 'Aucune installation récente pour le moment.',
+        new: 'Aucune application publiée pour le moment.',
+        top_rated:
+          'Aucune application n’a encore reçu assez d’avis pour être classée.'
+      },
+      emptyTitle: 'Rien à classer pour l’instant',
+      soonTitle: 'Les classements arrivent bientôt',
+      soonText:
+        'Ils seront calculés sur les installations et les avis réels. En attendant, parcourez le catalogue.',
+      errorTitle: 'Classement indisponible',
+      errorText: 'Le service ne répond pas pour le moment. Réessayez.',
+      browse: 'Parcourir les applications',
+      reviews: '({n} avis) | ({n} avis) | ({n} avis)'
+    },
+    details: {
+      back: 'Retour au Store',
+      backToStore: 'Retour au Store',
+      unavailable: 'Cette application n’est pas disponible dans votre pays.',
+      unavailableHelp:
+        'Son éditeur l’a réservée à certains pays. D’autres applications vous attendent dans le Store.',
+      errorTitle: 'Impossible d’afficher cette application',
+      loadError: 'Erreur lors de la récupération des détails.',
+      publishedBy: 'Publié par',
+      reviews: '({n} avis) | ({n} avis) | ({n} avis)',
+      open: 'Lancer l’application',
+      addFavorite: 'Ajouter aux favoris',
+      inFavorites: 'Dans vos favoris',
+      share: 'Partager',
+      edit: 'Modifier l’application',
+      screenshots: 'Captures d’écran',
+      screenshotAlt: 'Capture {n} de {name}',
+      about: 'À propos',
+      noDescription: 'L’éditeur n’a pas encore fourni de description.',
+      information: 'Informations',
+      info: {
+        version: 'Version',
+        category: 'Catégorie',
+        languages: 'Langues',
+        availability: 'Disponibilité',
+        dataCollected: 'Données collectées',
+        compatibility: 'Compatibilité',
+        contact: 'Contact',
+        website: 'Site officiel',
+        support: 'Assistance',
+        privacyPolicy: 'Politique de confidentialité',
+        terms: 'Conditions d’utilisation'
+      },
+      allCountries: 'Tous les pays',
+      moreCountries: 'et {n} autre | et {n} autre | et {n} autres',
+      noDataCollected: 'Aucune donnée collectée',
+      install: 'Installation',
+      version: 'Version {version}',
+      openToInstall: 'Ouvrir pour installer',
+      declareInstalled: 'Déclarer cette PWA installée',
+      installNote:
+        'Installation proposée par votre navigateur, selon sa compatibilité.',
+      pwaInfo:
+        'Cette application est une PWA. Une fois lancée, vous pourrez l’installer sur votre écran d’accueil.',
+      sandbox: 'Sandbox PWA Store',
+      sandboxIntro:
+        'Cette application s’exécute dans une sandbox sécurisée et déclare les accès suivants.',
+      permissions: 'Permissions requises',
+      noPermissions: 'Aucune permission spéciale requise.',
+      domains: 'Domaines externes détectés',
+      noDomains: 'Aucun domaine externe signalé par l’analyse statique.',
+      versions: 'Historique des versions',
+      noVersions: 'Aucun historique de version.',
+      download: 'Télécharger la version {version}',
+      similar: 'Applications similaires',
+      opening: 'Ouverture en cours…',
+      openingHelp: 'Vérification de la disponibilité de l’application.',
+      installDialog: {
+        title: 'Installation sur cet appareil',
+        message:
+          'Avez-vous installé cette PWA depuis votre navigateur ? Confirmez pour la retrouver dans votre bibliothèque. Cette action ne lance pas l’installation.'
+      },
+      noStorage: 'Le stockage local est indisponible.',
+      installSaved: 'Installation enregistrée pour cet appareil.',
+      installFailed: 'Impossible d’enregistrer cette installation.',
+      downloadNotSaved:
+        'Archive reçue, mais son enregistrement dans la bibliothèque a échoué.',
+      downloadFailed: 'Impossible de télécharger cette version.',
+      unsafeLaunch: 'Adresse de lancement non sécurisée.',
+      launchFailed: 'Impossible d’ouvrir cette application.',
+      favoriteAdded: 'Application ajoutée aux favoris.',
+      favoriteFailed: 'Impossible d’enregistrer ce favori.',
+      shareText: '{name} sur PWA Store',
+      linkCopied: 'Lien copié.',
+      shareFailed: 'Impossible de partager ce lien.'
+    }
+  },
+  cover: {
+    title: 'Image de couverture',
+    help: 'Ajoutez une image qui présente votre application. Elle sera utilisée dans le catalogue et sur sa fiche.',
+    spec: {
+      format: 'Format paysage 16:9.',
+      recommended: 'Dimensions recommandées : 1920 × 1080 pixels.',
+      minimum: 'Dimensions minimales : 1280 × 720 pixels.',
+      weight: 'Poids maximal : 3 Mo.',
+      types: 'Formats acceptés : JPEG, PNG et WebP.'
+    },
+    choose: 'Choisir une image de couverture',
+    drop: 'Déposez une image ici ou cliquez pour la choisir.',
+    uploading: 'Envoi de la couverture en cours',
+    previewDesktop: 'Aperçu sur ordinateur',
+    previewMobile: 'Aperçu sur mobile',
+    replace: 'Remplacer l’image',
+    remove: 'Supprimer l’image',
+    error: {
+      type: 'Ce fichier n’est pas une image JPG, PNG ou WebP valide.',
+      weight: 'La taille maximale autorisée est de 3 Mo.',
+      small:
+        'Votre image est trop petite. Utilisez au moins 1280 × 720 pixels.',
+      ratio: 'Utilisez une image au format paysage 16:9.'
+    }
+  },
+  geo: {
+    profileHint:
+      'Le catalogue affiché dépend de ce pays. Vous pouvez le changer une fois tous les 30 jours.',
+    visitor: {
+      change: 'Choisir mon pays',
+      short: 'Pays',
+      title: 'Votre pays',
+      help: 'Les applications proposées dépendent du pays. Sans choix, seules les applications disponibles dans tous les pays sont affichées.',
+      label: 'Pays',
+      clear: 'Ne pas choisir',
+      confirm: 'Afficher le catalogue'
+    },
+    missing: {
+      text: 'Indiquez votre pays pour voir toutes les applications disponibles chez vous.',
+      action: 'Compléter mon profil'
+    },
+    title: 'Disponibilité géographique',
+    all: 'Tous les pays',
+    selected: 'Pays sélectionnés',
+    choose:
+      'Choisissez les pays dans lesquels votre application sera disponible.',
+    count:
+      'Votre application sera disponible dans {n} pays. | Votre application sera disponible dans {n} pays.',
+    none: 'Aucun pays sélectionné.'
+  },
   language: {
     label: 'Langue',
     change: 'Changer de langue'
   },
   nav: {
+    discover: 'Découvrir',
+    applications: 'Applications',
+    rankings: 'Classements',
     home: 'Accueil',
     popular: 'Populaires',
     recommended: 'Recommandés',
@@ -320,6 +609,8 @@ export default {
     missing:
       '{n} élément à compléter | {n} élément à compléter | {n} éléments à compléter',
     field: {
+      cover: 'Image de couverture',
+      availability: 'Disponibilit\u00e9 g\u00e9ographique',
       name: 'Nom de l’application',
       shortDescription: 'Description courte',
       description: 'Description complète',
@@ -496,6 +787,8 @@ export default {
     },
     backToQueue: 'Retour aux demandes',
     dossier: {
+      noCover: 'Aucune couverture fournie.',
+      previousCover: 'Couverture précédente',
       listing: 'Fiche soumise',
       changed: 'Modifié : {fields}',
       before: 'Avant : {value}',

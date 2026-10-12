@@ -1,13 +1,13 @@
 <template>
   <q-page class="workspace-page">
     <header class="workspace-heading"
-      ><span class="eyebrow">Portail développeur</span><h1>Statistiques</h1
-      ><p
-        >Chiffres mesurés uniquement. Les vues de fiche, les ouvertures envoyées
-        par vos applications et les installations déclarées par les utilisateurs
-        sont comptées séparément : une installation réelle ne peut pas toujours
-        être mesurée.</p
-      ></header
+      ><span class="eyebrow">{{ ui('Portail développeur') }}</span
+      ><h1>{{ ui('Statistiques') }}</h1
+      ><p>{{
+        ui(
+          'Chiffres mesurés uniquement. Les vues de fiche, les ouvertures envoyées par vos applications et les installations déclarées par les utilisateurs sont comptées séparément : une installation réelle ne peut pas toujours être mesurée.'
+        )
+      }}</p></header
     >
     <div class="filters">
       <q-btn-toggle
@@ -16,9 +16,9 @@
         unelevated
         toggle-color="primary"
         :options="[
-          { label: '7 jours', value: 7 },
-          { label: '30 jours', value: 30 },
-          { label: '90 jours', value: 90 }
+          { label: ui('7 jours'), value: 7 },
+          { label: ui('30 jours'), value: 30 },
+          { label: ui('90 jours'), value: 90 }
         ]"
       />
       <q-select
@@ -29,13 +29,13 @@
         outlined
         dense
         clearable
-        label="Toutes mes applications"
+        :label="ui('Toutes mes applications')"
         class="app-filter"
       />
-      <q-toggle v-model="asTable" label="Afficher en tableau" />
+      <q-toggle v-model="asTable" :label="ui('Afficher en tableau')" />
     </div>
     <q-banner v-if="error" class="workspace-alert" role="alert">{{
-      error
+      ui(error)
     }}</q-banner>
     <q-linear-progress v-if="loading" indeterminate />
 
@@ -79,10 +79,10 @@
 
       <div class="workspace-grid q-mt-md">
         <q-card flat bordered class="workspace-card">
-          <h2>Répartition des notes</h2>
-          <p v-if="!stats.totals.reviews" class="text-muted"
-            >Aucun avis pour le moment.</p
-          >
+          <h2>{{ ui('Répartition des notes') }}</h2>
+          <p v-if="!stats.totals.reviews" class="text-muted">{{
+            ui('Aucun avis pour le moment.')
+          }}</p>
           <div v-else class="distribution">
             <div v-for="star in [5, 4, 3, 2, 1]" :key="star" class="dist-row">
               <span>{{ star }} ★</span>
@@ -103,13 +103,13 @@
             flat
             no-caps
             color="primary"
-            label="Répondre aux avis"
+            :label="ui('Répondre aux avis')"
             to="/developer/reviews"
           />
         </q-card>
       </div>
 
-      <h2 class="q-mt-lg">Par application</h2>
+      <h2 class="q-mt-lg">{{ ui('Par application') }}</h2>
       <q-table
         flat
         bordered
@@ -119,12 +119,15 @@
         :grid="$q.screen.lt.sm"
         :pagination="{ rowsPerPage: 0 }"
         hide-pagination
-        no-data-label="Aucune application"
+        :no-data-label="ui('Aucune application')"
       />
     </template>
   </q-page>
 </template>
 <script setup>
+import { currentLocale } from '@/i18n'
+import { ui } from '@/i18n/text'
+
 import { computed, onMounted, ref, watch } from 'vue'
 import { api } from '@/boot/axios'
 import TrendChart from '@/components/TrendChart.vue'
@@ -139,22 +142,64 @@ const stats = ref(null),
   asTable = ref(false),
   appOptions = ref([])
 const metrics = [
-  { key: 'views', label: 'Vues de la fiche' },
-  { key: 'opens', label: 'Ouvertures mesurées' },
-  { key: 'installs', label: 'Installations déclarées' }
+  {
+    key: 'views',
+    get label() {
+      return ui('Vues de la fiche')
+    }
+  },
+  {
+    key: 'opens',
+    get label() {
+      return ui('Ouvertures mesurées')
+    }
+  },
+  {
+    key: 'installs',
+    get label() {
+      return ui('Installations déclarées')
+    }
+  }
 ]
 const kpis = computed(() => {
   const t = stats.value.totals
   return [
-    { label: 'Vues de fiche', value: t.views },
-    { label: 'Ouvertures', value: t.opens },
-    { label: 'Installations déclarées', value: t.installs },
     {
-      label: 'Note moyenne',
-      value: t.average_rating ?? '—',
-      hint: `${t.reviews} avis · ${t.new_reviews} sur la période`
+      get label() {
+        return ui('Vues de fiche')
+      },
+      value: t.views
     },
-    { label: 'Signalements ouverts', value: t.open_reports }
+    {
+      get label() {
+        return ui('Ouvertures')
+      },
+      value: t.opens
+    },
+    {
+      get label() {
+        return ui('Installations déclarées')
+      },
+      value: t.installs
+    },
+    {
+      get label() {
+        return ui('Note moyenne')
+      },
+      value: t.average_rating ?? '—',
+      get hint() {
+        return ui('{p0} avis · {p1} sur la période', {
+          p0: t.reviews,
+          p1: t.new_reviews
+        })
+      }
+    },
+    {
+      get label() {
+        return ui('Signalements ouverts')
+      },
+      value: t.open_reports
+    }
   ]
 })
 const maxStars = computed(() =>
@@ -163,38 +208,80 @@ const maxStars = computed(() =>
 const seriesColumns = [
   {
     name: 'day',
-    label: 'Jour',
+    get label() {
+      return ui('Jour')
+    },
     field: 'day',
     align: 'left',
-    format: d => new Date(`${d}T00:00:00`).toLocaleDateString('fr-FR')
+    format: d => new Date(`${d}T00:00:00`).toLocaleDateString(currentLocale())
   },
   ...metrics.map(m => ({ name: m.key, label: m.label, field: m.key }))
 ]
 const appColumns = [
-  { name: 'name', label: 'Application', field: 'name', align: 'left' },
+  {
+    name: 'name',
+    get label() {
+      return ui('Application')
+    },
+    field: 'name',
+    align: 'left'
+  },
   {
     name: 'status',
-    label: 'Statut',
+    get label() {
+      return ui('Statut')
+    },
     field: 'status',
     align: 'left',
     format: statusLabel
   },
-  { name: 'views', label: 'Vues', field: 'views', sortable: true },
-  { name: 'opens', label: 'Ouvertures', field: 'opens', sortable: true },
+  {
+    name: 'views',
+    get label() {
+      return ui('Vues')
+    },
+    field: 'views',
+    sortable: true
+  },
+  {
+    name: 'opens',
+    get label() {
+      return ui('Ouvertures')
+    },
+    field: 'opens',
+    sortable: true
+  },
   {
     name: 'installs',
-    label: 'Installations',
+    get label() {
+      return ui('Installations')
+    },
     field: 'installs',
     sortable: true
   },
-  { name: 'reviews', label: 'Avis', field: 'reviews', sortable: true },
+  {
+    name: 'reviews',
+    get label() {
+      return ui('Avis')
+    },
+    field: 'reviews',
+    sortable: true
+  },
   {
     name: 'average_rating',
-    label: 'Note',
+    get label() {
+      return ui('Note')
+    },
     field: 'average_rating',
     format: v => v ?? '—'
   },
-  { name: 'open_reports', label: 'Signalements', field: 'open_reports' }
+  {
+    name: 'open_reports',
+    get label() {
+      return ui('Signalements')
+    },
+    field: 'open_reports'
+  }
 ]
 
 async function load() {

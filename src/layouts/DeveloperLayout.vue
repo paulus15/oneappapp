@@ -12,19 +12,19 @@
           dense
           icon="menu"
           class="lt-md"
-          aria-label="Ouvrir la navigation"
+          :aria-label="ui('Ouvrir la navigation')"
           @click="leftDrawerOpen = !leftDrawerOpen"
         />
 
         <router-link
           to="/"
           class="console-brand"
-          aria-label="PWA Store, accueil"
+          :aria-label="ui('PWA Store, accueil')"
           ><BrandLogo responsive
         /></router-link>
         <div class="toolbar-heading gt-xs">
-          <span class="toolbar-eyebrow">Espace développeur</span>
-          <strong>Console</strong>
+          <span class="toolbar-eyebrow">{{ ui('Espace développeur') }}</span>
+          <strong>{{ ui('Console') }}</strong>
         </div>
 
         <q-space />
@@ -33,7 +33,7 @@
           flat
           no-caps
           icon="storefront"
-          label="Voir le Store"
+          :label="ui('Voir le Store')"
           to="/"
           class="store-button gt-xs"
         />
@@ -42,7 +42,9 @@
           round
           :icon="isDark ? 'light_mode' : 'dark_mode'"
           :aria-label="
-            isDark ? 'Activer le thème clair' : 'Activer le thème sombre'
+            isDark
+              ? ui('Activer le thème clair')
+              : ui('Activer le thème sombre')
           "
           @click="toggleTheme"
         />
@@ -53,7 +55,7 @@
           <q-avatar size="36px">{{ userInitial }}</q-avatar>
           <span class="profile-copy gt-sm">
             <strong>{{ authStore.userName }}</strong>
-            <small>{{ authStore.user?.role || 'Développeur' }}</small>
+            <small>{{ authStore.user?.role || ui('Développeur') }}</small>
           </span>
           <q-icon name="expand_more" class="gt-sm" />
           <q-menu auto-close class="developer-menu">
@@ -62,11 +64,11 @@
                 <q-item-section avatar
                   ><q-icon name="storefront"
                 /></q-item-section>
-                <q-item-section>Retour au Store</q-item-section>
+                <q-item-section>{{ ui('Retour au Store') }}</q-item-section>
               </q-item>
               <q-item clickable class="text-negative" @click="handleLogout">
                 <q-item-section avatar><q-icon name="logout" /></q-item-section>
-                <q-item-section>Déconnexion</q-item-section>
+                <q-item-section>{{ ui('Déconnexion') }}</q-item-section>
               </q-item>
             </q-list>
           </q-menu>
@@ -86,7 +88,7 @@
           <BrandLogo />
         </router-link>
 
-        <p class="nav-label">Workspace</p>
+        <p class="nav-label">{{ ui('Workspace') }}</p>
         <q-list class="developer-nav">
           <q-item
             v-for="item in workspaceNavigation"
@@ -106,7 +108,7 @@
           </q-item>
         </q-list>
 
-        <p class="nav-label">Ressources</p>
+        <p class="nav-label">{{ ui('Ressources') }}</p>
         <q-list class="developer-nav">
           <q-item
             v-for="item in resourceNavigation"
@@ -125,17 +127,19 @@
         <div class="developer-help">
           <q-icon name="support_agent" />
           <div>
-            <strong>Besoin d’aide ?</strong>
-            <p>Notre équipe accompagne la publication de votre application.</p>
-            <button type="button">Contacter le support</button>
+            <strong>{{ ui('Besoin d’aide ?') }}</strong>
+            <p>{{
+              ui('Notre équipe accompagne la publication de votre application.')
+            }}</p>
+            <button type="button">{{ ui('Contacter le support') }}</button>
           </div>
         </div>
 
         <div class="drawer-user">
           <span class="status-dot" />
           <span>
-            <strong>Espace développeur</strong>
-            <small>Votre compte PWA Store</small>
+            <strong>{{ ui('Espace développeur') }}</strong>
+            <small>{{ ui('Votre compte PWA Store') }}</small>
           </span>
         </div>
       </div>
@@ -152,6 +156,8 @@
 </template>
 
 <script setup>
+import { ui } from '@/i18n/text'
+
 import NotificationBell from '@/components/NotificationBell.vue'
 import LanguageSwitcher from '@/components/LanguageSwitcher.vue'
 import BrandLogo from '@/components/BrandLogo.vue'
@@ -171,23 +177,86 @@ const userInitial = computed(
 
 const workspaceNavigation = [
   {
-    label: 'Mon profil et mes quotas',
+    get label() {
+      return ui('Mon profil et mes quotas')
+    },
     icon: 'verified_user',
     to: '/developer/profile'
   },
-  { label: 'Vue d’ensemble', icon: 'space_dashboard', to: '/developer' },
-  { label: 'Mes applications', icon: 'apps', disabled: true },
-  { label: 'Builds & versions', icon: 'archive', disabled: true },
-  { label: 'Statistiques', icon: 'insights', to: '/developer/stats' },
-  { label: 'Avis et retours', icon: 'reviews', to: '/developer/reviews' },
-  { label: 'PWA Lab', icon: 'science', to: '/developer/lab' },
-  { label: 'Revenus', icon: 'account_balance_wallet', disabled: true }
+  {
+    get label() {
+      return ui('Vue d’ensemble')
+    },
+    icon: 'space_dashboard',
+    to: '/developer'
+  },
+  {
+    get label() {
+      return ui('Mes applications')
+    },
+    icon: 'apps',
+    disabled: true
+  },
+  {
+    get label() {
+      return ui('Builds & versions')
+    },
+    icon: 'archive',
+    disabled: true
+  },
+  {
+    get label() {
+      return ui('Statistiques')
+    },
+    icon: 'insights',
+    to: '/developer/stats'
+  },
+  {
+    get label() {
+      return ui('Avis et retours')
+    },
+    icon: 'reviews',
+    to: '/developer/reviews'
+  },
+  {
+    get label() {
+      return ui('PWA Lab')
+    },
+    icon: 'science',
+    to: '/developer/lab'
+  },
+  {
+    get label() {
+      return ui('Revenus')
+    },
+    icon: 'account_balance_wallet',
+    disabled: true
+  }
 ]
 
 const resourceNavigation = [
-  { label: 'Documentation', icon: 'menu_book', disabled: true, external: true },
-  { label: 'Clés API', icon: 'key', disabled: true },
-  { label: 'Paramètres', icon: 'settings', disabled: true }
+  {
+    get label() {
+      return ui('Documentation')
+    },
+    icon: 'menu_book',
+    disabled: true,
+    external: true
+  },
+  {
+    get label() {
+      return ui('Clés API')
+    },
+    icon: 'key',
+    disabled: true
+  },
+  {
+    get label() {
+      return ui('Paramètres')
+    },
+    icon: 'settings',
+    disabled: true
+  }
 ]
 
 async function handleLogout() {

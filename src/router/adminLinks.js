@@ -1,69 +1,98 @@
+import { ui } from '@/i18n/text'
 // One list drives both the admin navigation and the permission each page requires.
 export const adminLinks = [
-  { to: '/admin', label: 'Tableau de bord', icon: 'space_dashboard' },
+  {
+    to: '/admin',
+    get label() {
+      return ui('Tableau de bord')
+    },
+    icon: 'space_dashboard'
+  },
   {
     to: '/admin/requests',
-    label: 'Demandes de publication',
+    get label() {
+      return ui('Demandes de publication')
+    },
     icon: 'fact_check',
     permission: 'apps.moderate'
   },
   {
     to: '/admin/apps',
-    label: 'Applications',
+    get label() {
+      return ui('Applications')
+    },
     icon: 'apps',
     permission: 'apps.moderate'
   },
   {
     to: '/admin/developers',
-    label: 'Développeurs',
+    get label() {
+      return ui('Développeurs')
+    },
     icon: 'verified_user',
     permission: 'developers.review'
   },
   {
     to: '/admin/users',
-    label: 'Utilisateurs',
+    get label() {
+      return ui('Utilisateurs')
+    },
     icon: 'group',
     permission: 'users.manage'
   },
   {
     to: '/admin/reports',
-    label: 'Signalements',
+    get label() {
+      return ui('Signalements')
+    },
     icon: 'flag',
     permission: 'reports.handle'
   },
   {
     to: '/admin/reviews',
-    label: 'Avis',
+    get label() {
+      return ui('Avis')
+    },
     icon: 'reviews',
     permission: 'reviews.moderate'
   },
   {
     to: '/admin/categories',
-    label: 'Catégories',
+    get label() {
+      return ui('Catégories')
+    },
     icon: 'category',
     permission: 'catalog.manage'
   },
   {
     to: '/admin/collections',
-    label: 'Sélections',
+    get label() {
+      return ui('Sélections')
+    },
     icon: 'collections_bookmark',
     permission: 'catalog.manage'
   },
   {
     to: '/admin/countries',
-    label: 'Pays',
+    get label() {
+      return ui('Pays')
+    },
     icon: 'public',
     permission: 'audit.view'
   },
   {
     to: '/admin/settings',
-    label: 'Paramètres',
+    get label() {
+      return ui('Paramètres')
+    },
     icon: 'tune',
     permission: 'settings.manage'
   },
   {
     to: '/admin/audit',
-    label: 'Journal',
+    get label() {
+      return ui('Journal')
+    },
     icon: 'history',
     permission: 'audit.view'
   }

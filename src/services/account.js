@@ -1,3 +1,4 @@
+import { ui } from '@/i18n/text'
 import { api } from '@/boot/axios'
 export const accountApi = {
   me: () => api.get('/auth/me'),
@@ -29,7 +30,7 @@ export const accountApi = {
   discardChanges: id => api.delete(`/apps/${id}/pending-changes`),
   createApp: data => api.post('/apps', data),
   // Multipart: files (icon, screenshots) travel with the other fields.
-  updateApp: (id, form) => api.post(`/apps/${id}`, form),
+  updateApp: (id, form, config = {}) => api.post(`/apps/${id}`, form, config),
   uploadVersion: (form, config = {}) => api.post('/versions', form, config),
   publishApp: id => api.post(`/apps/${id}/publish`),
   archiveApp: id => api.post(`/apps/${id}/archive`),
@@ -45,6 +46,12 @@ export const accountApi = {
 export function apiMessage(error) {
   const errors = error.response?.data?.errors
   return errors
-    ? Object.values(errors).flat().join(' ')
-    : error.response?.data?.message || 'Le service est indisponible. Réessayez.'
+    ? Object.values(errors)
+        .flat()
+        .map(message => ui(message))
+        .join(' ')
+    : ui(
+        error.response?.data?.message ||
+          'Le service est indisponible. Réessayez.'
+      )
 }

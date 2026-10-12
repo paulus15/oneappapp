@@ -1,12 +1,13 @@
 <template>
   <q-page class="workspace-page">
     <header class="workspace-heading"
-      ><span class="eyebrow">Administration</span><h1>Catégories</h1
-      ><p
-        >Les catégories actives apparaissent dans le Store et dans le formulaire
-        des développeurs. Une catégorie qui contient des applications ne peut
-        pas être supprimée : désactivez-la.</p
-      ></header
+      ><span class="eyebrow">{{ ui('Administration') }}</span
+      ><h1>{{ ui('Catégories') }}</h1
+      ><p>{{
+        ui(
+          'Les catégories actives apparaissent dans le Store et dans le formulaire des développeurs. Une catégorie qui contient des applications ne peut pas être supprimée : désactivez-la.'
+        )
+      }}</p></header
     >
     <AdminNav />
     <div class="workspace-actions q-mb-md">
@@ -14,12 +15,12 @@
         color="primary"
         no-caps
         icon="add"
-        label="Nouvelle catégorie"
+        :label="ui('Nouvelle catégorie')"
         @click="edit()"
       />
     </div>
     <q-banner v-if="error" class="workspace-alert q-mb-md" role="alert">{{
-      error
+      ui(error)
     }}</q-banner>
     <q-table
       flat
@@ -31,7 +32,7 @@
       :grid="$q.screen.lt.sm"
       :pagination="{ rowsPerPage: 0 }"
       hide-pagination
-      no-data-label="Aucune catégorie"
+      :no-data-label="ui('Aucune catégorie')"
     >
       <template #body-cell-icon="props">
         <q-td :props="props"
@@ -43,7 +44,7 @@
           ><q-toggle
             :model-value="props.value"
             :disable="busy"
-            :aria-label="`Activer ${props.row.name}`"
+            :aria-label="ui('Activer {p0}', { p0: props.row.name })"
             @update:model-value="v => toggle(props.row, v)"
         /></q-td>
       </template>
@@ -53,13 +54,13 @@
             flat
             dense
             icon="edit"
-            :aria-label="`Modifier ${props.row.name}`"
+            :aria-label="ui('Modifier {p0}', { p0: props.row.name })"
             @click="edit(props.row)" /><q-btn
             flat
             dense
             icon="delete"
             color="negative"
-            :aria-label="`Supprimer ${props.row.name}`"
+            :aria-label="ui('Supprimer {p0}', { p0: props.row.name })"
             :disable="busy || props.row.applications_count > 0"
             @click="remove(props.row)"
         /></q-td>
@@ -71,46 +72,50 @@
         <q-form @submit="save">
           <q-card-section
             ><h2>{{
-              form.id ? 'Modifier la catégorie' : 'Nouvelle catégorie'
+              form.id ? ui('Modifier la catégorie') : ui('Nouvelle catégorie')
             }}</h2></q-card-section
           >
           <q-card-section class="workspace-form">
             <q-input
               v-model="form.name"
               outlined
-              label="Nom"
+              :label="ui('Nom')"
               maxlength="255"
-              :rules="[v => !!v?.trim() || 'Nom requis']"
+              :rules="[v => !!v?.trim() || ui('Nom requis')]"
             />
             <q-input
               v-model="form.description"
               outlined
               type="textarea"
-              label="Description (facultatif)"
+              :label="ui('Description (facultatif)')"
             />
             <q-input
               v-model="form.icon"
               outlined
-              label="Icône Material (ex. school)"
+              :label="ui('Icône Material (ex. school)')"
               ><template #append
                 ><q-icon :name="form.icon || 'category'" /></template
             ></q-input>
-            <q-input v-model="form.color" outlined label="Couleur (#RRGGBB)" />
+            <q-input
+              v-model="form.color"
+              outlined
+              :label="ui('Couleur (#RRGGBB)')"
+            />
             <q-input
               v-model.number="form.order"
               outlined
               type="number"
-              label="Ordre d’affichage"
+              :label="ui('Ordre d’affichage')"
             />
-            <q-toggle v-model="form.is_active" label="Active" />
+            <q-toggle v-model="form.is_active" :label="ui('Active')" />
           </q-card-section>
           <q-card-actions align="right">
-            <q-btn flat no-caps label="Annuler" v-close-popup />
+            <q-btn flat no-caps :label="ui('Annuler')" v-close-popup />
             <q-btn
               type="submit"
               color="primary"
               no-caps
-              label="Enregistrer"
+              :label="ui('Enregistrer')"
               :loading="busy"
             />
           </q-card-actions>
@@ -120,6 +125,8 @@
   </q-page>
 </template>
 <script setup>
+import { ui } from '@/i18n/text'
+
 import { onMounted, reactive, ref } from 'vue'
 import { useQuasar } from 'quasar'
 import AdminNav from '@/components/AdminNav.vue'
@@ -144,15 +151,38 @@ const blank = {
 const form = reactive({ ...blank })
 const columns = [
   { name: 'icon', label: '', field: 'icon', align: 'left' },
-  { name: 'name', label: 'Nom', field: 'name', align: 'left', sortable: true },
+  {
+    name: 'name',
+    get label() {
+      return ui('Nom')
+    },
+    field: 'name',
+    align: 'left',
+    sortable: true
+  },
   {
     name: 'applications_count',
-    label: 'Apps publiées',
+    get label() {
+      return ui('Apps publiées')
+    },
     field: 'applications_count',
     sortable: true
   },
-  { name: 'order', label: 'Ordre', field: 'order', sortable: true },
-  { name: 'is_active', label: 'Active', field: 'is_active' },
+  {
+    name: 'order',
+    get label() {
+      return ui('Ordre')
+    },
+    field: 'order',
+    sortable: true
+  },
+  {
+    name: 'is_active',
+    get label() {
+      return ui('Active')
+    },
+    field: 'is_active'
+  },
   { name: 'actions', label: '', field: 'id' }
 ]
 
@@ -200,24 +230,28 @@ async function save() {
       form.id
         ? adminApi.updateCategory(form.id, payload)
         : adminApi.createCategory(payload),
-    'Catégorie enregistrée.'
+    ui('Catégorie enregistrée.')
   )
   if (ok) dialog.value = false
 }
 function toggle(row, value) {
   return run(
     () => adminApi.updateCategory(row.id, { is_active: value }),
-    value ? 'Catégorie activée.' : 'Catégorie désactivée.'
+    value ? ui('Catégorie activée.') : ui('Catégorie désactivée.')
   )
 }
 function remove(row) {
   $q.dialog({
-    title: `Supprimer « ${row.name} » ?`,
-    message: 'Cette action est définitive.',
+    get title() {
+      return ui('Supprimer « {p0} » ?', { p0: row.name })
+    },
+    get message() {
+      return ui('Cette action est définitive.')
+    },
     cancel: true,
     persistent: true
   }).onOk(() =>
-    run(() => adminApi.deleteCategory(row.id), 'Catégorie supprimée.')
+    run(() => adminApi.deleteCategory(row.id), ui('Catégorie supprimée.'))
   )
 }
 onMounted(load)

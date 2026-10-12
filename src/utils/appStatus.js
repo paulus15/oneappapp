@@ -1,16 +1,62 @@
+import { ui } from '@/i18n/text'
 import { i18n } from '@/i18n'
 
 // Mirrors App\Services\ApplicationLifecycle on the server; the server stays the authority.
 export const APP_STATUS = {
-  draft: { label: 'Brouillon', color: 'grey-7' },
-  submitted: { label: 'Soumise', color: 'blue-7' },
-  in_review: { label: 'En analyse', color: 'indigo-6' },
-  changes_requested: { label: 'Correction demandée', color: 'orange-8' },
-  approved: { label: 'Approuvée — à publier', color: 'teal-7' },
-  published: { label: 'Publiée', color: 'green-7' },
-  rejected: { label: 'Refusée', color: 'red-7' },
-  suspended: { label: 'Suspendue', color: 'deep-orange-9' },
-  archived: { label: 'Archivée', color: 'blue-grey-6' }
+  draft: {
+    get label() {
+      return ui('Brouillon')
+    },
+    color: 'grey-7'
+  },
+  submitted: {
+    get label() {
+      return ui('Soumise')
+    },
+    color: 'blue-7'
+  },
+  in_review: {
+    get label() {
+      return ui('En analyse')
+    },
+    color: 'indigo-6'
+  },
+  changes_requested: {
+    get label() {
+      return ui('Correction demandée')
+    },
+    color: 'orange-8'
+  },
+  approved: {
+    get label() {
+      return ui('Approuvée — à publier')
+    },
+    color: 'teal-7'
+  },
+  published: {
+    get label() {
+      return ui('Publiée')
+    },
+    color: 'green-7'
+  },
+  rejected: {
+    get label() {
+      return ui('Refusée')
+    },
+    color: 'red-7'
+  },
+  suspended: {
+    get label() {
+      return ui('Suspendue')
+    },
+    color: 'deep-orange-9'
+  },
+  archived: {
+    get label() {
+      return ui('Archivée')
+    },
+    color: 'blue-grey-6'
+  }
 }
 
 const t = (key, fallback) =>
@@ -21,15 +67,41 @@ export const statusColor = status => APP_STATUS[status]?.color || 'grey-7'
 
 // Moderation decisions an administrator can take from each state.
 const DECISIONS = {
-  in_review: { label: 'Prendre en charge', icon: 'visibility', reason: false },
-  approved: { label: 'Approuver', icon: 'check', reason: true },
+  in_review: {
+    get label() {
+      return ui('Prendre en charge')
+    },
+    icon: 'visibility',
+    reason: false
+  },
+  approved: {
+    get label() {
+      return ui('Approuver')
+    },
+    icon: 'check',
+    reason: true
+  },
   changes_requested: {
-    label: 'Demander une correction',
+    get label() {
+      return ui('Demander une correction')
+    },
     icon: 'edit_note',
     reason: true
   },
-  rejected: { label: 'Refuser', icon: 'block', reason: true },
-  suspended: { label: 'Suspendre', icon: 'pause_circle', reason: true }
+  rejected: {
+    get label() {
+      return ui('Refuser')
+    },
+    icon: 'block',
+    reason: true
+  },
+  suspended: {
+    get label() {
+      return ui('Suspendre')
+    },
+    icon: 'pause_circle',
+    reason: true
+  }
 }
 const ADMIN_FLOW = {
   submitted: ['in_review', 'approved', 'changes_requested', 'rejected'],

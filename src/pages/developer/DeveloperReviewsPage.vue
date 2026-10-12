@@ -1,11 +1,13 @@
 <template>
   <q-page class="workspace-page">
     <header class="workspace-heading"
-      ><span class="eyebrow">Portail développeur</span><h1>Avis et retours</h1
-      ><p
-        >Les avis publiés sur vos applications. Votre réponse apparaît sous
-        l’avis, sur la fiche publique.</p
-      ></header
+      ><span class="eyebrow">{{ ui('Portail développeur') }}</span
+      ><h1>{{ ui('Avis et retours') }}</h1
+      ><p>{{
+        ui(
+          'Les avis publiés sur vos applications. Votre réponse apparaît sous l’avis, sur la fiche publique.'
+        )
+      }}</p></header
     >
     <div class="row q-col-gutter-sm q-mb-md items-center">
       <div class="col-12 col-md-4">
@@ -17,20 +19,20 @@
           outlined
           dense
           clearable
-          label="Toutes mes applications"
+          :label="ui('Toutes mes applications')"
         />
       </div>
       <div class="col-12 col-md-4">
-        <q-toggle v-model="unanswered" label="Sans réponse uniquement" />
+        <q-toggle v-model="unanswered" :label="ui('Sans réponse uniquement')" />
       </div>
     </div>
     <q-banner v-if="error" class="workspace-alert" role="alert">{{
-      error
+      ui(error)
     }}</q-banner>
     <q-linear-progress v-if="loading" indeterminate />
-    <p v-if="!loading && !reviews.length" class="text-muted"
-      >Aucun avis pour ce filtre.</p
-    >
+    <p v-if="!loading && !reviews.length" class="text-muted">{{
+      ui('Aucun avis pour ce filtre.')
+    }}</p>
     <div class="workspace-grid">
       <q-card
         v-for="review in reviews"
@@ -51,17 +53,20 @@
         </div>
         <small class="text-muted"
           >{{ review.user?.name }} ·
-          {{ new Date(review.updated_at).toLocaleDateString('fr-FR') }}</small
+          {{
+            new Date(review.updated_at).toLocaleDateString(currentLocale())
+          }}</small
         >
         <p v-if="review.comment">{{ review.comment }}</p>
         <div v-if="review.reply" class="reply"
-          ><strong>Votre réponse</strong> <p>{{ review.reply.body }}</p></div
+          ><strong>{{ ui('Votre réponse') }}</strong>
+          <p>{{ review.reply.body }}</p></div
         >
         <q-btn
           flat
           no-caps
           color="primary"
-          :label="review.reply ? 'Modifier la réponse' : 'Répondre'"
+          :label="review.reply ? ui('Modifier la réponse') : ui('Répondre')"
           @click="reply(review)"
         />
       </q-card>
@@ -75,6 +80,9 @@
   </q-page>
 </template>
 <script setup>
+import { currentLocale } from '@/i18n'
+import { ui } from '@/i18n/text'
+
 import { onMounted, ref, watch } from 'vue'
 import { useQuasar } from 'quasar'
 import { api } from '@/boot/axios'
@@ -112,8 +120,12 @@ async function load() {
 }
 function reply(review) {
   $q.dialog({
-    title: 'Répondre à cet avis',
-    message: 'Votre réponse sera publique, sous l’avis.',
+    get title() {
+      return ui('Répondre à cet avis')
+    },
+    get message() {
+      return ui('Votre réponse sera publique, sous l’avis.')
+    },
     prompt: {
       model: review.reply?.body || '',
       type: 'textarea',
@@ -123,7 +135,12 @@ function reply(review) {
   }).onOk(async body => {
     try {
       await communityApi.reply(review.id, body)
-      $q.notify({ type: 'positive', message: 'Réponse publiée.' })
+      $q.notify({
+        type: 'positive',
+        get message() {
+          return ui('Réponse publiée.')
+        }
+      })
       await load()
     } catch (e) {
       error.value = apiMessage(e)

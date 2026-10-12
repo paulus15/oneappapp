@@ -2,6 +2,15 @@
 
 Les entrées les plus récentes sont en haut. Détails techniques et vérifications : journal de [PWASTORE_ROADMAP.md](PWASTORE_ROADMAP.md#journal).
 
+## 2026-10-12 (suite) — Store « Découvrir », couvertures, pays, vues
+
+- Image de couverture obligatoire avant soumission : contrôlée sur son contenu, réencodée sans métadonnées en AVIF, WebP et JPEG (640, 1280, 1920 px), soumise à validation comme le reste de la fiche.
+- Store public repensé : navigation Découvrir · Applications · Catégories · Classements, carrousel « À la une », rangées horizontales, page Classements, fiche avec couverture et bloc Informations, squelettes de chargement. Plus aucune donnée fictive.
+- Distribution par pays : « Tous les pays » ou « Pays sélectionnés », filtre appliqué côté serveur à tous les points d’accès publics, choix du pays pour les visiteurs, pays obligatoire dans le profil (un changement tous les 30 jours).
+- Vues des fiches uniques par compte (ou par empreinte d’IP pour un visiteur), avec la date.
+- Onglets développeur en ligne avec des icônes valides ; échelle de titres unique et style plus doux pour l’espace développeur et l’administration.
+- Sécurité : la liste publique n’expose plus les champs internes ; les images de l’API sont autorisées par la CSP du front.
+
 ## 2026-10-12
 
 ### Publication

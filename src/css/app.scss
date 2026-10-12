@@ -320,25 +320,120 @@ body .q-layout .q-btn.bg-primary {
   color: var(--pwa-on-primary) !important;
 }
 
+// One typographic scale for every workspace and back-office page. Quasar's default heading
+// sizes (h1 at 6rem, h3 at 3rem) never apply inside them.
+:root {
+  --title-page: clamp(24px, 2.4vw, 30px);
+  --title-section: 18px;
+  --title-sub: 15px;
+}
+// :where() keeps these at the lowest specificity, so spacing utilities (q-mt-lg…) still apply.
+:where(.workspace-page, .admin-page) {
+  h1 {
+    font-size: var(--title-page);
+    line-height: 1.2;
+    font-weight: 700;
+    letter-spacing: -0.03em;
+    margin: 0;
+  }
+  h2 {
+    font-size: var(--title-section);
+    line-height: 1.35;
+    font-weight: 650;
+    letter-spacing: -0.015em;
+    margin: 0 0 10px;
+  }
+  h3 {
+    font-size: var(--title-sub);
+    line-height: 1.4;
+    font-weight: 650;
+    letter-spacing: -0.01em;
+    margin: 0 0 6px;
+  }
+  h4 {
+    font-size: 14px;
+    line-height: 1.4;
+    font-weight: 600;
+    margin: 0;
+  }
+}
+.admin-page {
+  background: var(--page);
+  color: var(--text);
+  padding: clamp(16px, 2.5vw, 28px) var(--ui-page-gutter, 16px) 28px;
+}
+/* Page header: eyebrow, title, one muted line. Same in the workspace and the back-office. */
+.workspace-heading,
+.admin-hero {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 20px;
+}
+.eyebrow,
+.admin-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--pwa-link);
+  font-size: 12px;
+  font-weight: 650;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.admin-title {
+  color: var(--text);
+}
+.admin-subtitle,
+.workspace-heading > p {
+  color: var(--muted);
+  max-width: 720px;
+  font-size: 15px;
+  line-height: 1.6;
+  margin: 0;
+}
+/* Tabs: label beside the icon, calm weight, rounded indicator. */
+.workspace-page .q-tabs,
+.admin-page .q-tabs {
+  border-bottom: 1px solid var(--outline);
+  margin-bottom: 16px;
+}
+.workspace-page .q-tab,
+.admin-page .q-tab {
+  min-height: 46px;
+  padding: 0 14px;
+  border-radius: 10px 10px 0 0;
+  color: var(--muted);
+  text-transform: none;
+}
+.workspace-page .q-tab__label,
+.admin-page .q-tab__label {
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.2;
+}
+.workspace-page .q-tab__icon,
+.admin-page .q-tab__icon {
+  font-size: 20px;
+}
+.workspace-page .q-tab--active,
+.admin-page .q-tab--active {
+  color: var(--q-primary);
+}
+.workspace-page .q-tab__indicator,
+.admin-page .q-tab__indicator {
+  height: 3px;
+  border-radius: 3px 3px 0 0;
+}
+
 // Account and publisher workspaces share the store's typography and themes.
 .workspace-page {
   max-width: 1200px;
   width: 100%;
   margin: auto;
-  padding: clamp(20px, 3vw, 40px);
+  padding: clamp(16px, 2.5vw, 28px);
   color: var(--text);
 }
-.workspace-heading {
-  margin-bottom: 28px;
-}
-.workspace-heading h1 {
-  font-size: clamp(26px, 3vw, 40px);
-  line-height: 1.2;
-  letter-spacing: -0.035em;
-  margin: 12px 0;
-  font-weight: 750;
-}
-.workspace-heading p,
 .workspace-card p,
 .text-muted {
   color: var(--muted);
@@ -347,27 +442,18 @@ body .q-layout .q-btn.bg-primary {
 .workspace-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 20px;
+  gap: 14px;
 }
 .workspace-card {
   min-width: 0;
-  padding: 24px;
+  padding: 20px;
   background: var(--surface-low);
   border-color: var(--outline);
-  border-radius: 18px;
+  border-radius: 16px;
+  box-shadow:
+    0 1px 2px rgba(8, 19, 45, 0.04),
+    0 8px 24px rgba(8, 19, 45, 0.04);
   overflow-wrap: anywhere;
-}
-.workspace-card h2,
-.workspace-section h2 {
-  font-size: 20px;
-  line-height: 1.3;
-  font-weight: 700;
-  margin: 0 0 18px;
-}
-.workspace-card h3 {
-  font-size: 17px;
-  line-height: 1.4;
-  margin: 0 0 12px;
 }
 .workspace-card dt {
   font-size: 12px;

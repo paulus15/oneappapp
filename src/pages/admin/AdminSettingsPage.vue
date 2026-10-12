@@ -1,16 +1,17 @@
 <template>
   <q-page class="workspace-page">
     <header class="workspace-heading"
-      ><span class="eyebrow">Administration</span><h1>Paramètres et quotas</h1
-      ><p
-        >Les quotas de publication et la contribution annoncée. Laisser un champ
-        vide signifie « non fixé ». Aucun paiement réel n’est activé : il faudra
-        une intégration et une validation explicites.</p
-      ></header
+      ><span class="eyebrow">{{ ui('Administration') }}</span
+      ><h1>{{ ui('Paramètres et quotas') }}</h1
+      ><p>{{
+        ui(
+          'Les quotas de publication et la contribution annoncée. Laisser un champ vide signifie « non fixé ». Aucun paiement réel n’est activé : il faudra une intégration et une validation explicites.'
+        )
+      }}</p></header
     >
     <AdminNav />
     <q-banner v-if="error" class="workspace-alert q-mb-md" role="alert">{{
-      error
+      ui(error)
     }}</q-banner>
     <q-card v-if="form" flat bordered class="workspace-card settings-card">
       <q-form class="workspace-form" @submit="save">
@@ -20,8 +21,8 @@
           min="0"
           outlined
           clearable
-          label="Applications gratuites par développeur"
-          hint="Au-delà, une contribution pourra être demandée"
+          :label="ui('Applications gratuites par développeur')"
+          :hint="ui('Au-delà, une contribution pourra être demandée')"
         />
         <q-input
           v-model="form.max_applications"
@@ -29,7 +30,7 @@
           min="0"
           outlined
           clearable
-          label="Nombre maximal d’applications par développeur"
+          :label="ui('Nombre maximal d’applications par développeur')"
         />
         <q-input
           v-model="storageMb"
@@ -37,7 +38,7 @@
           min="0"
           outlined
           clearable
-          label="Stockage par développeur (Mo)"
+          :label="ui('Stockage par développeur (Mo)')"
         />
         <div class="row q-col-gutter-sm">
           <div class="col-8">
@@ -47,7 +48,7 @@
               min="0"
               outlined
               clearable
-              label="Montant de la contribution annoncée"
+              :label="ui('Montant de la contribution annoncée')"
             />
           </div>
           <div class="col-4">
@@ -56,19 +57,19 @@
               outlined
               clearable
               maxlength="3"
-              label="Devise (ISO)"
-              hint="ex. XOF"
+              :label="ui('Devise (ISO)')"
+              :hint="ui('ex. XOF')"
             />
           </div>
         </div>
         <q-banner class="workspace-alert"
-          ><q-icon name="lock" /> Paiements désactivés</q-banner
+          ><q-icon name="lock" /> {{ ui('Paiements désactivés') }}</q-banner
         >
         <q-btn
           type="submit"
           color="primary"
           no-caps
-          label="Enregistrer"
+          :label="ui('Enregistrer')"
           :loading="busy"
         />
       </q-form>
@@ -76,6 +77,8 @@
   </q-page>
 </template>
 <script setup>
+import { ui } from '@/i18n/text'
+
 import { computed, onMounted, ref } from 'vue'
 import { useQuasar } from 'quasar'
 import AdminNav from '@/components/AdminNav.vue'
@@ -103,8 +106,12 @@ async function load() {
 }
 function save() {
   $q.dialog({
-    title: 'Modifier les paramètres',
-    message: 'Indiquez le motif. Il est conservé dans le journal.',
+    get title() {
+      return ui('Modifier les paramètres')
+    },
+    get message() {
+      return ui('Indiquez le motif. Il est conservé dans le journal.')
+    },
     prompt: { model: '', type: 'text', isValid: v => v.trim().length >= 3 },
     cancel: true
   }).onOk(async reason => {
@@ -122,7 +129,12 @@ function save() {
           reason
         })
       ).data
-      $q.notify({ type: 'positive', message: 'Paramètres enregistrés.' })
+      $q.notify({
+        type: 'positive',
+        get message() {
+          return ui('Paramètres enregistrés.')
+        }
+      })
     } catch (e) {
       error.value = apiMessage(e)
     } finally {

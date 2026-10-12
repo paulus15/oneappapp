@@ -1,11 +1,18 @@
 <template>
   <q-page class="workspace-page">
     <header class="workspace-heading"
-      ><span class="eyebrow">Mon compte</span><h1>Notifications</h1
+      ><span class="eyebrow">{{ ui('Mon compte') }}</span
+      ><h1>{{ ui('Notifications') }}</h1
       ><p
-        >Les décisions, avis et alertes qui vous concernent. Choisissez ce que
-        vous recevez par e-mail dans
-        <router-link to="/account">Préférences et données</router-link>.</p
+        >{{
+          ui(
+            'Les décisions, avis et alertes qui vous concernent. Choisissez ce que vous recevez par e-mail dans'
+          )
+        }}
+        <router-link to="/account">{{
+          ui('Préférences et données')
+        }}</router-link
+        >.</p
       ></header
     >
     <div class="workspace-actions q-mb-md">
@@ -13,13 +20,13 @@
         outline
         no-caps
         color="primary"
-        label="Tout marquer comme lu"
+        :label="ui('Tout marquer comme lu')"
         :disable="!store.unread"
         @click="markAll"
       />
     </div>
     <q-banner v-if="error" class="workspace-alert" role="alert">{{
-      error
+      ui(error)
     }}</q-banner>
     <q-linear-progress v-if="loading" indeterminate />
     <q-list bordered separator class="rounded-borders">
@@ -43,7 +50,9 @@
         </q-item-section>
       </q-item>
       <q-item v-if="!loading && !items.length"
-        ><q-item-section>Aucune notification.</q-item-section></q-item
+        ><q-item-section>{{
+          ui('Aucune notification.')
+        }}</q-item-section></q-item
       >
     </q-list>
     <q-pagination
@@ -56,6 +65,8 @@
   </q-page>
 </template>
 <script setup>
+import { ui } from '@/i18n/text'
+
 import { onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { api } from '@/boot/axios'

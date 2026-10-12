@@ -1,89 +1,90 @@
 <template>
   <q-page class="workspace-page">
     <header class="workspace-heading"
-      ><span class="eyebrow">Catalogue</span><h1>Catégories</h1
-      ><p>Parcourez les applications publiées par thème.</p></header
+      ><span class="eyebrow">{{ t('store.categories.eyebrow') }}</span
+      ><h1>{{ t('store.categories.title') }}</h1
+      ><p>{{ t('store.categories.lead') }}</p></header
     >
-    <q-banner v-if="error" class="workspace-alert" role="alert">{{
-      error
-    }}</q-banner>
-    <div v-if="loading" class="category-grid">
-      <q-skeleton v-for="n in 8" :key="n" height="88px" class="skeleton" />
+    <div v-if="error" class="categories-state glass-panel" role="alert">
+      <q-icon name="cloud_off" />
+      <p>{{ t('store.categories.error') }}</p>
+      <q-btn
+        unelevated
+        no-caps
+        color="primary"
+        icon="refresh"
+        :label="t('common.retry')"
+        @click="load"
+      />
     </div>
-    <div v-else class="category-grid">
-      <router-link
+    <div v-else-if="loading" class="category-grid" aria-busy="true">
+      <q-skeleton v-for="n in 8" :key="n" height="68px" class="skeleton" />
+    </div>
+    <div v-else-if="categories.length" class="category-grid">
+      <CategoryTile
         v-for="category in categories"
         :key="category.id"
-        :to="`/categories/${category.slug}`"
-        class="glass-panel category-card"
-      >
-        <q-icon
-          :name="category.icon || 'category'"
-          :style="{ color: category.color || 'var(--pwa-primary)' }"
-        />
-        <div>
-          <strong>{{ category.name }}</strong>
-          <small
-            >{{ category.applications_count }} application{{
-              category.applications_count > 1 ? 's' : ''
-            }}</small
-          >
-        </div>
-      </router-link>
+        :category="category"
+      />
+    </div>
+    <div v-else class="categories-state glass-panel">
+      <q-icon name="category" />
+      <p>{{ t('store.categories.empty') }}</p>
     </div>
     <AppFooter />
   </q-page>
 </template>
 <script setup>
 import { onMounted, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 import AppFooter from '@/components/AppFooter.vue'
+import CategoryTile from '@/components/CategoryTile.vue'
 import { catalogApi } from '@/services/catalog'
-import { apiMessage } from '@/services/account'
 
+const { t } = useI18n()
 const categories = ref([]),
   loading = ref(true),
-  error = ref('')
-onMounted(async () => {
+  error = ref(false)
+async function load() {
+  loading.value = true
+  error.value = false
   try {
-    categories.value = (await catalogApi.categories()).data
-  } catch (e) {
-    error.value = apiMessage(e)
+    const { data } = await catalogApi.categories()
+    categories.value = (Array.isArray(data) ? data : []).filter(c => c?.slug)
+  } catch {
+    error.value = true
   } finally {
     loading.value = false
   }
-})
+}
+onMounted(load)
 </script>
 <style scoped>
 .category-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: 12px;
-}
-.category-card {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  padding: 18px;
-  border-radius: 16px;
-  color: var(--text);
-  text-decoration: none;
-  transition: border-color 0.2s ease;
-}
-.category-card:hover,
-.category-card:focus-visible {
-  border-color: var(--pwa-primary);
-}
-.category-card .q-icon {
-  font-size: 28px;
-}
-.category-card div {
-  display: flex;
-  flex-direction: column;
-}
-.category-card small {
-  color: var(--muted);
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 10px;
 }
 .skeleton {
-  border-radius: 16px;
+  border-radius: var(--ui-radius-md);
+}
+.categories-state {
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  padding: 32px 16px;
+  color: var(--muted);
+  text-align: center;
+}
+.categories-state > .q-icon {
+  font-size: 36px;
+}
+.categories-state p {
+  margin: 0;
+}
+@media (max-width: 420px) {
+  .category-grid {
+    grid-template-columns: 1fr;
+  }
 }
 </style>

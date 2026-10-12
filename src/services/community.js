@@ -1,3 +1,4 @@
+import { ui } from '@/i18n/text'
 import { api } from '@/boot/axios'
 
 export const communityApi = {
@@ -18,13 +19,31 @@ export const communityApi = {
 }
 
 export const REPORT_REASONS = {
-  malware: 'Logiciel malveillant ou dangereux',
-  fraud: 'Arnaque ou fraude',
-  illegal: 'Contenu illégal',
-  privacy: 'Atteinte à la vie privée',
-  offensive: 'Contenu haineux ou offensant',
-  spam: 'Spam ou publicité',
-  broken: 'Application cassée ou trompeuse',
-  impersonation: 'Usurpation d’identité ou de marque',
-  other: 'Autre'
+  get malware() {
+    return ui('Logiciel malveillant ou dangereux')
+  },
+  get fraud() {
+    return ui('Arnaque ou fraude')
+  },
+  get illegal() {
+    return ui('Contenu illégal')
+  },
+  get privacy() {
+    return ui('Atteinte à la vie privée')
+  },
+  get offensive() {
+    return ui('Contenu haineux ou offensant')
+  },
+  get spam() {
+    return ui('Spam ou publicité')
+  },
+  get broken() {
+    return ui('Application cassée ou trompeuse')
+  },
+  get impersonation() {
+    return ui('Usurpation d’identité ou de marque')
+  },
+  get other() {
+    return ui('Autre')
+  }
 }

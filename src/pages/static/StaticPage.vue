@@ -5,13 +5,14 @@
         ><span class="eyebrow">{{ page.eyebrow }}</span
         ><h1>{{ page.title }}</h1
         ><p v-if="page.updated" class="text-muted"
-          >Dernière mise à jour : {{ page.updated }}</p
+          >{{ ui('Dernière mise à jour :') }} {{ page.updated }}</p
         ></header
       >
-      <q-banner v-if="page.draft" class="workspace-alert q-mb-lg" role="note"
-        >Brouillon — ce texte doit être validé par un juriste avant la mise en
-        ligne publique de PWA Store.</q-banner
-      >
+      <q-banner v-if="page.draft" class="workspace-alert q-mb-lg" role="note">{{
+        ui(
+          'Brouillon — ce texte doit être validé par un juriste avant la mise en ligne publique de PWA Store.'
+        )
+      }}</q-banner>
       <article>
         <section v-for="section in page.sections" :key="section.title">
           <h2>{{ section.title }}</h2>
@@ -32,21 +33,24 @@
         </section>
       </article>
       <p class="text-muted q-mt-lg"
-        >Une question ?
-        <router-link to="/contact">Contactez-nous</router-link>.</p
+        >{{ ui('Une question ?') }}
+        <router-link to="/contact">{{ ui('Contactez-nous') }}</router-link
+        >.</p
       >
     </template>
     <AppFooter />
   </q-page>
 </template>
 <script setup>
+import { ui, localizedCopy } from '@/i18n/text'
+
 import { computed, watchEffect } from 'vue'
 import { useRoute } from 'vue-router'
 import AppFooter from '@/components/AppFooter.vue'
 import { pages } from '@/content/pages'
 
 const route = useRoute()
-const page = computed(() => pages[route.meta.page])
+const page = computed(() => localizedCopy(pages[route.meta.page]))
 watchEffect(() => {
   if (page.value) document.title = `${page.value.title} · PWA Store`
 })

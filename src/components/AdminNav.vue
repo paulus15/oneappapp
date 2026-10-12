@@ -1,5 +1,5 @@
 <template>
-  <nav class="admin-nav" aria-label="Administration">
+  <nav class="admin-nav" :aria-label="ui('Administration')">
     <q-tabs
       dense
       no-caps
@@ -22,6 +22,8 @@
   </nav>
 </template>
 <script setup>
+import { ui } from '@/i18n/text'
+
 import { computed } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 import { adminLinks } from '@/router/adminLinks'

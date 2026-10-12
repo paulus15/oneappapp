@@ -1,3 +1,4 @@
+import { ui } from '@/i18n/text'
 import { defineStore } from 'pinia'
 import { api } from '@/boot/axios'
 let hydration
@@ -30,7 +31,7 @@ export const useAuthStore = defineStore('auth', {
     canCreateApp: state => !!state.user?.capabilities?.['developer.app.create'],
     canSubmit: state => !!state.user?.capabilities?.['developer.app.submit'],
     isAdmin: state => state.user?.role === 'admin',
-    userName: state => state.user?.name || 'Visiteur'
+    userName: state => state.user?.name || ui('Visiteur')
   },
   actions: {
     setChallenge(data) {
@@ -48,7 +49,7 @@ export const useAuthStore = defineStore('auth', {
         return
       }
       if (!data.access_token || !data.user)
-        throw new Error('Réponse de connexion incomplète.')
+        throw new Error(ui('Réponse de connexion incomplète.'))
       this.token = data.access_token
       localStorage.setItem('auth_token', this.token)
       this.setUser(data.user)
@@ -113,7 +114,7 @@ export const useAuthStore = defineStore('auth', {
             .flat()
             .join(' ') ||
           e.response?.data?.message ||
-          'Connexion au service impossible.'
+          ui('Connexion au service impossible.')
         throw e
       } finally {
         this.loading = false
@@ -162,7 +163,7 @@ export const useAuthStore = defineStore('auth', {
         } catch (e) {
           if (e.response?.status === 401) this.clearSession()
           else {
-            this.error = 'Impossible de vérifier votre session. Réessayez.'
+            this.error = ui('Impossible de vérifier votre session. Réessayez.')
             throw e
           }
         } finally {
