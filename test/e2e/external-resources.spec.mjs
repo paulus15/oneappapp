@@ -179,7 +179,9 @@ test('a build is analysed automatically and reviewed without manual declaration'
   await useSession(page, adminToken)
   await page.goto(`/developer/apps/${app.id}/publication`)
   await page.getByText('Ressources et domaines externes détectés').click()
-  const card = page.locator('.resource-report .q-card', { hasText: 'live.acme-shop.io' }).first()
+  const card = page
+    .locator('.resource-report .q-card', { hasText: 'live.acme-shop.io' })
+    .first()
   await card
     .getByRole('button', { name: 'Examiner / ajouter une observation' })
     .click()
