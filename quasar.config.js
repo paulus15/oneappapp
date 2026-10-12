@@ -30,6 +30,12 @@ export default defineConfig((/* ctx */) => {
     ],
 
     // https://v2.quasar.dev/quasar-cli-vite/quasar-config-file#build
+    // The page CSP only allows calls to this API origin (application icons may come from any HTTPS host).
+    htmlVariables: {
+      apiOrigin: new URL(process.env.VITE_API_URL || 'https://oneapp.test/api')
+        .origin
+    },
+
     build: {
       target: {
         // browser: 'baseline-widely-available',
@@ -39,7 +45,10 @@ export default defineConfig((/* ctx */) => {
       // https://v2.quasar.dev/quasar-cli-vite/page-routing-with-vue-router#filename-based-routing
       // filenameBasedRouting: true,
 
-      vueRouterMode: 'history' // available values: 'hash', 'history'
+      vueRouterMode: 'history', // available values: 'hash', 'history'
+
+      // API address baked in at build time: VITE_API_URL=https://api.example/api npm run build
+      env: { API_URL: process.env.VITE_API_URL || '' }
       // vueRouterBase,
       // vueDevtools,
 

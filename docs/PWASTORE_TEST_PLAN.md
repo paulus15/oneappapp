@@ -91,3 +91,26 @@ Variantes négatives :
 - `php artisan migrate` exécuté en local sans perte de données (sauvegarde préalable si migration de données).
 - Parcours du lot vérifié dans le navigateur (390 et 1440 px) ou par Playwright une fois installé.
 - Résultats consignés dans la roadmap.
+
+## 7. Exécution (état au 12 octobre 2026)
+
+| Suite                            | Commande              | Résultat                            |
+| -------------------------------- | --------------------- | ----------------------------------- |
+| Backend (SQLite en mémoire)      | `php artisan test`    | 111/111                             |
+| Backend (MySQL `oneapp_testing`) | `composer test:mysql` | 111/111                             |
+| Frontend unitaire                | `npm run test:unit`   | 20/20                               |
+| Bout en bout                     | `npm run test:e2e`    | 11/11, deux exécutions consécutives |
+
+### Lancer les tests de bout en bout
+
+`npm run test:e2e` démarre tout seul :
+
+- l’API Laravel (`test/e2e/backend.sh`) sur `127.0.0.1:8011`, avec une base dédiée **`oneapp_e2e` recréée à chaque lancement**, les e-mails écrits dans `storage/logs/laravel.log` (aucun envoi) et un administrateur de test ;
+- un build SPA du frontend pointé sur cette API, servi sur `127.0.0.1:9124` ;
+- le Chrome installé sur la machine (aucun navigateur téléchargé).
+
+Le chemin du backend se change avec `E2E_BACKEND_DIR`. Le scénario utilise une vraie PWA publique (`https://squoosh.app/`) : un accès Internet est nécessaire.
+
+Ce que couvrent les scénarios : inscription par l’interface et code OTP, activation développeur, profil, dépôt de la pièce d’identité, vérification par un administrateur, référencement par URL avec contrôle réel, soumission, approbation (l’application reste invisible), publication et visibilité dans le Store, avis d’un autre utilisateur et réponse de l’éditeur ; refus : pages privées pour un visiteur, compte non confirmé, back-office réservé, outils développeur masqués sur mobile sans débordement horizontal.
+
+Défauts trouvés par ces tests et corrigés : la pièce d’identité et les justificatifs ne pouvaient pas être envoyés depuis l’interface (FormData sérialisé en JSON), et la CSP de la page n’autorisait que l’API `https://oneapp.test` et deux domaines d’images.

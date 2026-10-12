@@ -20,6 +20,9 @@ export default boot(({ app, router }) => {
       if (token) {
         config.headers.Authorization = `Bearer ${token}`
       }
+      // With the JSON default, axios would serialise FormData to JSON and drop the files:
+      // let the browser set multipart/form-data with its boundary instead.
+      if (config.data instanceof FormData) config.headers.setContentType(false)
       return config
     },
     error => {

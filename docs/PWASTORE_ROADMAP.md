@@ -23,7 +23,7 @@ Un lot n'est ✅ que si ses critères d'acceptation sont vérifiés côté Larav
 | 9   | PWA Lab et surveillance                  | P2       | 4                 | ✅ (Lighthouse en attente d’infra)           |
 | 10  | Notifications, quotas, facturation       | P2       | 6                 | ✅ (facturation reportée)                    |
 | 11  | Motion design, performance, responsive   | P2       | 3                 | ✅ (LCP et découpage d’EditAppPage restants) |
-| 12  | Tests finaux, sécurité, déploiement      | P0       | tous              | ⬜                                           |
+| 12  | Tests finaux, sécurité, déploiement      | P0       | tous              | ✅ (revue juridique externe en attente)      |
 
 Ordre d'exécution proposé : **0 → 1 → 6 → 2 → 3 → 4 → 7 → 8 → 10 → 9 → 5 → 11 → 12**.
 Raisons : la machine à états et les permissions (Lot 6) conditionnent la visibilité, les avis, les statistiques et les notifications. Le Lot 5 dépend d'une décision d'infrastructure. Le motion design vient sur des écrans stabilisés.
@@ -206,13 +206,13 @@ Déjà livré : upload, analyse ZIP, versions, modération, déploiement, rollba
 
 ## Lot 12 — Tests finaux, sécurité, déploiement (P0)
 
-| Fonctionnalité                                                              | Statut    |
-| --------------------------------------------------------------------------- | --------- |
-| Parcours E2E complet et variantes négatives (`PWASTORE_TEST_PLAN.md` §5)    | ⬜        |
-| Revue sécurité (en-têtes, CSP, CORS, secrets, rétention, tâches planifiées) | ⬜        |
-| Retrait de la vitrine Blade, redirection vers Quasar                        | ⬜        |
-| Documentation de déploiement (cron, worker de file, variables, sauvegardes) | ⬜        |
-| Revue juridique des contenus                                                | ⏸ externe |
+| Fonctionnalité                                                                                                                 | Statut    |
+| ------------------------------------------------------------------------------------------------------------------------------ | --------- |
+| Parcours E2E complet et variantes négatives (Playwright, 11 scénarios)                                                         | ✅        |
+| Revue sécurité : en-têtes, CSP générée au build, CORS configurable, historique Git sans secret, dépendances sans vulnérabilité | ✅        |
+| Retrait de la vitrine Blade, redirection vers Quasar                                                                           | ✅        |
+| Documentation de déploiement (`docs/PWASTORE_DEPLOYMENT.md`)                                                                   | ✅        |
+| Revue juridique des contenus                                                                                                   | ⏸ externe |
 
 Aucun déploiement public sans validation explicite.
 
@@ -248,3 +248,4 @@ Aucun déploiement public sans validation explicite.
 | 2026-10-12 | 9    | PWA Lab : analyse statique d’une URL via le client anti-SSRF (accès, métadonnées, manifeste, icônes, mode d’affichage, service worker détectable, viewport, langue, textes alternatifs, poids HTML, temps de réponse), score technique et verdict d’installation avec leurs limites, historique par développeur ; correctif PHP 8.5 (`curl_close` déprécié)                                                                                                                                                                            | `php artisan test` 107/107 ; build PWA OK ; analyse réelle de https://squoosh.app/ : 95/100, installable, résultats cohérents                                                                                                                             |
 | 2026-10-12 | 5    | `GET /platform` (hébergement des builds disponible ou non), avertissement sur la page de publication, tests d’archives malveillantes, guide d’hébergement sur origines isolées (DNS, certificat générique DNS-01, nginx, variables, vérifications)                                                                                                                                                                                                                                                                                     | `php artisan test` 112/112 ; `npm run test:unit` 19/19 ; build PWA OK ; `GET /platform` → `build_hosting: false` en local (domaine non configuré)                                                                                                         |
 | 2026-10-12 | 11   | Polices Inter / Inter Tight auto-hébergées, titres en Inter Tight, précache limité aux sous-ensembles latins (580 Ko → 4 fichiers), transitions de page avec mouvement réduit respecté, apparitions au défilement sur le portail, corrections visuelles (pied de page, carte développeur, graisse des titres) ; bug corrigé : `/developers` redirigeait vers la connexion sur mobile (préfixe `/developer`)                                                                                                                            | `npm run test:unit` 20/20 ; build PWA OK ; rendu réel contrôlé dans Chrome via le protocole DevTools à 390 et 1440 px (accueil, portail, À propos, connexion) : aucun débordement horizontal, contenu visible en mouvement réduit                         |
+| 2026-10-12 | 12   | Tests backend sous MySQL (`composer test:mysql`), Playwright de bout en bout sur l’API réelle, en-têtes de sécurité, CORS configurable, CSP construite depuis l’adresse de l’API, dépendances corrigées (Laravel 13.35, Guzzle 8.2, Quasar, axios, Vue, Vitest 4), vitrine Blade remplacée par des redirections, guide de déploiement. Défauts corrigés : envoi de fichiers impossible depuis l’interface (pièce d’identité, justificatifs), CSP figée sur `oneapp.test`, `VITE_API_URL` ignoré au build                               | `php artisan test` 111/111 ; `composer test:mysql` 111/111 ; `npm run test:unit` 20/20 ; `npm run test:e2e` 11/11 (deux exécutions) ; `composer audit` et `npm audit` : 0 vulnérabilité                                                                   |
