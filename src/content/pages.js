@@ -242,5 +242,74 @@ export const pages = {
         ]
       }
     ]
+  },
+  'developer-guide': {
+    eyebrow: 'Développeurs',
+    title: 'Guide du développeur',
+    sections: [
+      {
+        title: '1. Avant de commencer',
+        list: [
+          'Confirmez votre adresse e-mail et faites vérifier votre profil développeur avec une pièce d’identité valide.',
+          'Votre PWA est en ligne, en HTTPS, avec un manifeste (nom, icônes, start_url) et un service worker.',
+          'Préparez une icône carrée (192 × 192 pixels minimum), une image de couverture 16:9 (1920 × 1080 recommandé) et au moins une capture d’écran.'
+        ]
+      },
+      {
+        title: '2. Créer votre application',
+        paragraphs: [
+          'Dans « Mes applications », choisissez « Créer une application » : donnez un nom, une catégorie et le lien de votre PWA. Un brouillon est créé ; rien n’est publié.'
+        ]
+      },
+      {
+        title: '3. Compléter la fiche',
+        paragraphs: [
+          'Dans l’espace de l’application, remplissez les onglets Informations, Images et Confidentialité. Un point orange signale ce qui manque. Chaque onglet s’enregistre en brouillon.'
+        ],
+        list: [
+          'Descriptions, catégorie, langues et pays de disponibilité.',
+          'Lien officiel de la PWA et e-mail de contact.',
+          'Icône, couverture et captures d’écran.',
+          'Politique de confidentialité et données collectées.'
+        ]
+      },
+      {
+        title: '4. Mesurer les installations',
+        paragraphs: [
+          'Dans l’onglet Version, copiez la ligne de mesure et collez-la dans l’index.html de votre PWA, juste avant </body>. Cliquez ensuite sur « Vérifier mon site » : PWA Store confirme que la ligne est bien en place.',
+          'Si votre site utilise une politique de sécurité (CSP), autorisez l’adresse de PWA Store pour script-src et connect-src.'
+        ]
+      },
+      {
+        title: '5. Soumettre et suivre',
+        paragraphs: [
+          'L’onglet Récapitulatif montre votre fiche telle qu’elle sera publiée. Cliquez sur « Soumettre à validation ». Pendant l’examen, le dossier est verrouillé ; vous pouvez le retirer pour le modifier.',
+          'Suivez toutes vos demandes dans « Suivi des validations ». Si une correction est demandée, le motif s’affiche en haut de l’application : corrigez, puis soumettez à nouveau. Une approbation publie aussitôt l’application.'
+        ]
+      },
+      {
+        title: '6. Après la publication',
+        paragraphs: [
+          'Vos modifications restent en attente et votre application reste en ligne telle qu’elle a été approuvée. Soumettez la mise à jour : elle sera visible dès sa validation.'
+        ]
+      },
+      {
+        title: 'Questions fréquentes',
+        faq: [
+          {
+            q: 'Mon application n’apparaît pas dans un pays.',
+            a: 'Vérifiez sa disponibilité géographique dans l’onglet Informations : si vous avez choisi des pays, elle n’est visible que dans ceux-ci.'
+          },
+          {
+            q: '« Vérifier mon site » ne trouve pas le script.',
+            a: 'La ligne doit figurer dans le code HTML envoyé par votre serveur. Un script ajouté par JavaScript après le chargement ne peut pas être détecté.'
+          },
+          {
+            q: 'Pourquoi mes installations restent à zéro ?',
+            a: 'Les signaux ne sont comptés qu’une fois l’application publiée, et seulement depuis son adresse déclarée.'
+          }
+        ]
+      }
+    ]
   }
 }

@@ -547,6 +547,50 @@ export default {
     privacy:
       'Only two events are measured (install, launch), with an anonymous device identifier. Nothing the user does inside the app is collected.'
   },
+  devnav: {
+    eyebrow: 'Developer space',
+    apps: 'My apps',
+    requests: 'Review tracking',
+    measure: 'Install measurement',
+    guide: 'Developer guide',
+    rules: 'Publishing rules',
+    settings: 'Account settings',
+    soon: 'Soon',
+    revenueSoon:
+      'Revenue will show here once payments are enabled on PWA Store.'
+  },
+  myApps: {
+    title: 'My apps',
+    intro: 'Each app, its status and the next step.',
+    create: 'Create an app',
+    emptyTitle: 'No app yet',
+    emptyText:
+      'Create your first app: a name and the link to your PWA are enough.',
+    updated: 'Updated on {date}',
+    step: {
+      complete: 'Complete and submit',
+      inReview: 'In review',
+      fix: 'Fix it',
+      rejected: 'See the reason',
+      publish: 'Publish',
+      submitChanges: 'Submit the changes',
+      online: 'View in the Store',
+      suspended: 'See the reason',
+      archived: 'Open'
+    }
+  },
+  devRequests: {
+    title: 'Review tracking',
+    intro: 'All your publication requests and the administrators’ decisions.',
+    open: 'request in review | request in review | requests in review',
+    toFix: 'app to fix | app to fix | apps to fix'
+  },
+  measurePage: {
+    intro:
+      'The measurement script and confirmed installs of each of your apps.',
+    empty: 'No app hosted on your site yet.',
+    open: 'Open'
+  },
   hosting: {
     build: {
       label: 'Hosted by PWA Store',

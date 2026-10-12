@@ -11,7 +11,7 @@
         <div class="console-subtitle">
           {{
             ui(
-              'Soumettez vos applications Web et gérez vos builds (.oap / ZIP)'
+              'Préparez vos applications, soumettez-les et suivez leur publication.'
             )
           }}
         </div>

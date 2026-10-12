@@ -559,6 +559,52 @@ export default {
     privacy:
       'Seuls deux événements sont mesurés (installation, ouverture), avec un identifiant anonyme de l’appareil. Rien de ce que l’utilisateur fait dans l’application n’est collecté.'
   },
+  devnav: {
+    eyebrow: 'Espace développeur',
+    apps: 'Mes applications',
+    requests: 'Suivi des validations',
+    measure: 'Mesure des installations',
+    guide: 'Guide du développeur',
+    rules: 'Règles de publication',
+    settings: 'Paramètres du compte',
+    soon: 'Bientôt',
+    revenueSoon:
+      'Les revenus apparaîtront ici quand les paiements seront activés sur PWA Store.'
+  },
+  myApps: {
+    title: 'Mes applications',
+    intro: 'Chaque application, son état et la prochaine étape.',
+    create: 'Créer une application',
+    emptyTitle: 'Aucune application pour le moment',
+    emptyText:
+      'Créez votre première application : il suffit d’un nom et du lien de votre PWA.',
+    updated: 'Modifiée le {date}',
+    step: {
+      complete: 'Compléter et soumettre',
+      inReview: 'En examen',
+      fix: 'Corriger',
+      rejected: 'Voir le motif',
+      publish: 'Publier',
+      submitChanges: 'Soumettre les modifications',
+      online: 'Voir dans le Store',
+      suspended: 'Voir le motif',
+      archived: 'Ouvrir'
+    }
+  },
+  devRequests: {
+    title: 'Suivi des validations',
+    intro:
+      'Toutes vos demandes de publication et les décisions de l’administration.',
+    open: 'demande en cours d’examen | demande en cours d’examen | demandes en cours d’examen',
+    toFix:
+      'application à corriger | application à corriger | applications à corriger'
+  },
+  measurePage: {
+    intro:
+      'Le script de mesure et les installations confirmées de chacune de vos applications.',
+    empty: 'Aucune application hébergée sur votre site pour le moment.',
+    open: 'Ouvrir'
+  },
   hosting: {
     build: {
       label: 'Hébergée par PWA Store',

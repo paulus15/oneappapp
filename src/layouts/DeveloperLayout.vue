@@ -93,17 +93,23 @@
           <q-item
             v-for="item in workspaceNavigation"
             :key="item.label"
-            clickable
-            v-ripple
+            :clickable="!item.soon"
+            v-ripple="!item.soon"
             :to="item.to"
-            :disable="item.disabled"
             exact
             active-class="developer-nav-active"
+            :class="{ 'nav-soon': item.soon }"
           >
             <q-item-section avatar><q-icon :name="item.icon" /></q-item-section>
             <q-item-section>{{ item.label }}</q-item-section>
             <q-item-section v-if="item.badge" side>
-              <q-badge :label="item.badge" rounded />
+              <q-badge :label="item.badge" :color="item.badgeColor" rounded />
+            </q-item-section>
+            <q-item-section v-if="item.soon" side>
+              <span class="soon-chip">{{ t('devnav.soon') }}</span>
+              <q-tooltip anchor="center right" self="center left">{{
+                item.soon
+              }}</q-tooltip>
             </q-item-section>
           </q-item>
         </q-list>
@@ -114,13 +120,13 @@
             v-for="item in resourceNavigation"
             :key="item.label"
             clickable
-            :disable="item.disabled"
+            v-ripple
+            :to="item.to"
+            exact
+            active-class="developer-nav-active"
           >
             <q-item-section avatar><q-icon :name="item.icon" /></q-item-section>
             <q-item-section>{{ item.label }}</q-item-section>
-            <q-item-section v-if="item.external" side>
-              <q-icon name="north_east" size="15px" />
-            </q-item-section>
           </q-item>
         </q-list>
 
@@ -131,7 +137,9 @@
             <p>{{
               ui('Notre équipe accompagne la publication de votre application.')
             }}</p>
-            <button type="button">{{ ui('Contacter le support') }}</button>
+            <router-link to="/contact" class="help-link">{{
+              ui('Contacter le support')
+            }}</router-link>
           </div>
         </div>
 
@@ -162,102 +170,63 @@ import NotificationBell from '@/components/NotificationBell.vue'
 import LanguageSwitcher from '@/components/LanguageSwitcher.vue'
 import BrandLogo from '@/components/BrandLogo.vue'
 import { useTheme } from '@/composables/useTheme'
-import { computed, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
+import { accountApi } from '@/services/account'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 
 const router = useRouter()
 const authStore = useAuthStore()
 const leftDrawerOpen = ref(false)
+const { t } = useI18n()
+// Counter on "Review tracking": what waits for the developer, else what is under review.
+const requestsSummary = ref(null)
+onMounted(async () => {
+  try {
+    requestsSummary.value = (await accountApi.developerRequests()).data.summary
+  } catch {
+    // The menu works without the counter.
+  }
+})
 const { isDark, toggleTheme } = useTheme()
 
 const userInitial = computed(
   () => authStore.userName?.charAt(0).toUpperCase() || 'D'
 )
 
-const workspaceNavigation = [
+// Every entry leads to a real feature; "soon" marks what is announced but not open yet.
+const workspaceNavigation = computed(() => [
   {
-    get label() {
-      return ui('Mon profil et mes quotas')
-    },
+    label: ui('Mon profil et mes quotas'),
     icon: 'verified_user',
     to: '/developer/profile'
   },
+  { label: ui('Vue d’ensemble'), icon: 'space_dashboard', to: '/developer' },
+  { label: t('devnav.apps'), icon: 'apps', to: '/developer/apps' },
   {
-    get label() {
-      return ui('Vue d’ensemble')
-    },
-    icon: 'space_dashboard',
-    to: '/developer'
+    label: t('devnav.requests'),
+    icon: 'fact_check',
+    to: '/developer/requests',
+    badge: requestsSummary.value?.to_fix || requestsSummary.value?.open || null,
+    badgeColor: requestsSummary.value?.to_fix ? 'orange-8' : 'indigo-6'
   },
+  { label: ui('Statistiques'), icon: 'insights', to: '/developer/stats' },
+  { label: t('devnav.measure'), icon: 'sensors', to: '/developer/measure' },
+  { label: ui('Avis et retours'), icon: 'reviews', to: '/developer/reviews' },
+  { label: ui('PWA Lab'), icon: 'science', to: '/developer/lab' },
   {
-    get label() {
-      return ui('Mes applications')
-    },
-    icon: 'apps',
-    disabled: true
-  },
-  {
-    get label() {
-      return ui('Builds & versions')
-    },
-    icon: 'archive',
-    disabled: true
-  },
-  {
-    get label() {
-      return ui('Statistiques')
-    },
-    icon: 'insights',
-    to: '/developer/stats'
-  },
-  {
-    get label() {
-      return ui('Avis et retours')
-    },
-    icon: 'reviews',
-    to: '/developer/reviews'
-  },
-  {
-    get label() {
-      return ui('PWA Lab')
-    },
-    icon: 'science',
-    to: '/developer/lab'
-  },
-  {
-    get label() {
-      return ui('Revenus')
-    },
+    label: ui('Revenus'),
     icon: 'account_balance_wallet',
-    disabled: true
+    soon: t('devnav.revenueSoon')
   }
-]
+])
 
-const resourceNavigation = [
-  {
-    get label() {
-      return ui('Documentation')
-    },
-    icon: 'menu_book',
-    disabled: true,
-    external: true
-  },
-  {
-    get label() {
-      return ui('Clés API')
-    },
-    icon: 'key',
-    disabled: true
-  },
-  {
-    get label() {
-      return ui('Paramètres')
-    },
-    icon: 'settings',
-    disabled: true
-  }
-]
+const resourceNavigation = computed(() => [
+  { label: t('devnav.guide'), icon: 'menu_book', to: '/developer/guide' },
+  { label: t('devnav.rules'), icon: 'gavel', to: '/publishing-rules' },
+  { label: t('devnav.settings'), icon: 'settings', to: '/account' }
+])
 
 async function handleLogout() {
   await authStore.logout()
@@ -529,5 +498,24 @@ async function handleLogout() {
     min-width: 40px;
     padding: 4px;
   }
+}
+.nav-soon {
+  cursor: default;
+  opacity: 0.75;
+}
+.soon-chip {
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 650;
+  color: #8a4b00;
+  background: rgba(255, 148, 22, 0.16);
+}
+.help-link {
+  display: inline-block;
+  margin-top: 6px;
+  font-weight: 650;
+  color: var(--pwa-link);
+  text-decoration: none;
 }
 </style>

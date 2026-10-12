@@ -277,6 +277,30 @@ const routes = [
         meta: { requiresAuth: true, developerOnly: true }
       },
       {
+        path: 'apps',
+        component: () => import('@/pages/developer/MyAppsPage.vue'),
+        meta: { requiresAuth: true, developerOnly: true }
+      },
+      {
+        path: 'requests',
+        component: () => import('@/pages/developer/DeveloperRequestsPage.vue'),
+        meta: { requiresAuth: true, developerOnly: true }
+      },
+      {
+        path: 'measure',
+        component: () => import('@/pages/developer/InstallMeasurePage.vue'),
+        meta: { requiresAuth: true, developerOnly: true }
+      },
+      {
+        path: 'guide',
+        component: () => import('@/pages/static/StaticPage.vue'),
+        meta: {
+          requiresAuth: true,
+          developerOnly: true,
+          page: 'developer-guide'
+        }
+      },
+      {
         path: 'apps/create',
         component: () => import('@/pages/developer/NewAppPage.vue'),
         meta: {
