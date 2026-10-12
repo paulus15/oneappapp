@@ -10,6 +10,9 @@
     <h3>{{ app.name }}</h3>
     <p>{{ app.publisher || ui(app.category) }}</p>
     <div class="card-meta">
+      <span v-if="app.activations" class="rating">{{
+        ui('{n} activations', { n: app.activations })
+      }}</span>
       <span class="price">{{
         app.price > 0 ? priceLabel(app.price) : ui('Gratuit')
       }}</span>

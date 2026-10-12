@@ -17,13 +17,13 @@
         ><p v-if="profile.description">{{ profile.description }}</p
         ><p class="text-muted"
           ><span v-if="profile.country">{{ profile.country.name }}</span
-          ><span v-if="profile.country && profile.website"> · </span
+          ><span v-if="profile.country && website"> · </span
           ><a
-            v-if="profile.website"
-            :href="profile.website"
+            v-if="website"
+            :href="website"
             target="_blank"
             rel="noopener noreferrer nofollow"
-            >{{ host(profile.website) }}</a
+            >{{ host(website) }}</a
           ></p
         ></header
       >
@@ -39,18 +39,21 @@
 <script setup>
 import { ui } from '@/i18n/text'
 
-import { ref, watch } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import AppFooter from '@/components/AppFooter.vue'
 import AppGrid from '@/components/AppGrid.vue'
 import { catalogApi } from '@/services/catalog'
 import { apiMessage } from '@/services/account'
+import { safeExternalUrl } from '@/utils/listing'
 
 const route = useRoute()
 const profile = ref(null),
   applications = ref([]),
   loading = ref(true),
   error = ref('')
+// Older profiles may hold a non-http link: never render it as a clickable href.
+const website = computed(() => safeExternalUrl(profile.value?.website))
 const host = url => {
   try {
     return new URL(url).host

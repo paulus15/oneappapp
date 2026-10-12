@@ -162,10 +162,10 @@
         <p class="decision-reason">{{ app.moderation_reason }}</p>
       </q-banner>
 
-      <q-dialog v-model="helpOpen">
+      <q-dialog v-model="helpOpen" aria-labelledby="publication-help-title">
         <q-card class="help-card">
           <q-card-section class="row items-center no-wrap">
-            <h2 class="col help-title">{{
+            <h2 id="publication-help-title" class="col help-title">{{
               t('publication.helpDialog.title')
             }}</h2>
             <q-btn
@@ -576,9 +576,13 @@
           <section v-if="app.source_type === 'url'" class="version-url">
             <p class="url-line">
               <q-icon name="link" />
-              <a :href="app.external_url" target="_blank" rel="noopener">{{
-                app.external_url
-              }}</a>
+              <a
+                v-if="safeExternalUrl(app.external_url)"
+                :href="safeExternalUrl(app.external_url)"
+                target="_blank"
+                rel="noopener noreferrer"
+                >{{ app.external_url }}</a
+              ><span v-else>{{ app.external_url }}</span>
             </p>
             <q-btn
               outline
@@ -1003,6 +1007,7 @@ import { catalogApi } from '@/services/catalog'
 import { useAuthStore } from '@/stores/auth'
 import { usePlatform } from '@/composables/usePlatform'
 import { resolveMediaUrl } from '@/utils/media'
+import { safeExternalUrl } from '@/utils/listing'
 import { statusColor, statusLabel } from '@/utils/appStatus'
 import AppIcon from '@/components/AppIcon.vue'
 import HostingBadge from '@/components/HostingBadge.vue'

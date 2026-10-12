@@ -26,6 +26,9 @@ const reader = {
   password: 'Reader-pass-123'
 }
 const appName = `Compresseur ${stamp}`
+// The developer's PWA: a reserved test host that the e2e backend serves from fixtures/pwa
+// (see backend-router.php), so the journey never depends on a third-party website.
+const pwaUrl = 'https://demo.pwastore-e2e.example/'
 let appId
 
 async function pickCountry(page, label, search = 'Côte') {
@@ -152,7 +155,7 @@ test('the developer prepares a PWA listed by URL and submits it', async ({
   await page.getByLabel('Nom de l’application').fill(appName)
   await page.getByText('Indiquer le lien de ma PWA déjà en ligne').click()
   await expect(page.getByText('Hébergée par l’éditeur').first()).toBeVisible()
-  await page.getByLabel('Lien HTTPS de votre PWA').fill('https://squoosh.app/')
+  await page.getByLabel('Lien HTTPS de votre PWA').fill(pwaUrl)
   await page.getByRole('button', { name: 'Créer le brouillon' }).click()
   await expect(page).toHaveURL(/\/developer\/apps\/\d+/)
   appId = Number(page.url().match(/apps\/(\d+)/)[1])
@@ -171,9 +174,7 @@ test('the developer prepares a PWA listed by URL and submits it', async ({
   await page.getByLabel('Langues de l’application').click()
   await page.getByRole('option', { name: 'Français' }).click()
   await page.keyboard.press('Escape')
-  await page
-    .getByLabel('Lien officiel de votre PWA')
-    .fill('https://squoosh.app/')
+  await page.getByLabel('Lien officiel de votre PWA').fill(pwaUrl)
   await page.getByLabel('E-mail de contact').fill('studio-awa@e2e.test')
   await save(page)
 
@@ -196,7 +197,7 @@ test('the developer prepares a PWA listed by URL and submits it', async ({
   await openTab(page, /Confidentialité/)
   await page
     .getByLabel('Politique de confidentialité')
-    .fill('https://squoosh.app/privacy')
+    .fill(`${pwaUrl}privacy.html`)
   await page.getByText('Aucune donnée').click()
   await save(page)
 

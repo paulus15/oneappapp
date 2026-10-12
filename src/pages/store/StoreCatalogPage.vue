@@ -1013,3 +1013,31 @@ const features = [
   }
 }
 </style>
+
+<style scoped>
+@media (max-width: 599px) {
+  .hero-panel {
+    border-radius: 20px;
+  }
+  .hero-copy p {
+    font-size: 14px;
+    line-height: 1.6;
+  }
+  .hero-actions .q-btn {
+    min-height: 46px;
+  }
+  .category-tiles {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
+  .feature-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+  }
+}
+@media (max-width: 359px) {
+  .feature-grid {
+    grid-template-columns: 1fr;
+  }
+}
+</style>

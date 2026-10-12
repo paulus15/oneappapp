@@ -46,13 +46,19 @@
     <div v-if="current" class="cover-previews">
       <figure>
         <figcaption>{{ t('cover.previewDesktop') }}</figcaption>
-        <div class="frame frame-desktop" :style="{ background: current.color }">
+        <div
+          class="frame frame-desktop"
+          :style="{ background: safeColor(current.color) }"
+        >
           <img :src="previewUrl" alt="" />
         </div>
       </figure>
       <figure>
         <figcaption>{{ t('cover.previewMobile') }}</figcaption>
-        <div class="frame frame-mobile" :style="{ background: current.color }">
+        <div
+          class="frame frame-mobile"
+          :style="{ background: safeColor(current.color) }"
+        >
           <img :src="previewUrl" alt="" />
         </div>
       </figure>
@@ -81,6 +87,7 @@
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { resolveMediaUrl } from '@/utils/media'
+import { safeColor } from '@/utils/cover'
 
 // Checks the image in the browser first (fast feedback), the server checks it again for real.
 const props = defineProps({

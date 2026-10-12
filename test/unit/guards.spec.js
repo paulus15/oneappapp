@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { resolveAccess } from '@/router/guards'
+import { resolveAccess, unauthorizedRedirect } from '@/router/guards'
 
 const route = (path, meta = {}) => ({ path, fullPath: path, meta })
 const guest = { isAuthenticated: false, isAdmin: false, isDeveloper: false }
@@ -84,4 +84,20 @@ it('blocks draft creation and editing until developer validation', () => {
     expect(resolveAccess(page, developer)).toBe('/developer/profile')
     expect(resolveAccess(page, { ...developer, canCreateApp: true })).toBe(true)
   }
+})
+
+describe('unauthorizedRedirect', () => {
+  it('sends protected pages back to login with a redirect', () => {
+    expect(
+      unauthorizedRedirect(route('/account', { requiresAuth: true }))
+    ).toEqual({ path: '/login', query: { redirect: '/account' } })
+  })
+
+  it('keeps visitors on public pages and on the login/OTP steps', () => {
+    expect(unauthorizedRedirect(route('/app/demo'))).toBeNull()
+    expect(
+      unauthorizedRedirect(route('/login', { guestOnly: true }))
+    ).toBeNull()
+    expect(unauthorizedRedirect(undefined)).toBeNull()
+  })
 })

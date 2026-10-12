@@ -70,10 +70,12 @@
               to="/developer/reviews" /></div
         ></q-card>
         <q-card flat bordered class="workspace-card"
+          ><p>{{ Number(summary.activations || 0) }} {{ ui('Activations') }}</p
           ><h2>{{ summary.total_versions }} {{ ui('version(s)') }}</h2
           ><p
             >{{ summary.installed_records }}
-            {{ ui('installation(s) déclarée(s) ·') }}
+            {{ ui('installation(s) déclarée(s) ·')
+            }}<InstallCountHelp kind="declared" />
             {{ summary.recorded_opens }}
             {{ ui('ouverture(s) enregistrée(s)') }}</p
           ></q-card
@@ -139,6 +141,7 @@
   </section>
 </template>
 <script setup>
+import InstallCountHelp from '@/components/InstallCountHelp.vue'
 import { currentLocale } from '@/i18n'
 import { ui } from '@/i18n/text'
 

@@ -24,4 +24,10 @@ describe('toCard', () => {
       publisher: 'Studio'
     })
   })
+
+  it('drops a category colour that is not a plain hex value', () => {
+    const card = color => toCard({ id: 4, name: 'D', category: { color } })
+    expect(card('#0a7').color).toBe('#0a7')
+    expect(card('red;background:url(x)').color).toBe('var(--pwa-primary)')
+  })
 })

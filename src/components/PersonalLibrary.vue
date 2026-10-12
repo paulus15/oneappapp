@@ -67,7 +67,7 @@
             ></q-item
           ></q-list
         ><p class="text-caption">{{
-          ui('Un build téléchargé n’est pas nécessairement installé.')
+          t('library.downloadNotInstalled')
         }}</p></q-card
       >
     </div>
@@ -83,11 +83,13 @@
 <script setup>
 import { currentLocale } from '@/i18n'
 import { ui } from '@/i18n/text'
+import { useI18n } from 'vue-i18n'
 
 import { computed, onMounted, ref } from 'vue'
 import { api } from '@/boot/axios'
 import { apiMessage } from '@/services/account'
 import { deviceIdentity } from '@/utils/device'
+const { t } = useI18n()
 const device = deviceIdentity(),
   rows = ref([]),
   loading = ref(false),

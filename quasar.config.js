@@ -3,6 +3,14 @@
 
 import { defineConfig } from '#q-app'
 
+// Release builds set PWA_REQUIRE_API_URL=1 so that a missing VITE_API_URL fails the
+// build instead of silently pointing the app at the local https://oneapp.test/api.
+// Local `npx quasar build` without it keeps the local fallback for developers.
+if (process.env.PWA_REQUIRE_API_URL === '1' && !process.env.VITE_API_URL)
+  throw new Error(
+    'VITE_API_URL is required when PWA_REQUIRE_API_URL=1 (production build).'
+  )
+
 export default defineConfig((/* ctx */) => {
   return {
     // https://v2.quasar.dev/quasar-cli-vite/prefetch-feature
@@ -146,6 +154,12 @@ export default defineConfig((/* ctx */) => {
         cfg.globIgnores = [
           ...(cfg.globIgnores || []),
           '**/*-{cyrillic,cyrillic-ext,greek,greek-ext,vietnamese}-*.woff2'
+        ]
+        // Never answer API or Sanctum navigations with the cached index.html.
+        cfg.navigateFallbackDenylist = [
+          ...(cfg.navigateFallbackDenylist || []),
+          /^\/api\//,
+          /^\/sanctum\//
         ]
       }
       // swFilename: 'sw.js',

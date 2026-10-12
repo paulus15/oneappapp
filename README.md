@@ -18,6 +18,7 @@ npm run build:pwa
 ```
 
 Le build SPA se trouve dans `dist/spa`, le build installable dans `dist/pwa`.
+Pour une mise en production, lancez le build avec `PWA_REQUIRE_API_URL=1` et `VITE_API_URL` renseignée : sans cette adresse, le build échoue au lieu de viser l’API locale `https://oneapp.test/api`.
 Servir le dossier choisi avec le fallback des routes vers `index.html`.
 La PWA nécessite HTTPS en production (localhost fonctionne pour les contrôles).
 Les dépendances Workbox sont isolées dans `src-pwa/package.json` et son lockfile.

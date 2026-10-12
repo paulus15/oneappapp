@@ -125,7 +125,13 @@
             unelevated
             no-caps
             icon="launch"
-            :label="t('store.details.open')"
+            :label="
+              t(
+                authStore.isAuthenticated
+                  ? 'store.details.activate'
+                  : 'store.details.loginToActivate'
+              )
+            "
             class="launch-pwa-btn"
             :disable="extracting"
             @click="launchApp"
@@ -230,8 +236,25 @@
               <div v-for="row in info" :key="row.key" class="info-row">
                 <dt><q-icon :name="row.icon" />{{ row.label }}</dt>
                 <dd>
+                  <q-btn
+                    v-if="row.key === 'website'"
+                    flat
+                    dense
+                    no-caps
+                    color="primary"
+                    :label="row.value"
+                    :aria-label="
+                      t(
+                        authStore.isAuthenticated
+                          ? 'store.details.activate'
+                          : 'store.details.loginToActivate'
+                      )
+                    "
+                    :disable="extracting"
+                    @click="launchApp"
+                  />
                   <a
-                    v-if="row.href"
+                    v-else-if="row.href"
                     :href="row.href"
                     :target="row.external ? '_blank' : undefined"
                     :rel="row.external ? 'noopener noreferrer' : undefined"
@@ -252,6 +275,14 @@
         <aside class="details-side">
           <section class="detail-card glass-panel install-card">
             <h2 class="section-title">{{ t('store.details.install') }}</h2>
+            <p>{{
+              t(
+                'store.details.activationCount',
+                { n: Number(app.activations_count || 0) },
+                Number(app.activations_count || 0)
+              )
+            }}</p>
+            <p class="text-caption">{{ t('store.details.activationHelp') }}</p>
             <p v-if="latestVersion" class="install-version">{{
               t('store.details.version', {
                 version: latestVersion.version_number
@@ -262,7 +293,13 @@
               unelevated
               no-caps
               icon="add_to_home_screen"
-              :label="t('store.details.openToInstall')"
+              :label="
+                t(
+                  authStore.isAuthenticated
+                    ? 'store.details.activate'
+                    : 'store.details.loginToActivate'
+                )
+              "
               class="full-width install-pwa-btn"
               :loading="extracting"
               @click="launchApp"
@@ -675,20 +712,35 @@ async function downloadVersion(id) {
   }
 }
 
+function signInToActivate() {
+  return router.push({ path: '/login', query: { redirect: route.fullPath } })
+}
+
 async function launchApp() {
+  if (!authStore.isAuthenticated) {
+    await signInToActivate()
+    return
+  }
+  if (extracting.value) return
   extracting.value = true
   // Open synchronously to preserve the user's browser gesture.
   const target = window.open('about:blank', '_blank')
   if (target) target.opener = null
   try {
-    const { data } = await api.get(`/apps/${app.value.id}/launch`)
+    const { data } = await api.post(`/apps/${app.value.id}/activate`)
     const url = new URL(data.url)
     if (url.protocol !== 'https:')
       throw new Error(t('store.details.unsafeLaunch'))
+    app.value.activations_count = data.activations_count
     if (target) target.location.replace(url.href)
     else window.location.assign(url.href)
   } catch (err) {
     target?.close()
+    if (err.response?.status === 401) {
+      authStore.clearSession()
+      await signInToActivate()
+      return
+    }
     $q.notify({
       type: 'negative',
       message:

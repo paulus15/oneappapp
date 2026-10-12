@@ -1,6 +1,8 @@
 export default {
   store: {
-    nav: { primary: 'Main navigation' },
+    nav: {
+      primary: 'Main navigation'
+    },
     hero: {
       eyebrow: 'The universal platform',
       line1: 'One installation.',
@@ -82,9 +84,15 @@ export default {
       seeAll: 'See all',
       seeAllOf: 'See all: {title}'
     },
-    card: { iconAlt: '{name} icon' },
-    featured: { cta: 'Discover' },
-    empty: { default: 'No apps yet.' },
+    card: {
+      iconAlt: '{name} icon'
+    },
+    featured: {
+      cta: 'Discover'
+    },
+    empty: {
+      default: 'No apps yet.'
+    },
     categories: {
       eyebrow: 'Catalogue',
       title: 'Categories',
@@ -155,6 +163,11 @@ export default {
       reviews: '({n} reviews) | ({n} review) | ({n} reviews)'
     },
     details: {
+      loginToActivate: 'Sign in to activate',
+      activate: 'Activate app',
+      activationCount: '{n} activation | {n} activations',
+      activationHelp:
+        'An activation is counted once per account and per app. It does not confirm installation on the device.',
       noAds: 'No ads',
       back: 'Back to the Store',
       backToStore: 'Back to the Store',
@@ -195,7 +208,6 @@ export default {
       noDataCollected: 'No data collected',
       install: 'Installation',
       version: 'Version {version}',
-      openToInstall: 'Open to install',
       declareInstalled: 'I installed this PWA',
       installNote:
         'Installation is offered by your browser, when it supports it.',
@@ -263,6 +275,7 @@ export default {
       'The catalogue you see depends on this country. You can change it once every 30 days.',
     visitor: {
       change: 'Choose my country',
+      current: 'Country: {code}. Change country',
       short: 'Country',
       title: 'Your country',
       help: 'Available apps depend on the country. Without a choice, only apps available in every country are shown.',
@@ -297,7 +310,23 @@ export default {
     recommended: 'Recommended',
     trending: 'Trending',
     categories: 'Categories',
-    business: 'Business'
+    business: 'Business',
+    developerSpaceHint: 'Manage your apps'
+  },
+  portal: {
+    howToPublish: 'How to publish',
+    prepareStep:
+      'Listing, screenshots, then your PWA’s HTTPS address. Your profile must be validated before you can create an app.'
+  },
+  library: {
+    downloadNotInstalled:
+      'A downloaded file does not necessarily mean the app is installed.'
+  },
+  installHelp: {
+    declared:
+      'Declared installations: the user tapped “I installed this PWA” on the listing. Nothing verifies it.',
+    confirmed:
+      'Confirmed installations: a signal sent by the measurement script added to your PWA, on an actual installation from the home screen.'
   },
   common: {
     cancel: 'Cancel',
@@ -327,26 +356,9 @@ export default {
     reinstate: 'Reinstate'
   },
   publication: {
-    eyebrow: 'Publishing and versions',
-    fallbackName: 'Your app',
-    intro: 'Preparation, analysis, review and publishing are separate steps.',
-    editListing: 'Edit the listing / upload a build',
-    profileAndQuotas: 'My profile and quotas',
+    history: { title: 'Publication history', automatic: 'Automatic action' },
     journey: {
-      title: 'Publishing journey',
-      help: 'How does it work?',
-      listing: 'Complete the listing',
-      editListing: 'Edit the listing',
-      checkUrl: 'Check the PWA URL',
-      uploadBuild: 'Upload an analysed build',
-      preview: 'Preview the listing',
-      previewHint:
-        'Open the preview to see the listing as visitors will. The step is then ticked.',
-      previewAgain:
-        'The listing changed since your last preview: take another look.',
-      previewAction: 'Preview',
-      submit: 'Submit for review',
-      submitAction: 'Submit'
+      help: 'How does it work?'
     },
     helpDialog: {
       title: 'How do I publish my app?',
@@ -394,36 +406,16 @@ export default {
         'A question? The help centre and the contact form are at the bottom of every page.'
     },
     source: {
-      title: 'Distribution mode',
-      build: 'Hosted ZIP build',
-      url: 'PWA hosted on my site',
       hostingPending:
         'Build hosting is not enabled on this platform yet. You can upload builds and have them analysed, but putting them online requires an isolated domain to be configured. To publish now, choose listing by URL.',
-      urlLabel: 'HTTPS address of the PWA',
       save: 'Save the mode',
       saved: 'Distribution mode saved.',
-      checkUrl: 'Check the URL',
       checkOk: 'URL check passed.',
-      lastCheck: 'Last check: {date}',
-      history: 'Check history',
-      scheduled: 'automatic check',
-      manual: 'manual check',
       manifestFound: 'Manifest found',
-      manifestMissing: 'Manifest missing',
-      contentChanged: ' · content changed',
-      buildHint:
-        'Upload a build from the listing editor. No build script is ever run on the server.'
+      manifestMissing: 'Manifest missing'
     },
     submission: {
-      title: 'Submission and moderation',
-      intro:
-        'A verified profile lets you submit an app. Each app and each build is then reviewed separately.',
-      submit: 'Submit for review',
-      submitted: 'App submitted for review.',
       publish: 'Publish to the Store',
-      publishTitle: 'Publish to the Store?',
-      publishMessage:
-        'The app will be visible to every visitor. For a build, the latest approved version is put online on its own address.',
       published: 'App published.',
       restore: 'Restore as draft',
       restored: 'App restored as draft.',
@@ -432,70 +424,28 @@ export default {
       archiveMessage:
         'It will be removed from the Store. Its files and history are kept and you can restore it as a draft.',
       archived: 'App archived.',
-      approvedHint:
-        'The app is approved but not visible yet: publish it when you are ready.',
       completeProfile: 'Complete my developer profile'
     },
-    history: {
-      title: 'Publishing history',
-      empty: 'No status change recorded.',
-      automatic: 'Automatic check',
-      version: 'Version {status}'
-    },
     preview: {
-      eyebrow: 'Public listing preview',
-      iconAlt: '{name} icon',
       noCategory: 'No category',
-      noDescription: 'No description.',
-      screenshot: 'Screenshot {n}',
-      noScreenshots: 'No screenshots.',
-      reviewsLater: 'Ratings and reviews will appear after publishing.'
+      noDescription: 'No description.'
     },
     versions: {
-      title: 'Versions',
       empty: 'No build uploaded.',
       version: 'Version {number}',
-      analysis: 'Analysis: {status}',
-      review: 'Review: {status}',
-      active: 'Active version',
       quarantineHint:
         'Sensitive functions found, often inside libraries (Quasar, SweetAlert…). You can submit: an administrator will review them before any approval.',
-      approve: 'Approve the version',
-      reject: 'Reject the version',
-      redeploy: 'Redeploy',
       deploy: 'Publish this version',
       deployTitle: 'Publish this version?',
       deployMessage:
         'This approved version will replace the one currently served. Other builds are kept.',
       deployed: 'Version published.',
-      quarantineTitle: 'Lift the quarantine and approve?',
-      quarantineMessage:
-        'I have reviewed these sensitive functions and consider them legitimate. Reason:',
-      quarantineCleared: 'Quarantine lifted, version approved.',
       scan: {
         passed: 'Analysis passed',
         pending: 'Not analysed yet',
         rejected: 'Rejected',
         quarantined: 'To be reviewed'
-      },
-      moderation: {
-        pending: 'Awaiting review',
-        approved: 'Approved',
-        rejected: 'Rejected'
       }
-    },
-    moderation: {
-      title: 'Moderation decision',
-      message: 'Give the reason for your decision.',
-      saved: 'Decision saved.'
-    },
-    stats: {
-      title: 'Available statistics',
-      installations: '{n} installation(s) recorded',
-      launches: 'Reported launches: {n}',
-      crashes: '{n} crash(es) reported',
-      ratio: 'Ratio: {n}',
-      note: 'Totals come from received events. Missing data does not prove there is no usage or error.'
     }
   },
   console: {
@@ -503,6 +453,14 @@ export default {
     newVersion: 'New version'
   },
   sdk: {
+    collection: {
+      unchecked: 'Script not checked',
+      waiting: 'Script detected · waiting for data',
+      received: 'Data received',
+      blocked: 'Script detected · check security restrictions',
+      noData: 'No data received. This does not mean nobody is using your app.',
+      period: 'Totals since collection began, with no retroactive data.'
+    },
     recapUnchecked: 'Install measurement script: not checked yet (optional)',
     recapAction: 'Check',
     check: {
@@ -510,7 +468,7 @@ export default {
       at: 'Last check: {date}',
       csp: 'Your site’s security policy blocks the script ({directives}). Add {host} to these directives.',
       status: {
-        connected: 'Script connected to your PWA',
+        connected: 'Script detected on your PWA',
         missing: 'Script not found on your site',
         wrong_key: 'Script found, but with another app’s key',
         wrong_host: 'Script found, but it points to another PWA Store address',
@@ -654,7 +612,11 @@ export default {
           mild: 'Mild or cartoon',
           strong: 'Realistic or intense'
         },
-        sexual: { none: 'No', suggestive: 'Suggestive', explicit: 'Explicit' },
+        sexual: {
+          none: 'No',
+          suggestive: 'Suggestive',
+          explicit: 'Explicit'
+        },
         language: {
           none: 'No',
           mild: 'Occasional',
@@ -670,7 +632,11 @@ export default {
           simulated: 'Simulated (no real money)',
           real_money: 'With real money'
         },
-        fear: { none: 'No', mild: 'Mild', strong: 'Intense' }
+        fear: {
+          none: 'No',
+          mild: 'Mild',
+          strong: 'Intense'
+        }
       },
       descriptor: {
         violence: 'Violence',
@@ -827,7 +793,6 @@ export default {
       description:
         'At least 30 characters: what the app does, who it is for, what makes it good.',
       languages: 'The languages the app can be used in.',
-      countries: 'Leave empty to make it available in every country.',
       officialUrl: 'The official address of your PWA or of its website.',
       contactEmail: 'So that users and PWA Store can reach you.',
       icon: 'Square image of at least 192 × 192 pixels, PNG, JPG or WebP (1 MB max).',
@@ -959,7 +924,10 @@ export default {
     emptyOpen: 'No request waiting. All caught up.',
     emptyDecided: 'No decision yet.',
     waiting: 'Waiting {time}',
-    kind: { initial: 'First publication', update: 'Update' },
+    kind: {
+      initial: 'First publication',
+      update: 'Update'
+    },
     status: {
       pending: 'Waiting',
       in_review: 'In review',

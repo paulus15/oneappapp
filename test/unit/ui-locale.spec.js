@@ -7,23 +7,23 @@ import english from '@/i18n/ui.en.json'
 afterEach(() => setLocale('fr'))
 
 describe('live interface language', () => {
-  it('updates existing computed labels and preserves interpolation values', () => {
-    setLocale('fr')
+  it('updates existing computed labels and preserves interpolation values', async () => {
+    await setLocale('fr')
     const label = computed(() => ui('Icône de {p0}', { p0: 'Mon application' }))
     expect(label.value).toBe('Icône de Mon application')
-    setLocale('en')
+    await setLocale('en')
     expect(label.value).toBe('Mon application icon')
     expect(currentLocale()).toBe('en')
     expect(document.documentElement.lang).toBe('en')
     expect(localStorage.getItem('pwa-locale')).toBe('en')
-    setLocale('fr')
+    await setLocale('fr')
     expect(label.value).toBe('Icône de Mon application')
   })
 
-  it('ignores unsupported locales and translates platform copy without mutating it', () => {
+  it('ignores unsupported locales and translates platform copy without mutating it', async () => {
     const content = { title: 'Applications', items: ['Gratuit'] }
-    setLocale('en')
-    setLocale('unknown')
+    await setLocale('en')
+    await setLocale('unknown')
     expect(currentLocale()).toBe('en')
     expect(localizedCopy(content)).toEqual({ title: 'Apps', items: ['Free'] })
     expect(content.title).toBe('Applications')

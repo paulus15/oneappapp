@@ -20,3 +20,10 @@ export function resolveAccess(to, auth, { isMobile = false } = {}) {
     return '/developer/profile'
   return true
 }
+
+// After a 401: only pages that require a session send the visitor to the login page;
+// public pages (catalogue, app details, login/OTP steps) stay where they are.
+export function unauthorizedRedirect(route) {
+  if (!route?.meta?.requiresAuth || route.path === '/login') return null
+  return { path: '/login', query: { redirect: route.fullPath } }
+}

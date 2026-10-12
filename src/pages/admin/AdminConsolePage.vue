@@ -213,9 +213,10 @@
             <div class="col-6">
               <div class="stats-box">
                 <div class="stats-value">{{ stats.total_installations }}</div>
-                <div class="stats-label">{{
-                  ui('Installations déclarées')
-                }}</div>
+                <div class="stats-label"
+                  >{{ ui('Installations déclarées')
+                  }}<InstallCountHelp kind="declared"
+                /></div>
               </div>
             </div>
             <div class="col-6">
@@ -270,6 +271,7 @@
 </template>
 
 <script setup>
+import InstallCountHelp from '@/components/InstallCountHelp.vue'
 import { currentLocale } from '@/i18n'
 import { ui } from '@/i18n/text'
 

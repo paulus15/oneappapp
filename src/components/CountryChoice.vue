@@ -5,17 +5,21 @@
       v-if="!authStore.isAuthenticated"
       class="icon-action country-action"
       type="button"
-      :aria-label="t('geo.visitor.change')"
+      :aria-label="
+        code ? t('geo.visitor.current', { code }) : t('geo.visitor.change')
+      "
       :title="t('geo.visitor.change')"
       @click="open = true"
     >
       <q-icon name="public" />
       <span>{{ code || t('geo.visitor.short') }}</span>
     </button>
-    <q-dialog v-model="open">
+    <q-dialog v-model="open" aria-labelledby="country-choice-title">
       <q-card class="country-card">
         <q-card-section>
-          <h2 class="country-title">{{ t('geo.visitor.title') }}</h2>
+          <h2 id="country-choice-title" class="country-title">{{
+            t('geo.visitor.title')
+          }}</h2>
           <p class="text-muted">{{ t('geo.visitor.help') }}</p>
           <CountrySelect
             v-model="selected"

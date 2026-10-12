@@ -49,7 +49,8 @@
             <div
               class="dossier-cover"
               :style="{
-                background: listing.cover?.color || 'var(--surface-high)'
+                background:
+                  safeColor(listing.cover?.color) || 'var(--surface-high)'
               }"
             >
               <img
@@ -205,11 +206,12 @@
               <p class="url-line">
                 <q-icon name="link" />
                 <a
-                  :href="snapshot.source.external_url"
+                  v-if="safeExternalUrl(snapshot.source.external_url)"
+                  :href="safeExternalUrl(snapshot.source.external_url)"
                   target="_blank"
                   rel="noopener noreferrer"
                   >{{ snapshot.source.external_url }}</a
-                >
+                ><span v-else>{{ snapshot.source.external_url }}</span>
               </p>
               <p class="text-caption">{{
                 t('requests.dossier.urlChecked', {
@@ -485,6 +487,8 @@ import ExternalResourcesReport from '@/components/ExternalResourcesReport.vue'
 import { adminApi } from '@/services/admin'
 import { apiMessage } from '@/services/account'
 import { resolveMediaUrl } from '@/utils/media'
+import { safeExternalUrl } from '@/utils/listing'
+import { safeColor } from '@/utils/cover'
 
 // Everything needed to decide, built from what the developer submitted (the snapshot).
 const route = useRoute(),
@@ -818,6 +822,15 @@ h3 {
   margin: 0;
   overflow-wrap: anywhere;
   display: grid;
+}
+@media (max-width: 480px) {
+  .facts {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 2px;
+  }
+  .facts dd {
+    margin-bottom: 8px;
+  }
 }
 .facts dd.changed {
   background: rgba(255, 148, 22, 0.12);

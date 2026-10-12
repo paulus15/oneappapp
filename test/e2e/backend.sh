@@ -2,6 +2,7 @@
 # Starts an isolated Laravel backend for end-to-end tests on a dedicated database.
 # Mails go to the log so tests can read one-time codes; nothing is sent.
 set -e
+ROUTER="$(cd "$(dirname "$0")" && pwd)/backend-router.php"
 cd "${E2E_BACKEND_DIR:-$HOME/LaravelProjects/oneapp}"
 export DB_CONNECTION=mysql DB_DATABASE=oneapp_e2e MAIL_MAILER=log MAIL_LOG_CHANNEL=single \
   QUEUE_CONNECTION=sync CACHE_STORE=array APP_ENV=local PWA_CORS_ORIGINS='*' \
@@ -13,4 +14,8 @@ $admin = App\Models\User::create(["name" => "Admin E2E", "email" => "admin@e2e.t
 $admin->forceFill(["email_verified_at" => now()])->save();
 App\Models\Category::create(["name" => "Outils", "slug" => "outils", "is_active" => true]);
 ' >/dev/null
-exec php artisan serve --host=127.0.0.1 --port=8011
+# Same as `php artisan serve`, through a router that serves the test PWA (fixtures/pwa) for the
+# reserved host demo.pwastore-e2e.example without any network access. See backend-router.php.
+# The built-in server's connection log goes to storage/logs/e2e-server.log, not the test report.
+cd public
+exec php -S 127.0.0.1:8011 "$ROUTER" 2>>../storage/logs/e2e-server.log

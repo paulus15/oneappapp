@@ -1,6 +1,7 @@
 import { ui } from '@/i18n/text'
 import { defineStore } from 'pinia'
 import { api } from '@/boot/axios'
+import { setLocale } from '@/i18n'
 let hydration
 function storedUser() {
   try {
@@ -53,8 +54,13 @@ export const useAuthStore = defineStore('auth', {
       this.token = data.access_token
       localStorage.setItem('auth_token', this.token)
       this.setUser(data.user)
+      this.applyAccountLocale()
       this.setChallenge(null)
       this.hydrated = true
+    },
+    // The language saved on the account wins over the browser's after sign-in.
+    applyAccountLocale() {
+      if (this.user?.locale) setLocale(this.user.locale, { fromAccount: true })
     },
     verifyOtp(code) {
       return this.authenticate('/auth/otp/verify', {
@@ -93,6 +99,8 @@ export const useAuthStore = defineStore('auth', {
       this.hydrated = true
       localStorage.removeItem('auth_token')
       localStorage.removeItem('user')
+      // Searches typed while signed in stay private to that session.
+      localStorage.removeItem('oneapp_search_history')
       this.setChallenge(null)
     },
     async authenticate(path, data) {
@@ -158,6 +166,7 @@ export const useAuthStore = defineStore('auth', {
         try {
           const { data } = await api.get('/auth/me')
           this.setUser(data)
+          this.applyAccountLocale()
           this.hydrated = true
           this.error = null
         } catch (e) {

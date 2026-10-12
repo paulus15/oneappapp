@@ -274,7 +274,7 @@
           <span class="developer-entry-icon"><q-icon name="terminal" /></span>
           <span class="developer-entry-copy">
             <strong>{{ ui('Espace développeur') }}</strong>
-            <small>{{ ui('Gérez vos apps et vos builds') }}</small>
+            <small>{{ t('nav.developerSpaceHint') }}</small>
           </span>
           <q-icon name="arrow_forward" class="developer-entry-arrow" />
         </router-link>
@@ -407,6 +407,13 @@ const activeLocale = computed(
 const searchFocused = ref(false)
 const searchHistory = ref([])
 const suggestions = ref([])
+// The auth store clears the stored history on sign-out; forget the copy on screen too.
+watch(
+  () => authStore.isAuthenticated,
+  signedIn => {
+    if (!signedIn) searchHistory.value = []
+  }
+)
 
 const deferredInstallPrompt = ref(null)
 const canInstallStore = computed(() => !!deferredInstallPrompt.value)
@@ -426,8 +433,10 @@ onMounted(() => {
 
   // Load search history
   const history = localStorage.getItem('oneapp_search_history')
-  if (history) {
-    searchHistory.value = JSON.parse(history)
+  try {
+    if (history) searchHistory.value = JSON.parse(history)
+  } catch {
+    localStorage.removeItem('oneapp_search_history')
   }
 
   // Listen to PWA installation events
@@ -521,8 +530,7 @@ async function handleLogout() {
 async function promptInstallStore() {
   if (!deferredInstallPrompt.value) return
   deferredInstallPrompt.value.prompt()
-  const { outcome } = await deferredInstallPrompt.value.userChoice
-  console.log(`Store install user choice: ${outcome}`)
+  await deferredInstallPrompt.value.userChoice
   deferredInstallPrompt.value = null
 }
 </script>
@@ -1106,7 +1114,7 @@ async function promptInstallStore() {
     max-width: none;
   }
   .page-container {
-    padding-bottom: 82px;
+    padding-bottom: calc(82px + env(safe-area-inset-bottom, 0px));
   }
 }
 
@@ -1125,14 +1133,14 @@ async function promptInstallStore() {
   .header-search input {
     height: 40px;
     padding-right: 10px;
-    font-size: 12px;
+    font-size: 16px;
   }
   .header-actions {
     gap: 0;
   }
   .icon-action {
-    width: 35px;
-    height: 35px;
+    width: 44px;
+    height: 44px;
   }
   .login-action {
     min-width: 35px;

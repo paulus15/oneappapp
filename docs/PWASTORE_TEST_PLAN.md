@@ -2,7 +2,9 @@
 
 Règle : un test n'est déclaré réussi que s'il a été exécuté, avec sa commande et son résultat consignés dans la section « Journal d'exécution » du lot concerné (`PWASTORE_ROADMAP.md`).
 
-## 1. État actuel (11 octobre 2026)
+## 1. État initial (11 octobre 2026, historique)
+
+> Section conservée pour l’historique ; l’état à jour est au §7.
 
 **Backend** : `php artisan test` → **59 tests, 286 assertions, tous passants**.
 
@@ -21,7 +23,7 @@ Base de test : `RefreshDatabase` (voir `phpunit.xml`), e-mails via `Mail::fake()
 
 **Limite connue** : la suite tourne sous SQLite en mémoire. Un bug propre à MySQL (alias d’agrégat absent dans `ORDER BY`) n’a été détecté que par un appel réel au Lot 3. Ajouter au Lot 12 une exécution de la suite sur une base MySQL de test, et garder un appel réel des routes modifiées à chaque lot.
 
-**Frontend** : aucun test. Vérification actuelle limitée à `npx oxlint`, `npx oxfmt --check` et `quasar build -m pwa`.
+**Frontend** (à cette date) : aucun test. Depuis : Vitest et Playwright, voir §7.
 
 ## 2. Outils à ajouter
 
@@ -68,7 +70,7 @@ Exécutés contre le backend Laravel réel sur une base de test, e-mails captur�
 2. Il active son profil développeur (individuel), complète le profil, dépose une pièce d'identité et soumet.
 3. Un administrateur vérifie le profil.
 4. Le développeur crée une application, choisit la source URL, lance le contrôle et soumet.
-5. L'administrateur l'approuve ; le développeur la publie.
+5. L'administrateur approuve le dossier, ce qui publie l'application automatiquement.
 6. L'application apparaît dans le catalogue et dans la recherche.
 7. Un autre utilisateur la découvre, l'ajoute en favori, laisse un avis ; le développeur répond.
 8. Le développeur voit l'avis et la vue de fiche dans son tableau de bord.
@@ -94,12 +96,16 @@ Variantes négatives :
 
 ## 7. Exécution (état au 12 octobre 2026)
 
-| Suite                            | Commande              | Résultat                            |
-| -------------------------------- | --------------------- | ----------------------------------- |
-| Backend (SQLite en mémoire)      | `php artisan test`    | 134/134                             |
-| Backend (MySQL `oneapp_testing`) | `composer test:mysql` | 134/134                             |
-| Frontend unitaire                | `npm run test:unit`   | 29/29 (dont parité des traductions) |
-| Bout en bout                     | `npm run test:e2e`    | 13/13                               |
+Relevé le 12 octobre 2026 vers 17 h 57 (GMT), pendant que d’autres lots de correction ajoutaient des tests : les nombres peuvent avoir augmenté depuis.
+
+| Suite                            | Commande              | Résultat                                              |
+| -------------------------------- | --------------------- | ----------------------------------------------------- |
+| Backend (SQLite en mémoire)      | `php artisan test`    | 169/169 (1 288 assertions)                            |
+| Backend (MySQL `oneapp_testing`) | `composer test:mysql` | même suite (162/162 au lot 2 de la revue de sécurité) |
+| Frontend unitaire                | `npm run test:unit`   | 56/56, 15 fichiers (dont parité des traductions)      |
+| Bout en bout                     | `npm run test:e2e`    | 13/13 (sans accès Internet, voir ci-dessous)          |
+
+Tests ajoutés par la revue de sécurité : `SecurityLotOneTest` (compteurs, fuites de champs, permissions, impasses de publication), `UrlMonitoringTest` (empreinte du manifeste, signalement au lieu de suspension), `MediaAndRetentionTest` (recodage des images, purges `pwa:purge-media` et `pwa:purge-data`), `SecurityLotThreeTest`, `AppContentTest` (accès pour la vérification chiffré, annonces, classification), `CountryDistributionTest`, `InstallSignalTest`, `CoverImageTest`, `LocalizationTest`.
 
 ### Lancer les tests de bout en bout
 
@@ -109,8 +115,10 @@ Variantes négatives :
 - un build SPA du frontend pointé sur cette API, servi sur `127.0.0.1:9124` ;
 - le Chrome installé sur la machine (aucun navigateur téléchargé).
 
-Le chemin du backend se change avec `E2E_BACKEND_DIR`. Le scénario utilise une vraie PWA publique (`https://squoosh.app/`) : un accès Internet est nécessaire.
+Le chemin du backend se change avec `E2E_BACKEND_DIR`.
 
-Ce que couvrent les scénarios : inscription par l’interface et code OTP, activation développeur, profil, dépôt de la pièce d’identité, vérification par un administrateur, référencement par URL avec contrôle réel, soumission, approbation (l’application reste invisible), publication et visibilité dans le Store, avis d’un autre utilisateur et réponse de l’éditeur ; refus : pages privées pour un visiteur, compte non confirmé, back-office réservé, outils développeur masqués sur mobile sans débordement horizontal.
+**Aucune dépendance à un site réel.** La PWA du développeur est une petite PWA de test (`test/e2e/fixtures/pwa/` : page, manifeste, script, politique de confidentialité) publiée à l’adresse réservée `https://demo.pwastore-e2e.example/` (le domaine `.example` ne se résout jamais sur Internet). Le backend de test est servi par `php -S` avec le routeur `test/e2e/backend-router.php`, équivalent de `php artisan serve`, qui remplace **uniquement dans ce processus de test** le client `ExternalPwaChecker` par une sous-classe : les requêtes vers ce seul hôte sont lues dans le dossier de fixtures, toutes les autres passent par le client réel. Le code du backend n’est pas modifié et ses protections anti-SSRF (HTTPS, port 443, IP publiques, DNS épinglé, redirections revalidées) restent actives en production et dans les tests PHPUnit. Le journal de connexion du serveur intégré est écrit dans `storage/logs/e2e-server.log`.
+
+Ce que couvrent les scénarios : inscription par l’interface et code OTP, activation développeur, profil, dépôt de la pièce d’identité, vérification par un administrateur, référencement par URL avec contrôle du lien (PWA de test), couverture, icône et capture, onglet Contenu (accès pour la vérification, annonces, classification 3+), passage en anglais et retour, soumission, approbation qui publie automatiquement, visibilité dans le Store avec le badge d’hébergement, avis d’un autre utilisateur et réponse de l’éditeur, animations avec mouvement complet ; dépôt d’un build ZIP (activé pour ce test par `PWA_BUILD_UPLOADS=true` dans `backend.sh`) avec détection automatique des domaines externes et observation interne d’un administrateur ; refus : pages privées pour un visiteur, compte non confirmé, back-office réservé, outils développeur masqués sur mobile sans débordement horizontal.
 
 Défauts trouvés par ces tests et corrigés : la pièce d’identité et les justificatifs ne pouvaient pas être envoyés depuis l’interface (FormData sérialisé en JSON), et la CSP de la page n’autorisait que l’API `https://oneapp.test` et deux domaines d’images.

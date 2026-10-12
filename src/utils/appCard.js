@@ -1,3 +1,5 @@
+import { safeColor } from '@/utils/cover'
+
 // Normalises an API application into what cards display, without inventing values.
 export function toCard(app) {
   const category = typeof app.category === 'object' ? app.category : null
@@ -9,7 +11,8 @@ export function toCard(app) {
     category:
       category?.name || (typeof app.category === 'string' ? app.category : ''),
     categorySlug: category?.slug || '',
-    color: category?.color || 'var(--pwa-primary)',
+    // Inserted into a style attribute: only a plain hex colour is accepted.
+    color: safeColor(category?.color) || 'var(--pwa-primary)',
     icon: category?.icon || 'widgets',
     iconUrl: app.icon_url || '',
     cover: app.cover && typeof app.cover === 'object' ? app.cover : null,
@@ -17,6 +20,7 @@ export function toCard(app) {
     sourceType: app.source_type || 'build',
     publisher: app.developer?.developer_profile?.public_name || '',
     price: Number(app.price || 0),
+    activations: Number(app.activations_count || 0),
     downloads: Number(app.downloads_count || 0),
     reviews,
     // No reviews means no rating, never a default score.

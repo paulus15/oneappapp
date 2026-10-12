@@ -44,7 +44,9 @@
     </section>
 
     <section class="workspace-section">
-      <h2>{{ ui('Deux façons de publier') }}</h2>
+      <h2>{{
+        buildUploads ? ui('Deux façons de publier') : t('portal.howToPublish')
+      }}</h2>
       <div class="workspace-grid">
         <q-card flat bordered class="workspace-card"
           ><h3><q-icon name="link" /> {{ ui('Référencement par URL') }}</h3
@@ -54,7 +56,8 @@
             )
           }}</p></q-card
         >
-        <q-card flat bordered class="workspace-card"
+        <!-- ZIP uploads are switched off on the platform: only mention them when enabled. -->
+        <q-card v-if="buildUploads" flat bordered class="workspace-card"
           ><h3><q-icon name="archive" /> {{ ui('Dépôt d’un build') }}</h3
           ><p>{{
             ui(
@@ -106,12 +109,17 @@
 import { ui } from '@/i18n/text'
 
 import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
+import { usePlatform } from '@/composables/usePlatform'
 import AppFooter from '@/components/AppFooter.vue'
 import { useAuthStore } from '@/stores/auth'
 import { useWorkspaceAccess } from '@/composables/useWorkspaceAccess'
 
 const auth = useAuthStore()
 const { isMobile } = useWorkspaceAccess()
+const { t } = useI18n()
+const { platform } = usePlatform()
+const buildUploads = computed(() => !!platform.value?.build_uploads)
 const cta = computed(() =>
   !auth.isAuthenticated
     ? {
@@ -174,9 +182,11 @@ const steps = [
       return ui('Préparez et soumettez votre application')
     },
     get text() {
-      return ui(
-        'Fiche, captures, puis URL HTTPS ou build. La validation de votre profil est obligatoire avant toute création.'
-      )
+      return buildUploads.value
+        ? ui(
+            'Fiche, captures, puis URL HTTPS ou build. La validation de votre profil est obligatoire avant toute création.'
+          )
+        : t('portal.prepareStep')
     }
   },
   {

@@ -6,7 +6,11 @@
       <p>{{ t('measurePage.intro') }}</p>
     </header>
     <q-linear-progress v-if="loading" indeterminate />
-    <p v-if="!loading && !apps.length" class="text-muted">{{
+    <div v-if="error" role="alert"
+      ><p class="text-negative">{{ error }}</p
+      ><q-btn flat no-caps :label="t('common.retry')" @click="load"
+    /></div>
+    <p v-if="!loading && !error && !apps.length" class="text-muted">{{
       t('measurePage.empty')
     }}</p>
     <div class="measure-grid">
@@ -22,38 +26,47 @@
           <h2>{{ app.name }}</h2>
         </div>
         <template v-if="signals[app.id]">
-          <p class="measure-status">
-            <q-icon
-              :name="
-                signals[app.id].check?.status === 'connected'
-                  ? 'check_circle'
-                  : 'info'
-              "
-              :color="
-                signals[app.id].check?.status === 'connected'
-                  ? 'positive'
-                  : 'grey-7'
-              "
-            />
-            {{
-              signals[app.id].check
-                ? t(`sdk.check.status.${signals[app.id].check.status}`)
-                : t('sdk.recapUnchecked')
-            }}
-          </p>
+          <SdkSignalStatus
+            :info="signals[app.id]"
+            :published="app.status === 'published'"
+          />
+          <p
+            v-if="signals[app.id].last_signal_at"
+            class="text-caption text-muted"
+            >{{ t('sdk.collection.period') }}</p
+          >
           <dl class="measure-counts">
             <div>
-              <dt>{{ t('sdk.installs') }}</dt>
+              <dt
+                >{{ t('sdk.installs') }}<InstallCountHelp kind="confirmed"
+              /></dt>
               <dd>{{
-                signals[app.id].confirmed_installs.toLocaleString(locale)
+                signals[app.id].last_signal_at
+                  ? Number(
+                      signals[app.id].confirmed_installs || 0
+                    ).toLocaleString(locale)
+                  : '—'
               }}</dd>
             </div>
             <div>
               <dt>{{ t('sdk.launches') }}</dt>
-              <dd>{{ signals[app.id].launches.toLocaleString(locale) }}</dd>
+              <dd>{{
+                signals[app.id].last_signal_at
+                  ? Number(signals[app.id].launches || 0).toLocaleString(locale)
+                  : '—'
+              }}</dd>
             </div>
           </dl>
         </template>
+        <div v-else-if="errors[app.id]" role="alert">
+          <p class="text-negative">{{ errors[app.id] }}</p>
+          <q-btn
+            flat
+            no-caps
+            :label="t('common.retry')"
+            @click="loadSignal(app)"
+          />
+        </div>
         <q-skeleton v-else type="text" width="70%" />
         <q-btn
           flat
@@ -68,10 +81,12 @@
   </q-page>
 </template>
 <script setup>
+import SdkSignalStatus from '@/components/SdkSignalStatus.vue'
+import InstallCountHelp from '@/components/InstallCountHelp.vue'
 import { onMounted, reactive, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { api } from '@/boot/axios'
-import { accountApi } from '@/services/account'
+import { accountApi, apiMessage } from '@/services/account'
 import AppIcon from '@/components/AppIcon.vue'
 
 // Install measurement status for every app the developer hosts.
@@ -80,29 +95,36 @@ const apps = ref([]),
   loading = ref(true)
 const signals = reactive({})
 
-onMounted(async () => {
+const errors = reactive({})
+const error = ref('')
+async function loadSignal(app) {
+  delete errors[app.id]
+  try {
+    signals[app.id] = (await accountApi.installSignals(app.id)).data
+  } catch (e) {
+    errors[app.id] = apiMessage(e)
+  }
+}
+async function load() {
+  loading.value = true
+  error.value = ''
   try {
     apps.value = (await api.get('/developer/apps')).data.filter(
       a => a.source_type === 'url'
     )
+    await Promise.all(apps.value.map(loadSignal))
+  } catch (e) {
+    error.value = apiMessage(e)
   } finally {
     loading.value = false
   }
-  await Promise.all(
-    apps.value.map(async app => {
-      try {
-        signals[app.id] = (await accountApi.installSignals(app.id)).data
-      } catch {
-        // The card keeps its link; the details open in the app's Version tab.
-      }
-    })
-  )
-})
+}
+onMounted(load)
 </script>
 <style scoped>
 .measure-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(280px, 100%), 1fr));
   gap: 14px;
 }
 .measure-card {

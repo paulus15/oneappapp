@@ -42,7 +42,9 @@
     <template v-if="stats">
       <div class="kpis">
         <div v-for="kpi in kpis" :key="kpi.label" class="kpi workspace-card">
-          <span>{{ kpi.label }}</span>
+          <span
+            >{{ kpi.label }}<InstallCountHelp v-if="kpi.help" :kind="kpi.help"
+          /></span>
           <strong v-count-up="kpi.value" />
           <small v-if="kpi.hint">{{ kpi.hint }}</small>
         </div>
@@ -125,6 +127,7 @@
   </q-page>
 </template>
 <script setup>
+import InstallCountHelp from '@/components/InstallCountHelp.vue'
 import { currentLocale } from '@/i18n'
 import { ui } from '@/i18n/text'
 
@@ -166,6 +169,12 @@ const kpis = computed(() => {
   return [
     {
       get label() {
+        return ui('Activations')
+      },
+      value: t.activations || 0
+    },
+    {
+      get label() {
         return ui('Vues de fiche')
       },
       value: t.views
@@ -180,6 +189,7 @@ const kpis = computed(() => {
       get label() {
         return ui('Installations déclarées')
       },
+      help: 'declared',
       value: t.installs
     },
     {

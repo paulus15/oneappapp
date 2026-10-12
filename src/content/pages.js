@@ -204,12 +204,16 @@ export const pages = {
       {
         title: '2. Données collectées',
         list: [
-          'Compte : nom, adresse e-mail, pays de résidence déclaré, mot de passe (stocké sous forme chiffrée irréversible).',
-          'Sécurité : codes de confirmation (stockés sous forme d’empreinte), sessions actives, adresse IP des actions d’administration.',
-          'Développeurs : informations de profil, pièce d’identité (type, date d’expiration et fichier privé).',
-          'Usage : favoris, applications déclarées installées par appareil, avis, événements d’ouverture des applications.',
+          'Compte : nom, adresse e-mail, pays de résidence déclaré (modifiable une fois tous les 30 jours), langue de l’interface, mot de passe (conservé sous forme de hachage irréversible) et préférences (notifications, historique des fiches consultées).',
+          'Sécurité : codes de confirmation à usage unique (conservés sous forme de hachage à clé), sessions ouvertes (navigateur ou appareil tel qu’il se présente, dates de création, de dernière utilisation et d’expiration), journal des actions sensibles avec l’adresse IP de leur auteur (changement de pays, décisions de modération, consultation des identifiants de test).',
+          'Développeurs : profil (type de compte, nom public, nom légal, pays, représentant, e-mail professionnel, site web, description) et pièce d’identité (type, date d’expiration et fichier conservé dans un stockage privé, accessible seulement aux vérificateurs habilités, puis supprimé au terme de la durée de conservation).',
+          'Bibliothèque et usage : favoris, applications déclarées installées par appareil (identifiant de l’appareil généré par le navigateur, plateforme, pays du compte, dates d’installation et d’ouverture), demandes d’installation, fiches consultées récemment (seulement si l’option est activée dans vos préférences), événements d’usage envoyés par l’application (type d’événement, plateforme, modèle de l’appareil, pays du compte).',
+          'Contributions : avis et réponses, signalements (motif et précisions), analyses PWA Lab (adresse analysée et rapport).',
           'Mesure des installations : pour les applications dont l’éditeur a ajouté le script de PWA Store, deux événements seulement (installation, ouverture depuis l’écran d’accueil) avec un identifiant pseudonyme de l’appareil, conservé sous forme d’empreinte à clé propre à chaque application. Rien de ce que vous faites dans l’application n’est collecté.',
-          'Consultations des fiches d’applications : une seule fois par compte et par application, avec sa date. Pour les visiteurs non connectés, une empreinte à clé de l’adresse IP, propre à chaque application (jamais l’adresse elle-même), évite de compter plusieurs fois la même visite sans permettre de suivre un visiteur d’une fiche à l’autre.'
+          'Consultations des fiches d’applications : une seule fois par compte et par application, avec sa date et le pays du visiteur. Pour les visiteurs non connectés, une empreinte à clé de l’adresse IP, propre à chaque application (jamais l’adresse elle-même), évite de compter plusieurs fois la même visite sans permettre de suivre un visiteur d’une fiche à l’autre.',
+          'Ouvertures d’une application depuis PWA Store : comptées une seule fois par compte et par application, sous forme d’empreinte à clé.',
+          'Identifiants de test fournis par un éditeur pour la vérification de son application : chiffrés, consultables uniquement par l’éditeur et l’équipe de vérification ; chaque consultation est journalisée.',
+          'Formulaire de contact : nom, adresse e-mail, sujet et message, transmis par e-mail à l’équipe de PWA Store ; ils ne sont pas enregistrés dans la base de données de la plateforme.'
         ]
       },
       {
@@ -217,8 +221,13 @@ export const pages = {
         list: [
           'Fournir le service et sécuriser les comptes.',
           'Vérifier les éditeurs avant toute publication.',
+          'Examiner les applications soumises, y compris avec les identifiants de test fournis par l’éditeur.',
           'Produire des statistiques agrégées pour les développeurs et l’administration.',
+          'Prévenir les abus : limites de fréquence, signalements, comptage des installations par compte distinct.',
           'Répondre aux demandes envoyées par le formulaire de contact.'
+        ],
+        paragraphs: [
+          'À valider par un juriste : base légale de chaque traitement (exécution du service, vérification des éditeurs, intérêt légitime pour la sécurité et les statistiques, information des utilisateurs par l’éditeur pour la mesure des installations).'
         ]
       },
       {
@@ -238,12 +247,14 @@ export const pages = {
         title: '5. Vos droits',
         paragraphs: [
           'Vous disposez de droits d’accès, de rectification, d’opposition et d’effacement. Pour les exercer, utilisez le formulaire de contact en choisissant « Données personnelles ».',
-          'À valider juridiquement : en Côte d’Ivoire, la loi n° 2013-450 relative à la protection des données à caractère personnel et l’autorité de protection (ARTCI) ; pour les personnes situées dans l’Union européenne, le RGPD. Les autres pays ciblés doivent être examinés.'
+          'À valider juridiquement : en Côte d’Ivoire, la loi n° 2013-450 relative à la protection des données à caractère personnel et l’autorité de protection (ARTCI) ; pour les personnes situées dans l’Union européenne, le RGPD. Les autres pays ciblés doivent être examinés.',
+          'À compléter : formalité préalable auprès de l’ARTCI (déclaration ou autorisation) et sa référence.'
         ]
       },
       {
         title: '6. Destinataires et transferts',
         paragraphs: [
+          'Au sein de PWA Store, seuls les membres de l’équipe habilités accèdent aux pièces d’identité et aux identifiants de test, selon leurs permissions. Les éditeurs reçoivent des statistiques agrégées sur leurs applications, jamais l’identité des personnes qui les consultent ou les installent ; les avis sont publiés sous le nom du compte.',
           'À compléter : hébergeur, prestataire d’envoi d’e-mails, localisation des serveurs et garanties applicables aux transferts internationaux.'
         ]
       }

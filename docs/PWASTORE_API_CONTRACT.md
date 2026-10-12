@@ -1,13 +1,13 @@
 # PWA Store — Contrat d'API
 
-Base : `{APP_URL}/api`. Format JSON. Authentification : `Authorization: Bearer <jeton Sanctum>`.
+Base : `{APP_URL}/api` (local `https://oneapp.test/api`, production `https://pwastore.online/api`). Format JSON. Authentification : `Authorization: Bearer <jeton Sanctum>`.
 
 Légende statut : **E** existe et testé · **E\*** existe, à corriger · **N** nouveau (lot indiqué).
 Auth : `—` public · `U` compte connecté · `D` profil développeur · `A` administrateur (permission indiquée).
 
 ## Conventions
 
-- Langue : le front envoie `Accept-Language: fr|en` (choix mémorisé dans le navigateur) ; l'API répond avec `Content-Language`. Le français est la langue source et la valeur par défaut. Messages traduits : manques de soumission et blocages éditeur (`lang/en.json`) ; les autres messages restent en français pour l'instant.
+- Langue : le front envoie `Accept-Language: fr|en` (choix mémorisé dans le navigateur) ; l'API répond avec `Content-Language`. Le français est la langue source et la valeur par défaut. Messages traduits : manques de soumission et blocages éditeur (`lang/en.json`) ; la traduction des autres messages serveur et des e-mails est en cours (revue de sécurité, H11). Connecté, la langue choisie est aussi enregistrée sur le compte (`PUT /account/locale`).
 - Pays : connecté, le pays du profil s’applique ; visiteur, l’en-tête `X-Country: CI` (choix explicite mémorisé dans le navigateur, jamais déduit de l’IP). Sans pays, seules les applications disponibles partout sont listées. Une fiche non proposée dans le pays répond `403` « Cette application n’est pas disponible dans votre pays. ».
 - Médias : adresses relatives `/api/media/...` (le front les complète avec l’origine de l’API). Couvertures : `/api/media/covers/{uuid}/{640|1280|1920}.{avif|webp|jpg}`, cache d’un an.
 - Erreurs de validation : `422` avec `{ message, errors: { champ: [..] } }`.
@@ -40,7 +40,8 @@ Auth : `—` public · `U` compte connecté · `D` profil développeur · `A` ad
 | GET          | `/account/export`        | U    | E      | Export JSON des données personnelles                                                                     |
 | GET / PUT    | `/account/preferences`   | U    | E      | Langue, notifications, consentement « vus récemment »                                                    |
 | GET / DELETE | `/account/recent`        | U    | E      | Consultations récentes (si consentement) ; effacement                                                    |
-| POST         | `/apps/{id}/view`        | —    | E      | Enregistre une consultation uniquement pour un compte ayant consenti (compteurs agrégés : Lot 8)         |
+| PUT          | `/account/locale`        | U    | E      | `locale: fr\|en` : langue du compte (e-mails, notifications), 20/min                                     |
+| POST         | `/apps/{id}/view`        | —    | E      | Vue unique (voir « Ajouts du 12 octobre ») ; alimente aussi « vus récemment » si le compte y consent     |
 | GET          | `/account/reports`       | U    | E      | Mes signalements et leur issue                                                                           |
 | GET          | `/countries`             | —    | E      | Pays actifs                                                                                              |
 
@@ -66,43 +67,43 @@ Auth : `—` public · `U` compte connecté · `D` profil développeur · `A` ad
 
 ## 3. Catalogue public
 
-| Méthode    | Route                                          | Auth | Statut | Notes                                                                                                        |
-| ---------- | ---------------------------------------------- | ---- | ------ | ------------------------------------------------------------------------------------------------------------ |
-| GET        | `/apps`                                        | —    | E\*    | `search, category, sort_by, filter, page`. À corriger : visibilité unique (D4), N+1 (D9)                     |
-| GET        | `/apps/suggestions`                            | —    | E      |                                                                                                              |
-| GET        | `/apps/{id}`                                   | —    | E\*    | À ajouter : éditeur public, langues, apps similaires ; avis retirés de la réponse (paginés à part)           |
-| GET        | `/apps/{id}/reviews`                           | —    | E      | Avis visibles paginés + réponse développeur                                                                  |
-| GET        | `/apps/{id}/similar`                           | —    | E      | Même catégorie, publiées                                                                                     |
-| GET        | `/apps/{application}/launch`                   | —    | E      | URL d'ouverture                                                                                              |
-| POST       | `/apps/{id}/views`                             | —    | E      | Vue de fiche, dédupliquée par appareil et par heure                                                          |
-| GET        | `/home`                                        | —    | E      | Sections d'accueil : mises en avant, nouveautés, populaires, récemment mises à jour, collections, catégories |
-| GET        | `/categories`                                  | —    | E      | `?all=1` pour l'admin                                                                                        |
-| GET        | `/categories/{id\|slug}`                       | —    | E      |                                                                                                              |
-| GET        | `/collections/{slug}`                          | —    | E      | Sélection éditoriale                                                                                         |
-| POST       | `/contact`                                     | —    | E      | `name, email, subject, message` ; envoi au support, champ piège anti-robot, 3 envois / 10 min                |
-| GET        | `/media/screenshots/{file}`                    | —    | E      |                                                                                                              |
-| GET        | `/versions/{id}/download`                      | —/D  | E      | Réservé aux versions publiées, ou propriétaire/admin                                                         |
-| POST / GET | `/install-intents`, `/install-intents/{token}` | —    | E      |                                                                                                              |
+| Méthode    | Route                                          | Auth | Statut | Notes                                                                                                           |
+| ---------- | ---------------------------------------------- | ---- | ------ | --------------------------------------------------------------------------------------------------------------- |
+| GET        | `/apps`                                        | —    | E\*    | `search, category, sort_by, filter, page`. À corriger : visibilité unique (D4), N+1 (D9)                        |
+| GET        | `/apps/suggestions`                            | —    | E      |                                                                                                                 |
+| GET        | `/apps/{id}`                                   | —    | E\*    | À ajouter : éditeur public, langues, apps similaires ; avis retirés de la réponse (paginés à part)              |
+| GET        | `/apps/{id}/reviews`                           | —    | E      | Avis visibles paginés + réponse développeur                                                                     |
+| GET        | `/apps/{id}/similar`                           | —    | E      | Même catégorie, publiées                                                                                        |
+| GET        | `/apps/{application}/launch`                   | U    | E      | URL d’ouverture (compte connecté requis) ; ne compte pas d’activation, voir `POST /apps/{application}/activate` |
+| GET        | `/home`                                        | —    | E      | Sections d'accueil : mises en avant, nouveautés, populaires, récemment mises à jour, collections, catégories    |
+| GET        | `/categories`                                  | —    | E      | `?all=1` pour l'admin                                                                                           |
+| GET        | `/categories/{id\|slug}`                       | —    | E      |                                                                                                                 |
+| GET        | `/collections/{slug}`                          | —    | E      | Sélection éditoriale                                                                                            |
+| POST       | `/contact`                                     | —    | E      | `name, email, subject, message` ; envoi au support, champ piège anti-robot, 3 envois / 10 min                   |
+| GET        | `/media/{folder}/{file}`                       | —    | E      | Icônes et captures recodées (sans métadonnées), cache long immuable                                             |
+| GET        | `/media/covers/{folder}/{file}`                | —    | E      | Variantes de couverture `{640\|1280\|1920}.{avif\|webp\|jpg}`, cache d’un an                                    |
+| GET        | `/versions/{id}/download`                      | —/D  | E      | Réservé aux versions publiées, ou propriétaire/admin                                                            |
+| POST / GET | `/install-intents`, `/install-intents/{token}` | —    | E      |                                                                                                                 |
 
 ## 4. Espace utilisateur
 
-| Méthode      | Route                           | Auth | Statut | Notes                                                          |
-| ------------ | ------------------------------- | ---- | ------ | -------------------------------------------------------------- |
-| GET          | `/favorites`                    | U    | E      |                                                                |
-| PUT / DELETE | `/favorites/{application}`      | U    | E      |                                                                |
-| GET          | `/library`                      | U    | E      | `device_uuid?`                                                 |
-| GET          | `/library/updates`              | U    | E      |                                                                |
-| POST         | `/installations`                | U    | E      | Déclaratif                                                     |
-| PATCH        | `/installations/{installation}` | U    | E      |                                                                |
-| GET          | `/account/reviews`              | U    | E      | Mes avis                                                       |
-| POST         | `/reviews`                      | U    | E\*    | À ajouter : e-mail vérifié, 2000 car. max, throttle (D5)       |
-| DELETE       | `/reviews/{review}`             | U    | E      | Auteur                                                         |
-| POST         | `/reviews/{review}/reply`       | D    | E      | Développeur propriétaire, une réponse                          |
-| DELETE       | `/reviews/{review}/reply`       | D    | E      | Retirer sa réponse                                             |
-| POST         | `/reports`                      | U    | E      | `target_type: application\|review, target_id, reason, details` |
-| GET          | `/notifications`                | U    | E      | Paginé                                                         |
-| POST         | `/notifications/read`           | U    | E      | `ids[]` ou toutes                                              |
-| GET          | `/notifications/unread-count`   | U    | E      |                                                                |
+| Méthode      | Route                           | Auth | Statut | Notes                                                                                                                     |
+| ------------ | ------------------------------- | ---- | ------ | ------------------------------------------------------------------------------------------------------------------------- |
+| GET          | `/favorites`                    | U    | E      |                                                                                                                           |
+| PUT / DELETE | `/favorites/{application}`      | U    | E      |                                                                                                                           |
+| GET          | `/library`                      | U    | E      | `device_uuid?`                                                                                                            |
+| GET          | `/library/updates`              | U    | E      |                                                                                                                           |
+| POST         | `/installations`                | U    | E      | Déclaratif ; e-mail vérifié, 30/min, 10 appareils max par compte et par app ; téléchargements comptés par compte distinct |
+| PATCH        | `/installations/{installation}` | U    | E      |                                                                                                                           |
+| GET          | `/account/reviews`              | U    | E      | Mes avis                                                                                                                  |
+| POST         | `/reviews`                      | U    | E      | E-mail vérifié, 2000 caractères max, 10/min                                                                               |
+| DELETE       | `/reviews/{review}`             | U    | E      | Auteur                                                                                                                    |
+| POST         | `/reviews/{review}/reply`       | D    | E      | Développeur propriétaire, une réponse                                                                                     |
+| DELETE       | `/reviews/{review}/reply`       | D    | E      | Retirer sa réponse                                                                                                        |
+| POST         | `/reports`                      | U    | E      | `target_type: application\|review, target_id, reason, details`                                                            |
+| GET          | `/notifications`                | U    | E      | Paginé                                                                                                                    |
+| POST         | `/notifications/read`           | U    | E      | `ids[]` ou toutes                                                                                                         |
+| GET          | `/notifications/unread-count`   | U    | E      |                                                                                                                           |
 
 ## 5. Publication (développeur)
 
@@ -111,11 +112,11 @@ Auth : `—` public · `U` compte connecté · `D` profil développeur · `A` ad
 | GET     | `/developer/apps`                         | D    | E      |                                                                                                                                                                                                                              |
 | POST    | `/apps`                                   | D    | E      | Brouillon, multipart médias                                                                                                                                                                                                  |
 | PUT     | `/apps/{id}`                              | D    | E      | Brouillon : modification directe. App publiée : modifications en attente (`pending_changes`), l’app reste en ligne. Verrouillé (409) pendant une demande. Champs `contact_email`, `privacy.data_collected[]`, fichier `icon` |
-| PUT     | `/apps/{application}/source`              | D    | E      | `source_type: url\|build, external_url?`                                                                                                                                                                                     |
+| PUT     | `/apps/{application}/source`              | D    | E      | `source_type: url\|build, external_url?` ; `build` refusé (422) si `PWA_BUILD_UPLOADS=false` et que l’app n’est pas déjà en mode ZIP ; URL HTTPS publique, port 443                                                          |
 | POST    | `/apps/{application}/check-url`           | D    | E      | Contrôle SSRF-sûr                                                                                                                                                                                                            |
 | GET     | `/apps/{application}/url-checks`          | D    | E      | Historique des contrôles                                                                                                                                                                                                     |
 | GET     | `/apps/{application}/readiness`           | D    | E      | `{ gaps[], listing_gaps[], source_gaps[], blockers[], ready }` : ce qui manque à la fiche ou à la source, et les blocages de l'éditeur ; la soumission applique les mêmes règles                                             |
-| POST    | `/versions`                               | D    | E      | Upload ZIP + analyse                                                                                                                                                                                                         |
+| POST    | `/versions`                               | D    | E      | Upload ZIP + analyse. Une nouvelle application ne passe en mode ZIP que si `PWA_BUILD_UPLOADS=true` (désactivé par défaut) ; les applications déjà en mode ZIP continuent                                                    |
 | POST    | `/apps/{application}/submit`              | D    | E      | Crée une demande de publication figée (`initial` ou `update`), `version_id?` ; 409 si une demande est ouverte                                                                                                                |
 | POST    | `/apps/{application}/publish`             | D    | E      | Seulement si la mise en ligne automatique à l’approbation a échoué                                                                                                                                                           |
 | POST    | `/apps/{application}/withdraw`            | D    | E      | Retire la demande ouverte                                                                                                                                                                                                    |
@@ -130,8 +131,8 @@ Auth : `—` public · `U` compte connecté · `D` profil développeur · `A` ad
 | GET     | `/apps/{application}/events`              | D    | E      | Historique de publication                                                                                                                                                                                                    |
 | POST    | `/versions/{version}/extract`             | D    | E      | Déploiement isolé d'une version approuvée (rollback inclus)                                                                                                                                                                  |
 | GET     | `/analytics/summary/{app_id}`             | D/A  | E      |                                                                                                                                                                                                                              |
-| POST    | `/analytics/events`                       | U    | E\*    | Restreindre aux apps publiées + throttle (D2)                                                                                                                                                                                |
-| POST    | `/push-notifications`                     | D    | E\*    | Désactivé (410) jusqu'à intégration réelle (D1)                                                                                                                                                                              |
+| POST    | `/analytics/events`                       | U    | E      | Apps visibles uniquement, 60/min, dédoublonnage ; `application_id, event_type, device_platform, device_model?`                                                                                                               |
+| POST    | `/push-notifications`                     | D    | E      | Désactivé : répond 410 jusqu’à une intégration réelle                                                                                                                                                                        |
 
 ## 6. PWA Lab
 
@@ -145,26 +146,28 @@ Performance et accessibilité nécessitent un navigateur headless (Lighthouse). 
 
 ## 7. Administration
 
-| Méthode             | Route                                       | Permission         | Statut | Notes                                                                   |
-| ------------------- | ------------------------------------------- | ------------------ | ------ | ----------------------------------------------------------------------- |
-| GET                 | `/admin/stats`                              | `audit.view`       | E      | Compteurs réels                                                         |
-| GET                 | `/admin/users`                              | `users.manage`     | E      | Recherche, filtre statut/rôle/pays, pagination                          |
-| GET                 | `/admin/users/{user}`                       | `users.manage`     | E      |                                                                         |
-| POST                | `/admin/users/{user}/status`                | `users.manage`     | E      | `status, reason` ; suspension révoque les jetons                        |
-| PUT                 | `/admin/users/{user}/permissions`           | `settings.manage`  | E      |                                                                         |
-| GET                 | `/admin/apps`                               | `apps.moderate`    | E\*    | Pagination + filtres (D8)                                               |
-| POST                | `/admin/apps/{application}/review`          | `apps.moderate`    | E\*    | Étendre aux statuts cibles, dont `changes_requested`, `suspended`       |
-| POST                | `/admin/versions/{version}/review`          | `apps.moderate`    | E      |                                                                         |
-| PUT                 | `/apps/{id}` (`trust_score`, `is_featured`) | `catalog.manage`   | E\*    | `is_featured` à rendre modifiable                                       |
-| POST / PUT / DELETE | `/categories`, `/categories/{id}`           | `catalog.manage`   | E\*    | Refuser la suppression d'une catégorie utilisée (D7)                    |
-| CRUD                | `/admin/collections`                        | `catalog.manage`   | E      |                                                                         |
-| GET                 | `/admin/reports`                            | `reports.handle`   | E      |                                                                         |
-| POST                | `/admin/reports/{report}/resolve`           | `reports.handle`   | E      | `decision, reason`                                                      |
-| POST                | `/admin/reviews/{review}/moderate`          | `reviews.moderate` | E      | `status: visible\|hidden, reason`                                       |
-| GET                 | `/admin/audit-logs`                         | `audit.view`       | E      | Filtres acteur, action, période                                         |
-| GET                 | `/admin/countries/summary`                  | `audit.view`       | E      |                                                                         |
-| GET / PUT           | `/admin/settings`                           | `settings.manage`  | E      | Quotas, devise, montant de contribution (paiements toujours désactivés) |
-| DELETE              | `/apps/{id}`                                | —                  | E\*    | Suppression définitive : remplacée par l'archivage (D10)                |
+| Méthode             | Route                                                   | Permission         | Statut | Notes                                                                                                                                                                   |
+| ------------------- | ------------------------------------------------------- | ------------------ | ------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| GET                 | `/admin/stats`                                          | `audit.view`       | E      | Compteurs réels                                                                                                                                                         |
+| GET                 | `/admin/users`                                          | `users.manage`     | E      | Recherche, filtre statut/rôle/pays, pagination                                                                                                                          |
+| GET                 | `/admin/users/{user}`                                   | `users.manage`     | E      |                                                                                                                                                                         |
+| POST                | `/admin/users/{user}/status`                            | `users.manage`     | E      | `status, reason` ; suspension révoque les jetons                                                                                                                        |
+| PUT                 | `/admin/users/{user}/permissions`                       | `settings.manage`  | E      |                                                                                                                                                                         |
+| GET                 | `/admin/apps`                                           | `apps.moderate`    | E\*    | Pagination + filtres (D8)                                                                                                                                               |
+| POST                | `/admin/apps/{application}/review`                      | `apps.moderate`    | E      | `status, reason, lift_suspension?` : suspendre une app en ligne, **rétablir** une app suspendue (`published`, avec motif) ; « en examen » interdit sans demande ouverte |
+| POST                | `/admin/versions/{version}/review`                      | `apps.moderate`    | E      | N’approuve plus une version hors dossier                                                                                                                                |
+| PUT                 | `/apps/{id}` (`trust_score`, `is_featured`)             | `catalog.manage`   | E\*    | `is_featured` à rendre modifiable                                                                                                                                       |
+| POST / PUT / DELETE | `/categories`, `/categories/{id}`                       | `catalog.manage`   | E\*    | Refuser la suppression d'une catégorie utilisée (D7)                                                                                                                    |
+| CRUD                | `/admin/collections`, `/admin/collections/{collection}` | `catalog.manage`   | E      |                                                                                                                                                                         |
+| GET                 | `/admin/reports`                                        | `reports.handle`   | E      |                                                                                                                                                                         |
+| GET                 | `/admin/reviews`                                        | `reviews.moderate` | E      | `status?, reported?, search?` ; avis avec nombre de signalements ouverts                                                                                                |
+| POST                | `/admin/external-resources/{resource}/review`           | `apps.moderate`    | E      | Statut d’examen d’une ressource externe et observation (interne ou visible du développeur)                                                                              |
+| POST                | `/admin/reports/{report}/resolve`                       | `reports.handle`   | E      | `decision, reason`                                                                                                                                                      |
+| POST                | `/admin/reviews/{review}/moderate`                      | `reviews.moderate` | E      | `status: visible\|hidden, reason`                                                                                                                                       |
+| GET                 | `/admin/audit-logs`                                     | `audit.view`       | E      | Filtres acteur, action, période                                                                                                                                         |
+| GET                 | `/admin/countries/summary`                              | `audit.view`       | E      |                                                                                                                                                                         |
+| GET / PUT           | `/admin/settings`                                       | `settings.manage`  | E      | Quotas, devise, montant de contribution (paiements toujours désactivés)                                                                                                 |
+| DELETE              | `/apps/{id}`                                            | —                  | E\*    | Suppression définitive : remplacée par l'archivage (D10)                                                                                                                |
 
 ## 8. Compatibilité
 
@@ -188,3 +191,19 @@ Performance et accessibilité nécessitent un navigateur headless (Lighthouse). 
 | GET / PUT | `/apps/{application}/review-access`                      | Développeur : accès pour la vérification `{mode: open\|restricted, instructions, username, password, other}` (chiffré, jamais dans les réponses de l’application)                                                         |
 | POST      | `/admin/publication-requests/{id}/review-access`         | Modérateur : affiche les identifiants de test ; chaque consultation est journalisée                                                                                                                                       |
 | PUT       | `/apps/{id}`                                             | Ajoute `contains_ads` (booléen) et `content_rating[violence\|sexual\|language\|drugs\|gambling\|fear\|users_interact\|shares_location\|digital_purchases\|packaged]` ; l’âge est calculé par le serveur                   |
+
+## Ajouts — revue de sécurité (lots 1 et 2), pages développeur et mesure
+
+| Méthode | Route                                              | Auth | Notes                                                                                                                                                                                                                                                                           |
+| ------- | -------------------------------------------------- | ---- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| GET     | `/developer/requests`                              | D    | Page « Suivi des validations » : dernière demande de chaque application du développeur et son statut                                                                                                                                                                            |
+| POST    | `/apps/{application}/install-signals/check`        | D    | « Vérifier mon site » : lit la page de la PWA (client anti-SSRF) et vérifie que la ligne de mesure y figure avec la bonne clé et la bonne adresse de PWA Store (`connected`, `missing`, `wrong_key`, `wrong_host`, `unreachable`), et signale une CSP qui la bloquerait ; 6/min |
+| POST    | `/apps/{application}/restore`                      | D    | Réactive en brouillon une application archivée                                                                                                                                                                                                                                  |
+| POST    | `/apps/{application}/activate`                     | U    | Ouverture depuis le Store : renvoie l’adresse de lancement ; comptée une fois par compte et par application (empreinte à clé), ni l’éditeur ni les modérateurs ; 30/min                                                                                                         |
+| POST    | `/apps/{id}/extract`                               | D    | Ancienne route de déploiement : seule une version approuvée par une demande peut être mise en ligne                                                                                                                                                                             |
+| GET     | `/versions/{version}/external-resources`           | D/A  | Rapport des ressources externes détectées ; les observations internes ne sont visibles que des modérateurs                                                                                                                                                                      |
+| POST    | `/versions/{version}/external-resources/reanalyze` | D/A  | Relance la détection sur le build                                                                                                                                                                                                                                               |
+| POST    | `/apps/{application}/submit`                       | D    | Une app **suspendue** peut demander un réexamen sans modification                                                                                                                                                                                                               |
+| POST    | `/admin/publication-requests/{id}/decide`          | A    | Approuver la demande d’une app suspendue exige `lift_suspension: true` (journalisé) ; la réponse ne dit « en ligne » que si l’app l’est réellement                                                                                                                              |
+
+Champs internes (motif de modération, score de confiance, rapport de contrôle, clé de mesure) : masqués par défaut dans toutes les réponses, révélés au seul développeur propriétaire et aux modérateurs. Les intentions d’installation (`/install-intents/{token}`) ne renvoient que des champs publics.

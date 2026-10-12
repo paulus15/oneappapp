@@ -1,6 +1,8 @@
 export default {
   store: {
-    nav: { primary: 'Navigation principale' },
+    nav: {
+      primary: 'Navigation principale'
+    },
     hero: {
       eyebrow: 'La plateforme universelle',
       line1: 'Une seule installation.',
@@ -84,9 +86,15 @@ export default {
       seeAll: 'Voir tout',
       seeAllOf: 'Voir tout : {title}'
     },
-    card: { iconAlt: 'Icône de {name}' },
-    featured: { cta: 'Découvrir' },
-    empty: { default: 'Aucune application pour le moment.' },
+    card: {
+      iconAlt: 'Icône de {name}'
+    },
+    featured: {
+      cta: 'Découvrir'
+    },
+    empty: {
+      default: 'Aucune application pour le moment.'
+    },
     categories: {
       eyebrow: 'Catalogue',
       title: 'Catégories',
@@ -159,6 +167,11 @@ export default {
       reviews: '({n} avis) | ({n} avis) | ({n} avis)'
     },
     details: {
+      loginToActivate: 'Se connecter pour activer',
+      activate: 'Activer l’application',
+      activationCount: '{n} activation | {n} activations',
+      activationHelp:
+        'Une activation est comptée une seule fois par compte et par application. Elle ne confirme pas l’installation sur l’appareil.',
       noAds: 'Aucune annonce',
       back: 'Retour au Store',
       backToStore: 'Retour au Store',
@@ -199,7 +212,6 @@ export default {
       noDataCollected: 'Aucune donnée collectée',
       install: 'Installation',
       version: 'Version {version}',
-      openToInstall: 'Ouvrir pour installer',
       declareInstalled: 'Déclarer cette PWA installée',
       installNote:
         'Installation proposée par votre navigateur, selon sa compatibilité.',
@@ -268,6 +280,7 @@ export default {
       'Le catalogue affiché dépend de ce pays. Vous pouvez le changer une fois tous les 30 jours.',
     visitor: {
       change: 'Choisir mon pays',
+      current: 'Pays : {code}. Changer de pays',
       short: 'Pays',
       title: 'Votre pays',
       help: 'Les applications proposées dépendent du pays. Sans choix, seules les applications disponibles dans tous les pays sont affichées.',
@@ -303,7 +316,23 @@ export default {
     recommended: 'Recommandés',
     trending: 'Tendances',
     categories: 'Catégories',
-    business: 'Entreprises'
+    business: 'Entreprises',
+    developerSpaceHint: 'Gérez vos applications'
+  },
+  portal: {
+    howToPublish: 'Comment publier',
+    prepareStep:
+      'Fiche, captures, puis adresse HTTPS de votre PWA. La validation de votre profil est obligatoire avant toute création.'
+  },
+  library: {
+    downloadNotInstalled:
+      'Un fichier téléchargé n’est pas forcément une application installée.'
+  },
+  installHelp: {
+    declared:
+      'Installations déclarées : l’utilisateur a appuyé sur « Déclarer cette PWA installée » sur la fiche. Rien ne le vérifie.',
+    confirmed:
+      'Installations confirmées : signal envoyé par le script de mesure ajouté à votre PWA, lors d’une installation réelle depuis l’écran d’accueil.'
   },
   common: {
     cancel: 'Annuler',
@@ -333,27 +362,12 @@ export default {
     reinstate: 'Rétablir'
   },
   publication: {
-    eyebrow: 'Publication et versions',
-    fallbackName: 'Votre application',
-    intro:
-      'Préparation, analyse, revue et publication sont des étapes distinctes.',
-    editListing: 'Modifier la fiche / déposer un build',
-    profileAndQuotas: 'Mon profil et mes quotas',
+    history: {
+      title: 'Historique de publication',
+      automatic: 'Action automatique'
+    },
     journey: {
-      title: 'Parcours de publication',
-      help: 'Comment ça marche ?',
-      listing: 'Compléter la fiche',
-      editListing: 'Modifier la fiche',
-      checkUrl: 'Vérifier l’URL de la PWA',
-      uploadBuild: 'Déposer un build analysé',
-      preview: 'Prévisualiser la fiche',
-      previewHint:
-        'Ouvrez l’aperçu pour voir la fiche comme les visiteurs. L’étape se coche ensuite.',
-      previewAgain:
-        'La fiche a changé depuis votre dernier aperçu : regardez-la de nouveau.',
-      previewAction: 'Aperçu',
-      submit: 'Soumettre à la revue',
-      submitAction: 'Soumettre'
+      help: 'Comment ça marche ?'
     },
     helpDialog: {
       title: 'Comment publier mon application ?',
@@ -401,36 +415,16 @@ export default {
         'Une question ? Le centre d’aide et le formulaire de contact sont accessibles en bas de chaque page.'
     },
     source: {
-      title: 'Mode de distribution',
-      build: 'Build ZIP hébergé',
-      url: 'PWA hébergée sur mon site',
       hostingPending:
         'L’hébergement des builds n’est pas encore activé sur cette plateforme. Vous pouvez déposer et faire analyser vos builds, mais leur mise en ligne attend la configuration d’un domaine isolé. Pour publier dès maintenant, choisissez le référencement par URL.',
-      urlLabel: 'Adresse HTTPS de la PWA',
       save: 'Enregistrer le mode',
       saved: 'Mode de distribution enregistré.',
-      checkUrl: 'Contrôler l’URL',
       checkOk: 'Contrôle de l’URL réussi.',
-      lastCheck: 'Dernier contrôle : {date}',
-      history: 'Historique des contrôles',
-      scheduled: 'contrôle automatique',
-      manual: 'contrôle manuel',
       manifestFound: 'Manifeste trouvé',
-      manifestMissing: 'Manifeste absent',
-      contentChanged: ' · contenu modifié',
-      buildHint:
-        'Déposez un build depuis l’édition de la fiche. Aucun script de compilation n’est exécuté sur le serveur.'
+      manifestMissing: 'Manifeste absent'
     },
     submission: {
-      title: 'Soumission et modération',
-      intro:
-        'Un profil vérifié permet de soumettre une application. Chaque application et chaque build sont ensuite examinés séparément.',
-      submit: 'Soumettre à la revue',
-      submitted: 'Application soumise à revue.',
       publish: 'Publier dans le Store',
-      publishTitle: 'Publier dans le Store ?',
-      publishMessage:
-        'L’application sera visible par tous les visiteurs. Pour un build, la dernière version approuvée est mise en ligne sur sa propre adresse.',
       published: 'Application publiée.',
       restore: 'Réactiver en brouillon',
       restored: 'Application réactivée en brouillon.',
@@ -439,70 +433,28 @@ export default {
       archiveMessage:
         'Elle sera retirée du Store. Ses fichiers et son historique sont conservés et vous pourrez la réactiver en brouillon.',
       archived: 'Application archivée.',
-      approvedHint:
-        'L’application est approuvée mais pas encore visible : publiez-la quand vous êtes prêt.',
       completeProfile: 'Compléter mon profil développeur'
     },
-    history: {
-      title: 'Historique de publication',
-      empty: 'Aucun changement d’état enregistré.',
-      automatic: 'Contrôle automatique',
-      version: 'Version {status}'
-    },
     preview: {
-      eyebrow: 'Aperçu de la fiche publique',
-      iconAlt: 'Icône de {name}',
       noCategory: 'Sans catégorie',
-      noDescription: 'Aucune description.',
-      screenshot: 'Capture {n}',
-      noScreenshots: 'Aucune capture d’écran.',
-      reviewsLater: 'Les notes et avis apparaîtront après publication.'
+      noDescription: 'Aucune description.'
     },
     versions: {
-      title: 'Versions',
       empty: 'Aucun build déposé.',
       version: 'Version {number}',
-      analysis: 'Analyse : {status}',
-      review: 'Revue : {status}',
-      active: 'Version active',
       quarantineHint:
         'Fonctions sensibles détectées, souvent présentes dans les bibliothèques (Quasar, SweetAlert…). Vous pouvez soumettre : un administrateur les examinera avant toute approbation.',
-      approve: 'Approuver la version',
-      reject: 'Refuser la version',
-      redeploy: 'Redéployer',
       deploy: 'Publier cette version',
       deployTitle: 'Publier cette version ?',
       deployMessage:
         'Cette version approuvée remplacera la version actuellement servie. Les autres builds seront conservés.',
       deployed: 'Version publiée.',
-      quarantineTitle: 'Lever la quarantaine et approuver ?',
-      quarantineMessage:
-        'J’ai examiné ces fonctions sensibles et les juge légitimes. Motif :',
-      quarantineCleared: 'Quarantaine levée, version approuvée.',
       scan: {
         passed: 'Analyse réussie',
         pending: 'À analyser',
         rejected: 'Rejetée',
         quarantined: 'À examiner'
-      },
-      moderation: {
-        pending: 'En attente de revue',
-        approved: 'Approuvée',
-        rejected: 'Refusée'
       }
-    },
-    moderation: {
-      title: 'Décision de modération',
-      message: 'Indiquez le motif de votre décision.',
-      saved: 'Décision enregistrée.'
-    },
-    stats: {
-      title: 'Statistiques disponibles',
-      installations: '{n} installation(s) enregistrée(s)',
-      launches: 'Ouvertures déclarées : {n}',
-      crashes: '{n} crash(es) déclaré(s)',
-      ratio: 'Ratio : {n}',
-      note: 'Totaux issus des événements reçus. L’absence de données ne prouve pas l’absence d’usage ou d’erreur.'
     }
   },
   console: {
@@ -510,6 +462,16 @@ export default {
     newVersion: 'Nouvelle version'
   },
   sdk: {
+    collection: {
+      unchecked: 'Script non vérifié',
+      waiting: 'Script détecté · en attente de données',
+      received: 'Données reçues',
+      blocked: 'Script détecté · blocage de sécurité à vérifier',
+      noData:
+        'Aucune donnée reçue. Cela ne signifie pas qu’aucun utilisateur n’utilise votre application.',
+      period:
+        'Cumuls depuis le début de la collecte, sans données rétroactives.'
+    },
     recapUnchecked:
       'Script de mesure des installations : pas encore vérifié (facultatif)',
     recapAction: 'Vérifier',
@@ -518,7 +480,7 @@ export default {
       at: 'Dernière vérification : {date}',
       csp: 'La politique de sécurité de votre site bloque le script ({directives}). Ajoutez {host} à ces directives.',
       status: {
-        connected: 'Script connecté à votre PWA',
+        connected: 'Script détecté sur votre PWA',
         missing: 'Script introuvable sur votre site',
         wrong_key: 'Script présent, mais avec la clé d’une autre application',
         wrong_host:
@@ -670,7 +632,11 @@ export default {
           mild: 'Légère ou dessinée',
           strong: 'Réaliste ou intense'
         },
-        sexual: { none: 'Non', suggestive: 'Suggestif', explicit: 'Explicite' },
+        sexual: {
+          none: 'Non',
+          suggestive: 'Suggestif',
+          explicit: 'Explicite'
+        },
         language: {
           none: 'Non',
           mild: 'Occasionnel',
@@ -686,7 +652,11 @@ export default {
           simulated: 'Simulés (sans argent réel)',
           real_money: 'Avec de l’argent réel'
         },
-        fear: { none: 'Non', mild: 'Légers', strong: 'Intenses' }
+        fear: {
+          none: 'Non',
+          mild: 'Légers',
+          strong: 'Intenses'
+        }
       },
       descriptor: {
         violence: 'Violence',
@@ -820,7 +790,7 @@ export default {
       content_rating: 'Classification du contenu',
       review_access: 'Accès pour la vérification',
       cover: 'Image de couverture',
-      availability: 'Disponibilit\u00e9 g\u00e9ographique',
+      availability: 'Disponibilité géographique',
       name: 'Nom de l’application',
       shortDescription: 'Description courte',
       description: 'Description complète',
@@ -843,7 +813,6 @@ export default {
       description:
         'Au moins 30 caractères : à quoi sert l’application, pour qui, ses points forts.',
       languages: 'Les langues dans lesquelles on peut utiliser l’application.',
-      countries: 'Laissez vide pour la rendre disponible dans tous les pays.',
       officialUrl:
         'L’adresse officielle de votre PWA ou de son site de présentation.',
       contactEmail:
@@ -980,7 +949,10 @@ export default {
     emptyOpen: 'Aucune demande en attente. Tout est à jour.',
     emptyDecided: 'Aucune décision pour le moment.',
     waiting: 'En attente {time}',
-    kind: { initial: 'Première publication', update: 'Mise à jour' },
+    kind: {
+      initial: 'Première publication',
+      update: 'Mise à jour'
+    },
     status: {
       pending: 'En attente',
       in_review: 'En examen',

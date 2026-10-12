@@ -105,3 +105,37 @@ const count = computed(() =>
   }
 }
 </style>
+
+<style scoped>
+@media (max-width: 599px) {
+  .category-tile {
+    gap: 8px;
+    padding: 12px 10px;
+    align-items: flex-start;
+  }
+  .tile-icon {
+    width: 30px;
+    height: 30px;
+    border-radius: 9px;
+  }
+  .tile-icon .q-icon {
+    font-size: 19px;
+  }
+  .tile-copy strong {
+    font-size: 12px;
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+  .tile-copy small {
+    font-size: 11px;
+  }
+  .tile-arrow {
+    display: none;
+  }
+}
+@media (hover: none) {
+  .category-tile:active {
+    background: var(--surface-high);
+  }
+}
+</style>

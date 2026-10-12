@@ -19,6 +19,10 @@
           :label="copied ? t('sdk.copied') : t('sdk.copy')"
           @click="copy"
         />
+        <!-- Screen readers hear the confirmation; the button label alone is not announced. -->
+        <span class="sr-only" aria-live="polite">{{
+          copied ? t('sdk.copied') : ''
+        }}</span>
       </div>
       <p class="text-caption text-muted">{{
         t('sdk.origins', { origins: info.origins.join(', ') || '—' })
@@ -67,26 +71,26 @@
           }}</p>
         </template>
       </div>
-      <div class="sdk-status" :class="{ ok: info.last_signal_at }">
-        <q-icon
-          :name="info.last_signal_at ? 'check_circle' : 'hourglass_empty'"
-          :color="info.last_signal_at ? 'positive' : 'grey-6'"
-          size="22px"
-        />
-        <span>{{
-          info.last_signal_at
-            ? t('sdk.received', { date: formatDate(info.last_signal_at) })
-            : t(published ? 'sdk.waiting' : 'sdk.afterPublication')
-        }}</span>
-      </div>
+      <SdkSignalStatus :info="info" :published="published" />
+      <p v-if="info.last_signal_at" class="text-caption text-muted">{{
+        t('sdk.collection.period')
+      }}</p>
       <dl class="sdk-counts">
         <div>
-          <dt>{{ t('sdk.installs') }}</dt>
-          <dd>{{ info.confirmed_installs.toLocaleString(locale) }}</dd>
+          <dt>{{ t('sdk.installs') }}<InstallCountHelp kind="confirmed" /></dt>
+          <dd>{{
+            info.last_signal_at
+              ? Number(info.confirmed_installs || 0).toLocaleString(locale)
+              : '—'
+          }}</dd>
         </div>
         <div>
           <dt>{{ t('sdk.launches') }}</dt>
-          <dd>{{ info.launches.toLocaleString(locale) }}</dd>
+          <dd>{{
+            info.last_signal_at
+              ? Number(info.launches || 0).toLocaleString(locale)
+              : '—'
+          }}</dd>
         </div>
       </dl>
       <p class="text-caption text-muted">{{ t('sdk.privacy') }}</p>
@@ -95,6 +99,8 @@
   </section>
 </template>
 <script setup>
+import SdkSignalStatus from '@/components/SdkSignalStatus.vue'
+import InstallCountHelp from '@/components/InstallCountHelp.vue'
 import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { accountApi, apiMessage } from '@/services/account'
@@ -158,6 +164,14 @@ onMounted(async () => {
 })
 </script>
 <style scoped>
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
 .install-measure {
   margin-top: 16px;
   max-width: 820px;
