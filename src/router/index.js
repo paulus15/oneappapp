@@ -8,7 +8,7 @@ import {
 
 import routes from './routes.js'
 import { useAuthStore } from '@/stores/auth'
-import { resolveAccess } from './guards.js'
+import { isDeveloperArea, resolveAccess } from './guards.js'
 
 /*
  * If not building with SSR mode, you can
@@ -41,10 +41,7 @@ export default defineRouter((/* { store, ssrContext } */) => {
       ? window.matchMedia('(max-width: 767px)')
       : null
   mobileView?.addEventListener('change', event => {
-    if (
-      event.matches &&
-      Router.currentRoute.value.path.startsWith('/developer')
-    )
+    if (event.matches && isDeveloperArea(Router.currentRoute.value.path))
       Router.replace('/account')
   })
   Router.beforeEach(async to => {

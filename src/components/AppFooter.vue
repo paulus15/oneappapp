@@ -1,6 +1,6 @@
 <template>
   <footer class="app-footer">
-    <div class="brand">
+    <div class="footer-brand">
       <router-link to="/" aria-label="PWA Store, accueil"
         ><BrandLogo
       /></router-link>
@@ -69,7 +69,13 @@ const groups = [
   color: var(--muted);
   border-top: 1px solid var(--outline);
 }
-.brand p {
+.footer-brand {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+}
+.footer-brand p {
   max-width: 320px;
   margin: 10px 0 0;
   font-size: 12px;
@@ -106,7 +112,7 @@ a:focus-visible {
   .app-footer {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
-  .brand {
+  .footer-brand {
     grid-column: 1 / -1;
   }
 }

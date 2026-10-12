@@ -9,21 +9,21 @@ Un lot n'est ✅ que si ses critères d'acceptation sont vérifiés côté Larav
 
 ## Vue d'ensemble
 
-| Lot | Thème                                    | Priorité | Dépend de         | Statut                             |
-| --- | ---------------------------------------- | -------- | ----------------- | ---------------------------------- |
-| 0   | Correctifs de sécurité et socle de tests | P0       | —                 | ✅                                 |
-| 1   | Authentification et compte unique        | P0       | 0                 | ✅                                 |
-| 2   | Activation et vérification développeur   | P1       | 1                 | ✅ (notifications au Lot 10)       |
-| 3   | Catalogue, accueil et fiches             | P1       | 0                 | ✅                                 |
-| 4   | Soumission par URL                       | P1       | 2                 | ✅                                 |
-| 5   | Builds et hébergement isolé              | P1       | 2, décision infra | 🟦 (domaine à fournir)             |
-| 6   | Administration, modération, statuts      | P0       | 1, 2              | ✅                                 |
-| 7   | Espace utilisateur, avis, signalements   | P1       | 3, 6              | ✅                                 |
-| 8   | Portail développeur et statistiques      | P2       | 6, 7              | ✅                                 |
-| 9   | PWA Lab et surveillance                  | P2       | 4                 | ✅ (Lighthouse en attente d’infra) |
-| 10  | Notifications, quotas, facturation       | P2       | 6                 | ✅ (facturation reportée)          |
-| 11  | Motion design, performance, responsive   | P2       | 3                 | ⬜                                 |
-| 12  | Tests finaux, sécurité, déploiement      | P0       | tous              | ⬜                                 |
+| Lot | Thème                                    | Priorité | Dépend de         | Statut                                       |
+| --- | ---------------------------------------- | -------- | ----------------- | -------------------------------------------- |
+| 0   | Correctifs de sécurité et socle de tests | P0       | —                 | ✅                                           |
+| 1   | Authentification et compte unique        | P0       | 0                 | ✅                                           |
+| 2   | Activation et vérification développeur   | P1       | 1                 | ✅ (notifications au Lot 10)                 |
+| 3   | Catalogue, accueil et fiches             | P1       | 0                 | ✅                                           |
+| 4   | Soumission par URL                       | P1       | 2                 | ✅                                           |
+| 5   | Builds et hébergement isolé              | P1       | 2, décision infra | 🟦 (domaine à fournir)                       |
+| 6   | Administration, modération, statuts      | P0       | 1, 2              | ✅                                           |
+| 7   | Espace utilisateur, avis, signalements   | P1       | 3, 6              | ✅                                           |
+| 8   | Portail développeur et statistiques      | P2       | 6, 7              | ✅                                           |
+| 9   | PWA Lab et surveillance                  | P2       | 4                 | ✅ (Lighthouse en attente d’infra)           |
+| 10  | Notifications, quotas, facturation       | P2       | 6                 | ✅ (facturation reportée)                    |
+| 11  | Motion design, performance, responsive   | P2       | 3                 | ✅ (LCP et découpage d’EditAppPage restants) |
+| 12  | Tests finaux, sécurité, déploiement      | P0       | tous              | ⬜                                           |
 
 Ordre d'exécution proposé : **0 → 1 → 6 → 2 → 3 → 4 → 7 → 8 → 10 → 9 → 5 → 11 → 12**.
 Raisons : la machine à états et les permissions (Lot 6) conditionnent la visibilité, les avis, les statistiques et les notifications. Le Lot 5 dépend d'une décision d'infrastructure. Le motion design vient sur des écrans stabilisés.
@@ -194,13 +194,13 @@ Déjà livré : upload, analyse ZIP, versions, modération, déploiement, rollba
 
 ## Lot 11 — Motion design, performance, responsive (P2)
 
-| Fonctionnalité                                                                                    | Statut       |
-| ------------------------------------------------------------------------------------------------- | ------------ |
-| Inter et Inter Tight auto-hébergées                                                               | ⬜           |
-| Hero immersif, apparitions au scroll (GSAP ScrollTrigger), cartes flottantes, transitions de page | ⬜           |
-| Skeletons et états vides animés                                                                   | ⬜ (partiel) |
-| Découpage de `StoreCatalogPage` et `EditAppPage`                                                  | ⬜           |
-| Budget de performance (LCP < 2,5 s en 4G simulée, bundle initial maîtrisé)                        | ⬜           |
+| Fonctionnalité                                                                                                                            | Statut |
+| ----------------------------------------------------------------------------------------------------------------------------------------- | ------ |
+| Inter et Inter Tight auto-hébergées (polices variables, sous-ensembles latins seuls en précache)                                          | ✅     |
+| Hero et apparitions au défilement (GSAP + ScrollTrigger chargés à la demande, existant étendu), transitions de page, survol des cartes    | ✅     |
+| Skeletons et états vides (grilles d’applications, listes)                                                                                 | ✅     |
+| Découpage : `StoreCatalogPage` allégée (AppCard, AppGrid, AppFooter extraits) ; `EditAppPage` non découpée                                | 🟦     |
+| Budget de performance : bundle initial mesuré (≈154 Ko JS principal, GSAP hors chemin critique) ; LCP non mesuré faute d’outil Lighthouse | 🟦     |
 
 **Critères d'acceptation** : `prefers-reduced-motion` désactive toutes les animations non essentielles ; navigation complète au clavier ; aucune régression aux 3 largeurs de référence.
 
@@ -247,3 +247,4 @@ Aucun déploiement public sans validation explicite.
 | 2026-10-12 | 10   | Notifications in-app (synchrones) et e-mail (file d’attente) pour bienvenue, activation, vérification, décisions d’application et de version, indisponibilité, avis, signalements, suspension, mot de passe, quota ; préférences respectées sauf sécurité ; anti-doublon 10 min ; résumé quotidien des avis ; cloche et page Notifications ; paramètres admin (quotas, contribution, devise) audités, paiements toujours désactivés. Faux indicateur de notification (pastille rouge permanente) retiré                                | `php artisan test` 104/104 ; `npm run test:unit` 19/19 ; oxlint/oxfmt propres ; build PWA OK ; 4 routes → 200 sur `oneapp.test` ; 5 tâches planifiées listées                                                                                             |
 | 2026-10-12 | 9    | PWA Lab : analyse statique d’une URL via le client anti-SSRF (accès, métadonnées, manifeste, icônes, mode d’affichage, service worker détectable, viewport, langue, textes alternatifs, poids HTML, temps de réponse), score technique et verdict d’installation avec leurs limites, historique par développeur ; correctif PHP 8.5 (`curl_close` déprécié)                                                                                                                                                                            | `php artisan test` 107/107 ; build PWA OK ; analyse réelle de https://squoosh.app/ : 95/100, installable, résultats cohérents                                                                                                                             |
 | 2026-10-12 | 5    | `GET /platform` (hébergement des builds disponible ou non), avertissement sur la page de publication, tests d’archives malveillantes, guide d’hébergement sur origines isolées (DNS, certificat générique DNS-01, nginx, variables, vérifications)                                                                                                                                                                                                                                                                                     | `php artisan test` 112/112 ; `npm run test:unit` 19/19 ; build PWA OK ; `GET /platform` → `build_hosting: false` en local (domaine non configuré)                                                                                                         |
+| 2026-10-12 | 11   | Polices Inter / Inter Tight auto-hébergées, titres en Inter Tight, précache limité aux sous-ensembles latins (580 Ko → 4 fichiers), transitions de page avec mouvement réduit respecté, apparitions au défilement sur le portail, corrections visuelles (pied de page, carte développeur, graisse des titres) ; bug corrigé : `/developers` redirigeait vers la connexion sur mobile (préfixe `/developer`)                                                                                                                            | `npm run test:unit` 20/20 ; build PWA OK ; rendu réel contrôlé dans Chrome via le protocole DevTools à 390 et 1440 px (accueil, portail, À propos, connexion) : aucun débordement horizontal, contenu visible en mouvement réduit                         |

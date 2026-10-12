@@ -310,14 +310,15 @@
               >Vous développez des applications ? Devenez développeur sur PWA
               Store.</p
             >
-            <q-btn
-              unelevated
-              no-caps
-              v-if="!isMobile"
-              label="Devenir développeur"
-              to="/developer/activate"
-            />
-            <q-btn flat no-caps label="En savoir plus" to="/developers" />
+            <div class="developer-actions">
+              <q-btn
+                unelevated
+                no-caps
+                label="Devenir développeur"
+                to="/developer/activate"
+              />
+              <q-btn flat no-caps label="En savoir plus" to="/developers" />
+            </div>
           </section>
 
           <section id="trending" class="glass-panel side-card trending-card">
@@ -760,6 +761,7 @@ const categories = [
 .section-heading h2 {
   margin: 0;
   font-size: 18px;
+  font-weight: 750;
   line-height: 1.2;
   letter-spacing: -0.02em;
 }
@@ -1044,7 +1046,8 @@ const categories = [
 }
 .side-card h2 {
   margin: 0;
-  font-size: 12px;
+  font-size: 13px;
+  font-weight: 750;
 }
 .category-row {
   display: flex;
@@ -1082,7 +1085,8 @@ const categories = [
 .developer-card h2 {
   position: relative;
   margin: 0 0 4px;
-  font-size: 14px;
+  font-size: 15px;
+  font-weight: 750;
 }
 .developer-card p {
   position: relative;
@@ -1091,6 +1095,12 @@ const categories = [
   color: var(--muted);
   font-size: 10px;
   line-height: 1.45;
+}
+.developer-actions {
+  position: relative;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
 }
 .developer-card .q-btn {
   position: relative;

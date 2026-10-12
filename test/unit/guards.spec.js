@@ -66,4 +66,10 @@ describe('resolveAccess', () => {
     expect(resolveAccess(page, moderator)).toBe('/admin')
     expect(resolveAccess(page, manager)).toBe(true)
   })
+
+  it('keeps the public developer portal page reachable on mobile', () => {
+    expect(resolveAccess(route('/developers'), guest, { isMobile: true })).toBe(
+      true
+    )
+  })
 })

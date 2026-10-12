@@ -5,8 +5,10 @@ export function usePageMotion(root) {
   let observer
   let context
   let disposed = false
+  // Accepts an element or a component (e.g. a q-page ref).
+  const el = () => root.value?.$el ?? root.value
   onMounted(async () => {
-    const hero = root.value?.querySelector('.hero-panel')
+    const hero = el()?.querySelector('.hero-panel')
     if (hero) {
       observer = new IntersectionObserver(([entry]) =>
         hero.classList.toggle('motion-paused', !entry.isIntersecting)
@@ -19,7 +21,7 @@ export function usePageMotion(root) {
         import('gsap'),
         import('gsap/ScrollTrigger')
       ])
-      if (disposed || !root.value) return
+      if (disposed || !el()) return
       gsap.registerPlugin(ScrollTrigger)
       context = gsap.context(() => {
         gsap.from('.hero-copy > *', {
@@ -30,15 +32,17 @@ export function usePageMotion(root) {
           ease: 'power2.out',
           clearProps: 'all'
         })
-        root.value.querySelectorAll('[data-reveal]').forEach(section => {
-          gsap.from(section, {
-            y: 20,
-            autoAlpha: 0,
-            duration: 0.55,
-            clearProps: 'all',
-            scrollTrigger: { trigger: section, start: 'top 94%', once: true }
+        el()
+          .querySelectorAll('[data-reveal]')
+          .forEach(section => {
+            gsap.from(section, {
+              y: 20,
+              autoAlpha: 0,
+              duration: 0.55,
+              clearProps: 'all',
+              scrollTrigger: { trigger: section, start: 'top 94%', once: true }
+            })
           })
-        })
         if (
           window.matchMedia('(min-width: 1024px) and (pointer: fine)').matches
         ) {
@@ -53,7 +57,7 @@ export function usePageMotion(root) {
             }
           })
         }
-      }, root.value)
+      }, el())
     } catch {
       // Progressive enhancement: navigation and content never depend on motion.
     }
