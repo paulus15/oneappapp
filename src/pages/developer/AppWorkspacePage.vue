@@ -511,8 +511,14 @@
               <q-option-group
                 v-model="source.source_type"
                 :options="[
-                  { label: t('newApp.source.build'), value: 'build' },
-                  { label: t('newApp.source.url'), value: 'url' }
+                  { label: t('newApp.source.url'), value: 'url' },
+                  {
+                    label: zipAllowed
+                      ? t('newApp.source.build')
+                      : `${t('newApp.source.build')} — ${t('newApp.zipUnavailable')}`,
+                    value: 'build',
+                    disable: !zipAllowed
+                  }
                 ]"
                 type="radio"
                 inline
@@ -604,6 +610,11 @@
               </q-item>
             </q-list>
           </section>
+          <InstallMeasure
+            v-if="app.source_type === 'url'"
+            :app-id="app.id"
+            :published="app.status === 'published'"
+          />
 
           <section v-else class="version-build">
             <h3>{{ t('workspace.build.newVersion') }}</h3>
@@ -956,6 +967,7 @@ import AppIcon from '@/components/AppIcon.vue'
 import HostingBadge from '@/components/HostingBadge.vue'
 import BuildUploader from '@/components/BuildUploader.vue'
 import CoverUploader from '@/components/CoverUploader.vue'
+import InstallMeasure from '@/components/InstallMeasure.vue'
 import CountrySelect from '@/components/CountrySelect.vue'
 import ExternalResourcesReport from '@/components/ExternalResourcesReport.vue'
 
@@ -1124,6 +1136,10 @@ const hasPendingChanges = computed(
 )
 const changedFields = computed(() =>
   Object.keys(app.value?.pending_changes || {}).filter(f => f !== 'category')
+)
+// An app already in ZIP mode keeps it; otherwise ZIP depends on the platform switch.
+const zipAllowed = computed(
+  () => app.value?.source_type === 'build' || !!platform.value?.build_uploads
 )
 const sourceEditable = computed(
   () => EDITABLE.includes(app.value?.status) && !locked.value

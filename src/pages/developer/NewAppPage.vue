@@ -73,6 +73,7 @@ import { computed, onMounted, reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import HostingBadge from '@/components/HostingBadge.vue'
+import { usePlatform } from '@/composables/usePlatform'
 import { catalogApi } from '@/services/catalog'
 import { accountApi, apiMessage } from '@/services/account'
 
@@ -82,16 +83,25 @@ const { t } = useI18n()
 const form = reactive({
   name: '',
   category_id: null,
-  source_type: 'build',
+  source_type: 'url',
   external_url: ''
 })
 const categories = ref([]),
   loadingCategories = ref(true),
   busy = ref(false),
   error = ref('')
+const { platform } = usePlatform()
+// ZIP uploads are switched off on the platform: the option stays visible, disabled, with the reason.
+const zipEnabled = computed(() => !!platform.value?.build_uploads)
 const sourceOptions = computed(() => [
-  { label: t('newApp.source.build'), value: 'build' },
-  { label: t('newApp.source.url'), value: 'url' }
+  { label: t('newApp.source.url'), value: 'url' },
+  {
+    label: zipEnabled.value
+      ? t('newApp.source.build')
+      : `${t('newApp.source.build')} — ${t('newApp.zipUnavailable')}`,
+    value: 'build',
+    disable: !zipEnabled.value
+  }
 ])
 
 // Technical identifier derived from the name; unique enough for a first draft.

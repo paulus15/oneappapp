@@ -110,9 +110,10 @@ export const pages = {
       {
         title: '3. Technique',
         list: [
-          'Informations requises avant toute soumission : catégorie, description courte, description d’au moins 30 caractères, icône carrée (192 × 192 pixels minimum), au moins une capture d’écran, au moins une langue, lien officiel de la PWA, e-mail de contact, politique de confidentialité et données collectées.',
+          'Informations requises avant toute soumission : image de couverture (16:9, au moins 1280 × 720 pixels), catégorie, description courte, description d’au moins 30 caractères, icône carrée (192 × 192 pixels minimum), au moins une capture d’écran, au moins une langue, lien officiel de la PWA, e-mail de contact, politique de confidentialité et données collectées.',
           'Référencement par URL : adresse HTTPS publique, contrôlée automatiquement au moment de la soumission puis surveillée régulièrement.',
           'Dépôt de build : fichiers de production uniquement (index.html à la racine, aucun fichier exécutable) ; aucun script n’est exécuté par PWA Store. Les ressources externes (polices, API, CDN…) sont détectées automatiquement par l’analyse et examinées par l’administration ; aucune déclaration manuelle n’est demandée.',
+          'Mesure des installations : l’éditeur peut ajouter à sa PWA le script fourni par PWA Store. Il signale uniquement l’installation et l’ouverture depuis l’écran d’accueil, avec un identifiant anonyme. Les signaux ne sont acceptés que depuis l’adresse déclarée de l’application ; toute tentative de gonfler les chiffres peut entraîner la suspension.',
           'Toute modification d’une application publiée (fiche, images ou nouvelle version) est examinée avant d’être visible. Pendant l’examen, l’application reste en ligne telle qu’elle a été approuvée.'
         ]
       },
@@ -206,6 +207,7 @@ export const pages = {
           'Sécurité : codes de confirmation (stockés sous forme d’empreinte), sessions actives, adresse IP des actions d’administration.',
           'Développeurs : informations de profil, pièce d’identité (type, date d’expiration et fichier privé).',
           'Usage : favoris, applications déclarées installées par appareil, avis, événements d’ouverture des applications.',
+          'Mesure des installations : pour les applications dont l’éditeur a ajouté le script de PWA Store, deux événements seulement (installation, ouverture depuis l’écran d’accueil) avec un identifiant anonyme de l’appareil, conservé sous forme d’empreinte. Rien de ce que vous faites dans l’application n’est collecté.',
           'Consultations des fiches d’applications : une seule fois par compte et par application, avec sa date. Pour les visiteurs non connectés, une empreinte chiffrée de l’adresse IP (jamais l’adresse elle-même) évite de compter plusieurs fois la même visite.'
         ]
       },

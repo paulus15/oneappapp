@@ -2,6 +2,11 @@
 
 Les entrées les plus récentes sont en haut. Détails techniques et vérifications : journal de [PWASTORE_ROADMAP.md](PWASTORE_ROADMAP.md#journal).
 
+## 2026-10-12 (fin) — Mesure des installations, dépôt ZIP désactivé
+
+- Mesure des installations pour les PWA hébergées par leurs éditeurs : une ligne à coller dans la PWA, signaux « installée » et « ouverte depuis l’écran d’accueil », acceptés seulement depuis l’adresse déclarée, une fois par appareil, avec limites anti-abus. Encart dans l’onglet Version.
+- Dépôt de fichiers ZIP désactivé (`PWA_BUILD_UPLOADS=false`) : création par lien ; l’option ZIP reste visible mais grisée ; les applications déjà en ZIP continuent de fonctionner.
+
 ## 2026-10-12 (suite) — Store « Découvrir », couvertures, pays, vues
 
 - Image de couverture obligatoire avant soumission : contrôlée sur son contenu, réencodée sans métadonnées en AVIF, WebP et JPEG (640, 1280, 1920 px), soumise à validation comme le reste de la fiche.

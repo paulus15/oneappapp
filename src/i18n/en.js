@@ -496,6 +496,27 @@ export default {
     open: 'Open',
     newVersion: 'New version'
   },
+  sdk: {
+    title: 'Install measurement',
+    intro:
+      'Add this line to your PWA so PWA Store can confirm installs and launches of your app. Without it, no install can be verified.',
+    step1: 'Copy the line below.',
+    step2: 'Paste it into your PWA’s index.html, just before </body>.',
+    step3:
+      'Put your site online: the first signal shows up here as soon as someone installs or opens the app.',
+    copy: 'Copy',
+    copied: 'Copied',
+    copyFailed: 'Copy failed: select the line and copy it by hand.',
+    origins: 'Signals are accepted only from: {origins}',
+    csp: 'If your site uses a Content Security Policy, allow {host} in script-src and connect-src.',
+    received: 'Signal received — latest on {date}',
+    waiting: 'No signal received yet.',
+    afterPublication: 'Signals are accepted once the app is published.',
+    installs: 'Confirmed installs',
+    launches: 'Launches from the home screen',
+    privacy:
+      'Only two events are measured (install, launch), with an anonymous device identifier. Nothing the user does inside the app is collected.'
+  },
   hosting: {
     build: {
       label: 'Hosted by PWA Store',
@@ -507,6 +528,7 @@ export default {
     }
   },
   newApp: {
+    zipUnavailable: 'not available for now',
     eyebrow: 'New app',
     title: 'Create an app',
     intro:

@@ -503,6 +503,30 @@ export default {
     open: 'Ouvrir',
     newVersion: 'Nouvelle version'
   },
+  sdk: {
+    title: 'Mesure des installations',
+    intro:
+      'Ajoutez cette ligne à votre PWA pour que PWA Store confirme les installations et les ouvertures de votre application. Sans elle, aucune installation ne peut être vérifiée.',
+    step1: 'Copiez la ligne ci-dessous.',
+    step2:
+      'Collez-la dans le fichier index.html de votre PWA, juste avant </body>.',
+    step3:
+      'Mettez votre site en ligne : le premier signal apparaît ici dès qu’un utilisateur installe ou ouvre l’application.',
+    copy: 'Copier',
+    copied: 'Copié',
+    copyFailed:
+      'Copie impossible : sélectionnez la ligne et copiez-la à la main.',
+    origins: 'Signaux acceptés uniquement depuis : {origins}',
+    csp: 'Si votre site utilise une politique de sécurité (CSP), autorisez {host} pour script-src et connect-src.',
+    received: 'Signal reçu — dernier le {date}',
+    waiting: 'Aucun signal reçu pour l’instant.',
+    afterPublication:
+      'Les signaux seront acceptés dès que l’application sera publiée.',
+    installs: 'Installations confirmées',
+    launches: 'Ouvertures depuis l’écran d’accueil',
+    privacy:
+      'Seuls deux événements sont mesurés (installation, ouverture), avec un identifiant anonyme de l’appareil. Rien de ce que l’utilisateur fait dans l’application n’est collecté.'
+  },
   hosting: {
     build: {
       label: 'Hébergée par PWA Store',
@@ -514,6 +538,7 @@ export default {
     }
   },
   newApp: {
+    zipUnavailable: 'indisponible pour le moment',
     eyebrow: 'Nouvelle application',
     title: 'Créer une application',
     intro:
