@@ -108,6 +108,8 @@ Date : 12 octobre 2026. Revue en **lecture seule** menée par cinq agents, chacu
 | M7  | La notification d’une mise à jour approuvée est envoyée après la mise en ligne, avec le bon message en cas d’échec                                                                                                |
 | M8  | Seules les icônes déposées sont acceptées ; limites de fréquence sur la création et la modification d’app                                                                                                         |
 
+**Lot 2 — corrigé le 12 octobre 2026** (test `MediaAndRetentionTest`, backend 162/162 sur SQLite et MySQL) : H5 (captures et icônes recodées sans métadonnées, tailles bornées), H6 (nettoyage quotidien des médias et dossiers d’hébergement), H7 (durées de conservation appliquées chaque jour et décrites dans la politique), H9 (empreinte d’IP propre à chaque application), M9 (8 captures max), M10 (cache long des images), M11 (mémoire et transparence de la couverture), M14 (anonymisation étendue), M15 (plafond journalier des signaux, obligation d’information de l’éditeur).
+
 ## 6. Plan de correction proposé
 
 1. **Lot sécurité / publication (immédiat)** : H1, H2, H3, H4, M1, M2, M3, M4, M5, M6, M7, M8.
