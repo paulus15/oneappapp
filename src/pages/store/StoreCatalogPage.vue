@@ -976,10 +976,19 @@ const features = [
     grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
   }
 }
+/* Phones: the phone mock-up does not fit beside the text; the promise and the action stay. */
+@media (max-width: 599px) {
+  .device-scene {
+    display: none;
+  }
+  .hero-panel {
+    min-height: 0;
+    padding: 22px 18px;
+  }
+}
 @media (max-width: 420px) {
   .hero-panel {
-    min-height: 360px;
-    padding: 16px 12px;
+    padding: 20px 16px;
   }
   .hero-copy h1 {
     font-size: 24px;

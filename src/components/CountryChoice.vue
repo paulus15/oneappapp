@@ -1,46 +1,48 @@
 <template>
   <!-- Visitors choose the country they browse from; it is never guessed. -->
-  <button
-    v-if="!authStore.isAuthenticated"
-    class="icon-action country-action"
-    type="button"
-    :aria-label="t('geo.visitor.change')"
-    :title="t('geo.visitor.change')"
-    @click="open = true"
-  >
-    <q-icon name="public" />
-    <span>{{ code || t('geo.visitor.short') }}</span>
-  </button>
-  <q-dialog v-model="open">
-    <q-card class="country-card">
-      <q-card-section>
-        <h2 class="country-title">{{ t('geo.visitor.title') }}</h2>
-        <p class="text-muted">{{ t('geo.visitor.help') }}</p>
-        <CountrySelect
-          v-model="selected"
-          value-field="code"
-          :label="t('geo.visitor.label')"
-        />
-      </q-card-section>
-      <q-card-actions align="right">
-        <q-btn
-          v-if="code"
-          flat
-          no-caps
-          :label="t('geo.visitor.clear')"
-          @click="apply(null)"
-        />
-        <q-btn
-          unelevated
-          no-caps
-          color="primary"
-          :label="t('geo.visitor.confirm')"
-          :disable="!selected"
-          @click="apply(selected)"
-        />
-      </q-card-actions>
-    </q-card>
-  </q-dialog>
+  <span class="country-choice">
+    <button
+      v-if="!authStore.isAuthenticated"
+      class="icon-action country-action"
+      type="button"
+      :aria-label="t('geo.visitor.change')"
+      :title="t('geo.visitor.change')"
+      @click="open = true"
+    >
+      <q-icon name="public" />
+      <span>{{ code || t('geo.visitor.short') }}</span>
+    </button>
+    <q-dialog v-model="open">
+      <q-card class="country-card">
+        <q-card-section>
+          <h2 class="country-title">{{ t('geo.visitor.title') }}</h2>
+          <p class="text-muted">{{ t('geo.visitor.help') }}</p>
+          <CountrySelect
+            v-model="selected"
+            value-field="code"
+            :label="t('geo.visitor.label')"
+          />
+        </q-card-section>
+        <q-card-actions align="right">
+          <q-btn
+            v-if="code"
+            flat
+            no-caps
+            :label="t('geo.visitor.clear')"
+            @click="apply(null)"
+          />
+          <q-btn
+            unelevated
+            no-caps
+            color="primary"
+            :label="t('geo.visitor.confirm')"
+            :disable="!selected"
+            @click="apply(selected)"
+          />
+        </q-card-actions>
+      </q-card>
+    </q-dialog>
+  </span>
 </template>
 <script setup>
 import { ref } from 'vue'

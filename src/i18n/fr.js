@@ -273,6 +273,8 @@ export default {
       confirm: 'Afficher le catalogue'
     },
     missing: {
+      short: 'Choisissez votre pays pour voir tout le catalogue.',
+      actionShort: 'Choisir',
       text: 'Indiquez votre pays pour voir toutes les applications disponibles chez vous.',
       action: 'Compléter mon profil'
     },

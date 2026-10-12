@@ -268,6 +268,8 @@ export default {
       confirm: 'Show the catalogue'
     },
     missing: {
+      short: 'Choose your country to see the full catalogue.',
+      actionShort: 'Choose',
       text: 'Add your country to see every app available where you live.',
       action: 'Complete my profile'
     },

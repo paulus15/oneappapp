@@ -472,6 +472,18 @@ function format(key, value) {
     return (value.data_collected || [])
       .map(d => t(`workspace.data.${d}`))
       .join(', ')
+  if (key === 'languages' && Array.isArray(value))
+    return value
+      .map(code => {
+        try {
+          return new Intl.DisplayNames([locale.value], { type: 'language' }).of(
+            code
+          )
+        } catch {
+          return code
+        }
+      })
+      .join(', ')
   if (key === 'availability')
     return t(value === 'selected' ? 'geo.selected' : 'geo.all')
   if (key === 'cover')

@@ -126,8 +126,8 @@ onMounted(load)
 </script>
 <style scoped>
 .library-heading {
-  font-size: 24px;
-  font-weight: 700;
+  font-size: var(--title-section);
+  font-weight: 650;
   line-height: 1.3;
   margin: 0 0 16px;
 }

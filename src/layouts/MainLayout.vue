@@ -36,7 +36,9 @@
             v-model="search"
             type="search"
             :placeholder="
-              ui('Rechercher une application, un jeu, une entreprise...')
+              $q.screen.lt.sm
+                ? ui('Rechercher')
+                : ui('Rechercher une application, un jeu, une entreprise...')
             "
             :aria-label="ui('Rechercher')"
             @focus="searchFocused = true"
@@ -148,7 +150,7 @@
             </q-menu>
           </button>
           <button
-            class="icon-action"
+            class="icon-action gt-xs"
             type="button"
             :aria-label="
               isDark
@@ -165,7 +167,7 @@
               />
             </transition>
           </button>
-          <CountryChoice />
+          <CountryChoice class="gt-xs" />
           <NotificationBell class="gt-xs" />
 
           <template v-if="authStore.isAuthenticated">
@@ -310,6 +312,14 @@
         </div>
 
         <!-- The header language button is hidden on phones. -->
+        <!-- Phone settings: kept out of the crowded header. -->
+        <div class="drawer-settings lt-sm">
+          <button class="drawer-setting" type="button" @click="toggleTheme">
+            <q-icon :name="isDark ? 'light_mode' : 'dark_mode'" />
+            <span>{{ isDark ? ui('Thème clair') : ui('Thème sombre') }}</span>
+          </button>
+          <CountryChoice />
+        </div>
         <div class="drawer-language lt-sm">
           <q-icon name="language" />
           <q-btn-toggle
@@ -870,6 +880,27 @@ async function promptInstallStore() {
   font-size: 9px;
   font-weight: 800;
 }
+.drawer-settings {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px 0;
+}
+.drawer-setting {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 38px;
+  padding: 0 12px;
+  color: var(--text);
+  background: var(--surface-highest);
+  border: 1px solid var(--outline);
+  border-radius: 999px;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
 .drawer-language {
   display: flex;
   align-items: center;
@@ -1014,8 +1045,9 @@ async function promptInstallStore() {
   z-index: 3000;
   right: auto;
   bottom: max(10px, env(safe-area-inset-bottom));
-  left: 12px;
-  width: calc(100vw - 24px);
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(520px, calc(100vw - 24px));
   max-width: calc(100vw - 24px);
   height: 60px;
   display: grid;
@@ -1033,7 +1065,9 @@ async function promptInstallStore() {
   padding: 3px 2px;
   color: var(--muted);
   border-radius: 13px;
-  font-size: 8px;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
 }
 .mobile-bottom-nav .q-btn .q-btn__content {
   gap: 1px;
