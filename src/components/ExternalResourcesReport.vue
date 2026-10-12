@@ -66,7 +66,11 @@
           <div class="row items-center q-gutter-sm"
             ><strong>{{ resource.hostname || 'Référence indéterminée' }}</strong
             ><q-badge
-              :color="resource.risk_level === 'high' ? 'orange-9' : 'blue-grey'"
+              :color="
+                { high: 'orange-9', review: 'blue-grey', info: 'grey-6' }[
+                  resource.risk_level
+                ] || 'blue-grey'
+              "
               >{{ riskLabels[resource.risk_level] }}</q-badge
             ><q-badge
               v-if="report.comparison.added_domains.includes(resource.hostname)"
@@ -199,16 +203,27 @@ const domainCount = computed(
   () =>
     report.value?.domain_count ?? props.version.detected_domains?.length ?? 0
 )
-const riskLabels = { high: 'Risque élevé à examiner', review: 'À examiner' }
+const riskLabels = {
+  high: 'Risque élevé à examiner',
+  review: 'À examiner',
+  info: 'Information'
+}
 const riskOptions = [
   { label: 'Tous les risques', value: 'all' },
   { label: 'Risque élevé', value: 'high' },
-  { label: 'À examiner', value: 'review' }
+  { label: 'À examiner', value: 'review' },
+  { label: 'Information', value: 'info' }
 ]
+const riskOrder = { high: 0, review: 1, info: 2 }
+// High-risk references first, informational ones (namespaces, examples) last.
 const filtered = computed(() =>
-  (report.value?.resources || []).filter(
-    r => risk.value === 'all' || r.risk_level === risk.value
-  )
+  (report.value?.resources || [])
+    .filter(r => risk.value === 'all' || r.risk_level === risk.value)
+    .sort(
+      (a, b) =>
+        (riskOrder[a.risk_level] ?? 1) - (riskOrder[b.risk_level] ?? 1) ||
+        (a.hostname || '').localeCompare(b.hostname || '')
+    )
 )
 const statuses = {
   pending: 'En attente',
@@ -226,14 +241,17 @@ const types = {
   manifest: 'Manifest',
   worker: 'Worker',
   unknown: 'Usage non déterminé',
-  indeterminate: 'Référence indéterminée'
+  indeterminate: 'Référence indéterminée',
+  reference: 'Simple mention'
 }
 const classes = {
   known_service: 'Service reconnu, à vérifier',
   business_api: 'API métier présumée',
   unknown: 'Domaine inconnu',
-  local_private: 'Adresse locale ou privée',
-  indeterminate: 'Indéterminé'
+  local_private: 'Adresse locale ou non publique',
+  indeterminate: 'Indéterminé',
+  namespace: 'Espace de noms XML (jamais chargé)',
+  placeholder: 'Adresse d’exemple'
 }
 const comparisonLabels = {
   added_domains: 'Nouveaux domaines',

@@ -628,10 +628,13 @@ async function createApp() {
 
     if (newVersion.value.zip_file && appId) {
       try {
-        await uploadInitialBuild(appId)
+        const version = await uploadInitialBuild(appId)
+        const count = version?.detected_domains?.length || 0
         $q.notify({
           type: 'positive',
-          message: 'Application et premier build créés avec succès.'
+          message: count
+            ? `Application et premier build créés. ${count} domaine(s) externe(s) détecté(s) automatiquement : ces informations seront transmises à l’équipe de validation.`
+            : 'Application et premier build créés. Aucun domaine externe détecté.'
         })
       } catch (buildErr) {
         if (
@@ -679,9 +682,10 @@ async function uploadInitialBuild(appId) {
     formData.append(`permissions_required[${index}]`, perm)
   })
 
-  await api.post('/versions', formData, {
+  const { data } = await api.post('/versions', formData, {
     headers: { 'Content-Type': 'multipart/form-data' }
   })
+  return data
 }
 
 function showValidationErrorDialog(data) {

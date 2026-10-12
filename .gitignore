@@ -28,3 +28,7 @@ yarn-error.log*
 # Playwright
 /test-results/
 /playwright-report/
+
+# Local agent tooling caches (ruflo)
+agentdb.rvf
+agentdb.rvf.lock

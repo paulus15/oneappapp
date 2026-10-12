@@ -90,3 +90,28 @@ Les tests `ExternalResourceDetectorTest`, `ExternalResourcesTest`, `PwaPackageAn
 14. Import sans déclaration manuelle, maintien des contrôles de sécurité ZIP et des fonctionnalités de publication existantes.
 
 Les résultats finaux de tests, compilation et migration sont consignés après vérification.
+
+## Reprise et vérification (12 octobre 2026)
+
+Travail repris, audité contre le cahier des charges et complété.
+
+**Corrections apportées après essai sur un vrai build** (le build de production de PWA Store analysé par le détecteur) :
+
+- Les espaces de noms XML (`http://www.w3.org/2000/svg`, `/1999/xlink`, `/1999/xhtml`, MathML) sortaient en « risque élevé » parce qu'ils sont en HTTP : ils sont désormais classés `namespace`, risque `info`, jamais ajoutés à la CSP ni à la liste publique des domaines.
+- Les fragments d'expressions régulières (`https:///.test(e||`, `http://|https://)/i.test(t)`) étaient conservés comme références indéterminées : ils sont ignorés, une URL devant commencer son autorité par un caractère d'hôte.
+- Les noms réservés à la documentation (`example.com`, `exemple.com`, `*.example`) sont classés `placeholder`, risque `info` ; les noms `*.test` sont traités comme non publics.
+- `domain_count` et `detected_domains` excluent ces références informatives.
+- Interface : libellés des nouvelles catégories, filtre « Information », tri des ressources par risque (élevé d'abord) ; récapitulatif après import du premier build (« N domaine(s) externe(s) détecté(s) automatiquement… »).
+- Régression corrigée : `src/utils/media.js` lit de nouveau `process.env.API_URL`, remplacé par Quasar au build (sans quoi `VITE_API_URL` est ignoré et l'application appelle `oneapp.test` en production) ; le test `media.spec.js` simule ce remplacement.
+- Fichiers de cache d'outil (`agentdb.rvf*`) retirés du dépôt et ignorés.
+
+**Tests**
+
+| Suite                 | Résultat                                                                                                                                                                                                                   |
+| --------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `php artisan test`    | 123/123                                                                                                                                                                                                                    |
+| `composer test:mysql` | 123/123                                                                                                                                                                                                                    |
+| `npm run test:unit`   | 26/26                                                                                                                                                                                                                      |
+| `npm run test:e2e`    | 13/13, dont `external-resources.spec.mjs` : build avec Google Fonts, CDN, API et WebSocket importé sans déclaration, rapport affiché au développeur, observation interne d'un administrateur invisible pour le développeur |
+
+Couverture des 14 scénarios demandés : 1 (ZIP sans domaine) et 14 (soumission sans déclaration) ajoutés en test de fonctionnalité ; 2 à 9 dans `ExternalResourceDetectorTest` (dont un test « bruit d'un vrai build ») ; 10 à 13 dans `ExternalResourcesTest`.
