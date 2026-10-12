@@ -285,14 +285,20 @@
           <div
             class="text-weight-bold text-blue-grey-200 text-caption text-uppercase q-mb-xs"
           >
-            Domaines Autorisés (Whitelist) :
+            Domaines externes détectés :
           </div>
           <div
-            v-if="latestVersion?.domains_whitelist?.length > 0"
+            v-if="
+              (
+                latestVersion?.detected_domains ||
+                latestVersion?.domains_whitelist
+              )?.length > 0
+            "
             class="q-gutter-xs"
           >
             <q-chip
-              v-for="domain in latestVersion.domains_whitelist"
+              v-for="domain in latestVersion.detected_domains ||
+              latestVersion.domains_whitelist"
               :key="domain"
               color="slate-900"
               text-color="blue-grey-300"
@@ -303,7 +309,7 @@
             </q-chip>
           </div>
           <div v-else class="text-caption text-red-400 italic">
-            Aucun trafic réseau sortant autorisé (Offline).
+            Aucun domaine externe signalé par l’analyse statique.
           </div>
         </q-card>
 

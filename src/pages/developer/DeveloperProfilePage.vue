@@ -4,8 +4,8 @@
       ><span class="eyebrow">Un compte, deux usages</span
       ><h1>Votre espace développeur</h1
       ><p
-        >Préparez vos applications, puis faites vérifier votre profil pour les
-        soumettre.</p
+        >Complétez votre profil et faites-le valider avant de créer une
+        application.</p
       ></header
     >
     <q-linear-progress
@@ -61,6 +61,24 @@
             to="/account"
             label="Mon compte utilisateur"
         /></div>
+        <q-banner v-if="profile.validation" class="workspace-alert">
+          Dernière validation par
+          {{
+            profile.validation.administrator_name || 'Administrateur supprimé'
+          }}
+          (n° {{ profile.validation.administrator_id || 'indisponible' }}), le
+          {{
+            new Date(profile.validation.validated_at).toLocaleString('fr-FR')
+          }}.
+        </q-banner>
+        <q-banner v-if="profile.missing_fields?.length" class="workspace-alert">
+          À compléter avant validation :
+          {{
+            profile.missing_fields
+              .map(field => fieldLabels[field] || field)
+              .join(', ')
+          }}.
+        </q-banner>
         <q-banner v-if="profile.decision_reason" class="workspace-alert">{{
           profile.decision_reason
         }}</q-banner>
@@ -79,8 +97,8 @@
         <q-banner
           v-if="profile.status === 'pending_verification'"
           class="workspace-alert"
-          >Votre profil est en cours de vérification. Vous pouvez préparer vos
-          applications.</q-banner
+          >Votre profil est en cours de vérification. La création d’applications
+          sera disponible après validation.</q-banner
         >
         <DeveloperDocuments
           :key="profile.events?.length"
@@ -249,7 +267,7 @@
                 restent soumises à une revue indépendante.</p
               ><template v-else
                 ><p class="text-muted"
-                  >Vous pouvez préparer vos applications, mais pas les publier
+                  >La création et la publication d’applications sont bloquées
                   tant que :</p
                 ><ul
                   ><li
@@ -263,7 +281,7 @@
                 color="primary"
                 label="Préparer une application"
                 to="/developer/apps/create"
-                :disable="profile.status === 'suspended'"
+                :disable="!auth.canCreateApp"
             /></q-card>
             <q-card v-if="quotas" flat bordered class="workspace-card q-mt-md"
               ><h2>Quotas de publication</h2
@@ -331,6 +349,14 @@ const profile = ref(null),
   busy = ref(false),
   error = ref(''),
   type = ref('individual')
+const fieldLabels = {
+  type: 'type de profil',
+  public_name: 'nom public',
+  legal_name: 'nom légal',
+  country_id: 'pays',
+  representative_name: 'représentant',
+  business_email: 'e-mail professionnel'
+}
 const fields = [
   'type',
   'public_name',

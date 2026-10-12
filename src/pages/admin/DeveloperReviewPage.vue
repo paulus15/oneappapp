@@ -73,6 +73,13 @@
           }}</dd
           ><dt>Présentation</dt><dd>{{ p.description || 'Non renseignée' }}</dd
           ><dt>Site</dt><dd>{{ p.website || 'Non renseigné' }}</dd></dl
+        ><p v-if="p.validation"
+          >Dernière validation :
+          {{ p.validation.administrator_name || 'Administrateur supprimé' }} (n°
+          {{ p.validation.administrator_id || 'indisponible' }}) ·
+          {{ new Date(p.validation.validated_at).toLocaleString('fr-FR') }}</p
+        ><p v-if="p.missing_fields?.length"
+          >Profil incomplet : {{ p.missing_fields.join(', ') }}</p
         ><p v-if="p.decision_reason">Dernier motif : {{ p.decision_reason }}</p
         ><DeveloperDocuments :profile-id="p.id" admin /><div
           class="workspace-actions"
@@ -82,7 +89,9 @@
             outline
             no-caps
             :label="actions[state]"
-            :disable="busy"
+            :disable="
+              busy || (state === 'verified' && !!p.missing_fields?.length)
+            "
             @click="decide(p, state)" /></div></q-card
     ></div>
     <q-pagination

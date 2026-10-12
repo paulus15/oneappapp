@@ -660,3 +660,15 @@ Les détails des relations Country et leurs liens possibles avec les autres enti
 Backend : modèles `Country`, `AuthChallenge`, `User`, `DeveloperProfile`, `Application`, `Installation` ; service `EmailOtp` ; e-mail `AuthenticationCode` ; contrôleurs `AuthController`, `AccountController`, `CountryController`, `DeveloperDashboardController`, `DeveloperProfileController`, `ApplicationController`, `InstallationController` ; référentiel `database/data/countries.php` ; deux migrations ; `config/mail.php`, routes API/console et formulaire de connexion `resources/js/app.js`. Tests : `EmailOtpTest`, `CountryAndDashboardTest`, adaptations des tests de compte et de publication.
 
 Frontend : `CountrySelect`, `AccountSecurity`, `DeveloperOverview`, `PersonalLibrary` ; pages `VerifyEmailPage`, `CountryOverviewPage`, refonte de `AccountPage` et adaptations des formulaires d’inscription, connexion, profil développeur et applications ; `useWorkspaceAccess`, `utils/device`, store d’authentification, router, navigation principale, accueil et fiche application.
+
+### Validation développeur et correction navigateur — 12 octobre 2026
+
+- `media.js` utilise uniquement `import.meta.env.VITE_API_URL` et la valeur locale de secours ; aucune variable Node `process` n’est nécessaire dans le navigateur.
+- La soumission du profil et son approbation appliquent les mêmes champs obligatoires : type, nom public, identité légale, pays ; représentant et e-mail professionnel pour une organisation. L’e-mail du compte et la pièce d’identité doivent également être valides.
+- La capacité de publier exige un profil complet, une identité non expirée, le statut vérifié et une décision de validation conservée dans `developer_profile_events`. Le rôle administrateur ne dispense plus son propre compte développeur de ces exigences. La création et la modification d’applications, y compris les brouillons, exigent également cette validation. Seule la préparation du profil développeur reste accessible avant validation.
+- Le profil expose `missing_fields` et `validation` (identifiant et nom de l’administrateur, date), affichés dans le portail développeur et la revue administrative. La dernière validation reste consultable après une suspension. L’historique existant sert de référence sans migration ni attribution inventée pour les anciens profils.
+- Un ancien profil marqué vérifié mais incomplet ou sans décision enregistrée ne peut plus publier. Un administrateur peut le suspendre puis le rouvrir en brouillon pour compléter et refaire la validation.
+- Les coordonnées privées de l’administrateur ne sont pas exposées. Si son compte a été supprimé, l’interface l’indique.
+- Vérification : 112 tests Laravel, 741 assertions, sur SQLite isolé.
+
+- Précision du 12 octobre : `developer.app.create` et `developer.app.update` appliquent les mêmes conditions que la soumission. Les routes frontend de création et modification redirigent vers le profil en l’absence de validation ; les boutons sont désactivés et l’API refuse les opérations. Les applications existantes ne sont pas supprimées.

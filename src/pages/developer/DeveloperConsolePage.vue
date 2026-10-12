@@ -17,9 +17,15 @@
         label="Créer une application"
         class="create-btn"
         to="/developer/apps/create"
+        :disable="!authStore.canCreateApp"
       />
     </div>
 
+    <q-banner v-if="!authStore.canCreateApp" class="workspace-alert"
+      >Votre profil doit être complet et validé avant toute création
+      d’application, même en brouillon.
+      <q-btn flat to="/developer/profile" label="Compléter mon profil"
+    /></q-banner>
     <!-- Apps list -->
     <div v-if="loading" class="row justify-center q-my-xl" id="applications">
       <q-spinner-orbit color="primary" size="48px" />
@@ -43,6 +49,7 @@
         label="Créer une application"
         class="create-btn"
         to="/developer/apps/create"
+        :disable="!authStore.canCreateApp"
       />
     </div>
 
@@ -205,13 +212,11 @@
               />
             </div>
 
-            <q-input
-              v-model="newVersion.domains_whitelist_raw"
-              label="Domaines réseau autorisés (séparés par des virgules)"
-              placeholder="ex: api.example.com, cdn.example.com"
-              filled
-              color="blue-grey-500"
-            />
+            <p class="text-caption"
+              >Les domaines et ressources externes seront détectés
+              automatiquement à l’import du ZIP et transmis à l’équipe de
+              validation. Aucune déclaration manuelle n’est nécessaire.</p
+            >
 
             <div class="row justify-end q-gutter-sm">
               <q-btn flat label="Annuler" v-close-popup />
@@ -230,6 +235,8 @@
 </template>
 
 <script setup>
+import { useRouter } from 'vue-router'
+const router = useRouter()
 import { computed, ref, onMounted } from 'vue'
 import { api } from '@/boot/axios'
 import AppIcon from '@/components/AppIcon.vue'
@@ -250,8 +257,7 @@ const selectedAppForUpload = ref(null)
 const newVersion = ref({
   version_number: '',
   zip_file: null,
-  permissions_required: [],
-  domains_whitelist_raw: ''
+  permissions_required: []
 })
 
 const availablePermissions = [
@@ -280,8 +286,7 @@ function openUploadDialog(app) {
   newVersion.value = {
     version_number: '',
     zip_file: null,
-    permissions_required: [],
-    domains_whitelist_raw: ''
+    permissions_required: []
   }
   showUploadDialog.value = true
 }
@@ -302,16 +307,7 @@ async function uploadBuild(autoGenerate = false) {
       formData.append(`permissions_required[${index}]`, perm)
     })
 
-    const domains = newVersion.value.domains_whitelist_raw
-      .split(',')
-      .map(d => d.trim())
-      .filter(d => d.length > 0)
-
-    domains.forEach((dom, index) => {
-      formData.append(`domains_whitelist[${index}]`, dom)
-    })
-
-    await api.post('/versions', formData, {
+    const { data: uploadedVersion } = await api.post('/versions', formData, {
       headers: {
         'Content-Type': 'multipart/form-data'
       }
@@ -319,11 +315,11 @@ async function uploadBuild(autoGenerate = false) {
 
     $q.notify({
       type: 'positive',
-      message:
-        'Nouveau build téléversé et signé avec succès par PWA Store Security !'
+      message: `${uploadedVersion.detected_domains?.length || 0} domaines détectés automatiquement. Consultez le rapport avant soumission.`
     })
     showUploadDialog.value = false
     await fetchMyApps()
+    router.push(`/developer/apps/${selectedAppForUpload.value.id}/publication`)
   } catch (err) {
     if (err.response?.data?.error_code === 'MISSING_PWA_FILES') {
       $q.dialog({
@@ -379,13 +375,6 @@ function showValidationErrorDialog(data) {
       '<div class="text-warning text-weight-bold q-mb-xs">Avertissements</div><ul class="q-mb-md">' +
         analysis.warnings.map(w => `<li>${escapeHtml(w)}</li>`).join('') +
         '</ul>'
-    )
-  }
-  if (analysis.undeclared_domains?.length) {
-    sections.push(
-      '<div class="text-weight-bold q-mb-xs">Domaines non déclarés</div><div class="q-mb-md">' +
-        escapeHtml(analysis.undeclared_domains.join(', ')) +
-        '</div>'
     )
   }
 

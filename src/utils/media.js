@@ -1,7 +1,5 @@
 export const API_BASE_URL =
-  process.env.API_URL ||
-  import.meta.env.VITE_API_URL ||
-  'https://oneapp.test/api'
+  import.meta.env.VITE_API_URL || 'https://oneapp.test/api'
 
 let MEDIA_ORIGIN = 'https://oneapp.test'
 try {

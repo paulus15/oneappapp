@@ -304,15 +304,16 @@
       <section class="workspace-section"
         ><h2>Versions</h2
         ><p v-if="!application.versions?.length">Aucun build déposé.</p
-        ><div class="workspace-grid"
+        ><div class="workspace-grid version-grid"
           ><q-card
             v-for="v in application.versions"
             :key="v.id"
             flat
             bordered
             class="workspace-card"
-            ><h3>Version {{ v.version_number }}</h3
-            ><p>Analyse : {{ scanLabels[v.scan_status] || v.scan_status }}</p
+            ><h3>Version {{ v.version_number }}</h3>
+            <ExternalResourcesReport :version="v" @changed="load" /><p
+              >Analyse : {{ scanLabels[v.scan_status] || v.scan_status }}</p
             ><p
               >Revue :
               {{ versionLabels[v.moderation_status] || v.moderation_status }}</p
@@ -371,6 +372,7 @@
   </q-page>
 </template>
 <script setup>
+import ExternalResourcesReport from '@/components/ExternalResourcesReport.vue'
 import { computed, onMounted, reactive, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import { useQuasar } from 'quasar'
@@ -594,6 +596,9 @@ function deploy(v) {
 onMounted(load)
 </script>
 <style scoped>
+.version-grid {
+  grid-template-columns: minmax(0, 1fr);
+}
 .journey {
   list-style: none;
   margin: 0;

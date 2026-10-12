@@ -634,9 +634,9 @@
                 <div v-if="ver.permissions_required?.length">
                   <b>Permissions :</b> {{ ver.permissions_required.join(', ') }}
                 </div>
-                <div v-if="ver.domains_whitelist?.length">
-                  <b>Domaines autorisés :</b>
-                  {{ ver.domains_whitelist.join(', ') }}
+                <div v-if="ver.detected_domains?.length">
+                  <b>Domaines détectés :</b>
+                  {{ ver.detected_domains.join(', ') }}
                 </div>
               </div>
             </div>
@@ -709,16 +709,11 @@
               </div>
             </div>
             <div class="col-12">
-              <q-input
-                v-model="newVersion.domains_whitelist_raw"
-                label="Domaines réseau autorisés (séparés par des virgules)"
-                placeholder="ex: api.example.com, cdn.example.com"
-                filled
-                dense
-                color="primary"
+              <p class="text-caption"
+                >Les domaines externes sont détectés automatiquement à l’import
+                du ZIP. Consultez ensuite leur rapport dans la page de
+                publication.</p
               >
-                <template #prepend><q-icon name="dns" /></template>
-              </q-input>
             </div>
           </div>
         </div>
@@ -833,8 +828,7 @@ const appForm = ref({
 const newVersion = ref({
   version_number: '',
   zip_file: null,
-  permissions_required: [],
-  domains_whitelist_raw: ''
+  permissions_required: []
 })
 
 const canContinueIdentity = computed(
@@ -947,18 +941,6 @@ async function loadApp() {
         }
       }
       newVersion.value.permissions_required = Array.isArray(perms) ? perms : []
-
-      let domains = latestVer.domains_whitelist
-      if (typeof domains === 'string') {
-        try {
-          domains = JSON.parse(domains)
-        } catch (e) {
-          domains = []
-        }
-      }
-      if (Array.isArray(domains)) {
-        newVersion.value.domains_whitelist_raw = domains.join(', ')
-      }
     }
   } catch (err) {
     console.error('Erreur lors du chargement de l’application:', err)
@@ -1144,25 +1126,18 @@ async function saveAll() {
         buildData.append(`permissions_required[${index}]`, perm)
       })
 
-      newVersion.value.domains_whitelist_raw
-        .split(',')
-        .map(d => d.trim())
-        .filter(Boolean)
-        .forEach((dom, index) => {
-          buildData.append(`domains_whitelist[${index}]`, dom)
-        })
-
-      await api.post('/versions', buildData, {
+      const { data: uploadedVersion } = await api.post('/versions', buildData, {
         headers: { 'Content-Type': 'multipart/form-data' }
       })
 
       $q.notify({
         type: 'positive',
-        message: 'Nouvelle version téléversée et enregistrée avec succès.'
+        message: `${uploadedVersion.detected_domains?.length || 0} domaines détectés automatiquement. Consultez le rapport avant soumission.`
       })
       await loadApp()
       newVersion.value.zip_file = null
       newVersion.value.version_number = ''
+      router.push(`/developer/apps/${appId}/publication`)
     } catch (buildErr) {
       if (buildErr.response?.data?.error_code === 'PACKAGE_VALIDATION_FAILED') {
         showValidationErrorDialog(buildErr.response.data)

@@ -407,16 +407,11 @@
             </div>
           </div>
           <div class="col-12">
-            <q-input
-              v-model="newVersion.domains_whitelist_raw"
-              label="Domaines réseau autorisés (séparés par des virgules)"
-              placeholder="ex: api.example.com, cdn.example.com"
-              filled
-              dense
-              color="primary"
+            <p class="text-caption"
+              >Les domaines et ressources externes seront détectés
+              automatiquement à l’import du ZIP et transmis à l’équipe de
+              validation. Aucune déclaration manuelle n’est nécessaire.</p
             >
-              <template #prepend><q-icon name="dns" /></template>
-            </q-input>
           </div>
         </div>
 
@@ -523,8 +518,7 @@ const newApp = ref({
 const newVersion = ref({
   version_number: '',
   zip_file: null,
-  permissions_required: [],
-  domains_whitelist_raw: ''
+  permissions_required: []
 })
 
 const canContinueIdentity = computed(
@@ -664,7 +658,7 @@ async function createApp() {
         message: 'Application créée avec succès. En attente de validation.'
       })
     }
-    router.push('/developer')
+    router.push(`/developer/apps/${appId}/publication`)
   } catch (err) {
     $q.notify({
       type: 'negative',
@@ -684,14 +678,6 @@ async function uploadInitialBuild(appId) {
   newVersion.value.permissions_required.forEach((perm, index) => {
     formData.append(`permissions_required[${index}]`, perm)
   })
-
-  newVersion.value.domains_whitelist_raw
-    .split(',')
-    .map(d => d.trim())
-    .filter(Boolean)
-    .forEach((dom, index) => {
-      formData.append(`domains_whitelist[${index}]`, dom)
-    })
 
   await api.post('/versions', formData, {
     headers: { 'Content-Type': 'multipart/form-data' }
@@ -714,13 +700,6 @@ function showValidationErrorDialog(data) {
       '<div class="text-warning text-weight-bold q-mb-xs">Avertissements</div><ul class="q-mb-md">' +
         analysis.warnings.map(w => `<li>${escapeHtml(w)}</li>`).join('') +
         '</ul>'
-    )
-  }
-  if (analysis.undeclared_domains?.length) {
-    sections.push(
-      '<div class="text-weight-bold q-mb-xs">Domaines non déclarés</div><div class="q-mb-md">' +
-        escapeHtml(analysis.undeclared_domains.join(', ')) +
-        '</div>'
     )
   }
 

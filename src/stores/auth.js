@@ -27,6 +27,7 @@ export const useAuthStore = defineStore('auth', {
     isAuthenticated: state => !!state.token,
     isDeveloper: state =>
       !!state.user?.capabilities?.['developer.portal.access'],
+    canCreateApp: state => !!state.user?.capabilities?.['developer.app.create'],
     canSubmit: state => !!state.user?.capabilities?.['developer.app.submit'],
     isAdmin: state => state.user?.role === 'admin',
     userName: state => state.user?.name || 'Visiteur'

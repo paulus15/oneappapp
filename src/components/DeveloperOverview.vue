@@ -28,7 +28,7 @@
           outline
           label="Préparer une application"
           to="/developer/apps/create"
-          :disable="summary.profile?.status === 'suspended'"
+          :disable="!auth.canCreateApp"
         />
       </div>
       <q-banner
@@ -128,6 +128,8 @@
   </section>
 </template>
 <script setup>
+import { useAuthStore } from '@/stores/auth'
+const auth = useAuthStore()
 import { onMounted, ref } from 'vue'
 import { api } from '@/boot/axios'
 import { apiMessage } from '@/services/account'

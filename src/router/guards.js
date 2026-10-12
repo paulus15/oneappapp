@@ -16,5 +16,7 @@ export function resolveAccess(to, auth, { isMobile = false } = {}) {
   )
     return '/admin'
   if (to.meta.developerOnly && !auth.isDeveloper) return '/developer/activate'
+  if (to.meta.requiresValidatedDeveloper && !auth.canCreateApp)
+    return '/developer/profile'
   return true
 }

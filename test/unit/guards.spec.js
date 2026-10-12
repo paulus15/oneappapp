@@ -73,3 +73,15 @@ describe('resolveAccess', () => {
     )
   })
 })
+
+it('blocks draft creation and editing until developer validation', () => {
+  for (const path of ['/developer/apps/create', '/developer/apps/1/edit']) {
+    const page = route(path, {
+      requiresAuth: true,
+      developerOnly: true,
+      requiresValidatedDeveloper: true
+    })
+    expect(resolveAccess(page, developer)).toBe('/developer/profile')
+    expect(resolveAccess(page, { ...developer, canCreateApp: true })).toBe(true)
+  }
+})
