@@ -314,6 +314,18 @@
             ><h3>Version {{ v.version_number }}</h3>
             <ExternalResourcesReport :version="v" @changed="load" /><p
               >Analyse : {{ scanLabels[v.scan_status] || v.scan_status }}</p
+            ><template v-if="v.scan_status === 'quarantined'"
+              ><p class="text-caption text-muted"
+                >Fonctions sensibles détectées, souvent présentes dans les
+                bibliothèques (Quasar, SweetAlert…). Vous pouvez soumettre : un
+                administrateur les examinera avant toute approbation.</p
+              ><ul class="analysis-list"
+                ><li
+                  v-for="item in v.analysis_report?.dangerous_findings || []"
+                  :key="item"
+                  >{{ item }}</li
+                ></ul
+              ></template
             ><p
               >Revue :
               {{ versionLabels[v.moderation_status] || v.moderation_status }}</p
@@ -330,7 +342,9 @@
                   outline
                   no-caps
                   label="Approuver la version"
-                  :disable="busy || v.scan_status !== 'passed'"
+                  :disable="
+                    busy || !['passed', 'quarantined'].includes(v.scan_status)
+                  "
                   @click="reviewVersion(v, 'approved')" /><q-btn
                   outline
                   no-caps
@@ -582,7 +596,30 @@ function reviewApp(decision) {
   )
 }
 function reviewVersion(v, status) {
-  withReason(reason => accountApi.reviewVersion(v.id, { status, reason }))
+  const quarantined = status === 'approved' && v.scan_status === 'quarantined'
+  if (!quarantined)
+    return withReason(reason =>
+      accountApi.reviewVersion(v.id, { status, reason })
+    )
+  // Approving a quarantined build means taking responsibility for each finding.
+  const findings = v.analysis_report?.dangerous_findings || []
+  q.dialog({
+    title: 'Lever la quarantaine et approuver ?',
+    message: `${findings.join('\n')}\n\nJ’ai examiné ces fonctions sensibles et les juge légitimes. Motif :`,
+    prompt: { model: '', type: 'textarea', isValid: v => v.trim().length >= 3 },
+    cancel: true,
+    persistent: true
+  }).onOk(reason =>
+    run(
+      () =>
+        accountApi.reviewVersion(v.id, {
+          status,
+          reason,
+          acknowledge_findings: true
+        }),
+      'Quarantaine levée, version approuvée.'
+    )
+  )
 }
 function deploy(v) {
   q.dialog({
@@ -596,6 +633,12 @@ function deploy(v) {
 onMounted(load)
 </script>
 <style scoped>
+.analysis-list {
+  margin: 4px 0 8px;
+  padding-left: 18px;
+  font-size: 0.85rem;
+  overflow-wrap: anywhere;
+}
 .version-grid {
   grid-template-columns: minmax(0, 1fr);
 }
