@@ -13,7 +13,29 @@ https://pwa-{id}.<PWA_RUNTIME_DOMAIN>/
 - Une origine par application : une PWA ne peut ni lire les données d’une autre, ni les cookies ou le stockage du Store.
 - Le domaine d’exécution doit être **distinct du domaine du Store**, idéalement un domaine enregistré à part (ex. Store sur `pwastore.example`, builds sur `pwastore-apps.example`). Le code refuse un domaine d’exécution égal au domaine du Store ou à l’un de ses sous-domaines.
 - Le middleware `ServePwaRuntime` sert uniquement la version **active, approuvée et analysée** d’une application **publiée** dont l’éditeur est vérifié, en lecture seule (`GET`/`HEAD`), sans exécuter de code côté serveur et sans accès aux routes `/api` du Store.
-- En-têtes envoyés : `Content-Security-Policy` limitée aux domaines déclarés dans la version, `X-Content-Type-Options: nosniff`, `Referrer-Policy: no-referrer`, `frame-ancestors 'none'`.
+- L’application se lance seule : le Store l’ouvre dans un nouvel onglet sur son origine, son manifeste et son service worker y fonctionnent, elle est installable. Les routes sans fichier (mode _history_, ex. `/commandes/12`) reçoivent `index.html`.
+- Publier une application par build (« Publier dans le Store ») met automatiquement en ligne sa dernière version approuvée si aucune ne l’est encore. « Publier cette version » sert ensuite à la remplacer.
+- En-têtes envoyés : `X-Content-Type-Options: nosniff`, `Referrer-Policy: strict-origin-when-cross-origin` (les clés d’API restreintes par site restent utilisables), et une CSP de compatibilité (`PwaRuntime::csp`).
+
+### Politique CSP des builds
+
+L’origine isolée ne contient rien du Store : la CSP n’y protège pas le Store, elle protège les utilisateurs de l’application. Une liste blanche déduite de l’analyse statique cassait les applications réelles (polices Google, websocket Pusher, Firebase, tuiles de carte construites à l’exécution) : 20 blocages mesurés sur un build Quasar réel. La politique appliquée :
+
+- autorise tout service **HTTPS** / **WSS** (`upgrade-insecure-requests`, aucun HTTP) ;
+- conserve `object-src 'none'`, `base-uri 'self'`, `frame-ancestors 'none'` (pas d’intégration dans une autre page) ;
+- n’autorise `'unsafe-eval'` que si un administrateur a reconnu `eval()` / `new Function()` lors de la levée de quarantaine.
+
+Les ressources externes détectées restent inventoriées et soumises à la revue ; la CSP proposée dans le rapport reste indicative.
+
+## 0. En local (Valet)
+
+```bash
+cd /chemin/vers/oneapp
+valet link oneapp-pwa
+valet secure oneapp-pwa   # certificat *.oneapp-pwa.test, demande sudo
+```
+
+Puis `PWA_RUNTIME_DOMAIN=oneapp-pwa.test` dans `.env` et `php artisan config:clear`. Les builds sont servis sur `https://pwa-{id}.oneapp-pwa.test/`, une origine distincte de `oneapp.test`.
 
 ## 1. Choisir le domaine
 
@@ -88,7 +110,7 @@ php artisan config:cache
 3. Ouvrir `https://pwa-<id>.pwastore-apps.example/` : la PWA s’affiche.
 4. `https://pwa-<id>.pwastore-apps.example/api/apps` → 404 (aucun accès à l’API depuis une origine d’exécution).
 5. Suspendre l’éditeur ou l’application : l’origine répond 404.
-6. Vérifier les en-têtes (`curl -I`) : CSP, `nosniff`, `no-referrer`.
+6. Vérifier les en-têtes (`curl -I`) : CSP, `nosniff`, `Referrer-Policy`.
 
 ## Limites connues
 

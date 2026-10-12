@@ -92,7 +92,7 @@ export default {
         },
         {
           title: '6. Publish',
-          text: 'An approved app is not visible yet. Click “Publish to the Store” when you are ready. For a build, also click “Publish this version”.'
+          text: 'An approved app is not visible yet. Click “Publish to the Store” when you are ready: for a build, the latest approved version is put online automatically on its own address. The app then opens on its own, in a new tab, and can be installed like a real app. “Publish this version” is then used to replace the online version.'
         }
       ],
       footer:
@@ -127,7 +127,8 @@ export default {
       submitted: 'App submitted for review.',
       publish: 'Publish to the Store',
       publishTitle: 'Publish to the Store?',
-      publishMessage: 'The app will be visible to every visitor.',
+      publishMessage:
+        'The app will be visible to every visitor. For a build, the latest approved version is put online on its own address.',
       published: 'App published.',
       restore: 'Restore as draft',
       restored: 'App restored as draft.',

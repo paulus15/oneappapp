@@ -93,7 +93,7 @@ export default {
         },
         {
           title: '6. Publier',
-          text: 'Une application approuvée n’est pas encore visible. Cliquez sur « Publier dans le Store » quand vous êtes prêt. Pour un build, cliquez aussi sur « Publier cette version ».'
+          text: 'Une application approuvée n’est pas encore visible. Cliquez sur « Publier dans le Store » quand vous êtes prêt : pour un build, la dernière version approuvée est mise en ligne automatiquement sur sa propre adresse. L’application s’ouvre alors seule, dans un nouvel onglet, et peut être installée comme une vraie application. « Publier cette version » sert ensuite à remplacer la version en ligne.'
         }
       ],
       footer:
@@ -128,7 +128,8 @@ export default {
       submitted: 'Application soumise à revue.',
       publish: 'Publier dans le Store',
       publishTitle: 'Publier dans le Store ?',
-      publishMessage: 'L’application sera visible par tous les visiteurs.',
+      publishMessage:
+        'L’application sera visible par tous les visiteurs. Pour un build, la dernière version approuvée est mise en ligne sur sa propre adresse.',
       published: 'Application publiée.',
       restore: 'Réactiver en brouillon',
       restored: 'Application réactivée en brouillon.',
