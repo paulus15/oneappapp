@@ -62,7 +62,7 @@ export const pages = {
           },
           {
             q: 'Comment signaler une application ?',
-            a: 'Utilisez le formulaire de contact en choisissant « Signalement » et en indiquant le nom de l’application.'
+            a: 'Sur la fiche de l’application, choisissez « Signaler », puis le motif. Un avis peut être signalé de la même façon. Vous suivez l’issue de vos signalements dans « Mon espace ».'
           }
         ]
       },
@@ -71,11 +71,11 @@ export const pages = {
         faq: [
           {
             q: 'Pourquoi ne puis-je pas publier ?',
-            a: 'Une publication exige un e-mail confirmé, un profil développeur complet et vérifié, et une pièce d’identité valide. La page de publication indique précisément ce qui manque.'
+            a: 'Une publication exige un e-mail confirmé, un profil développeur complet et vérifié, et une pièce d’identité valide. L’onglet « Récapitulatif » de votre application indique précisément ce qui manque.'
           },
           {
             q: 'Mon application est approuvée mais invisible.',
-            a: 'L’approbation ne publie pas automatiquement. Ouvrez la page de publication et choisissez « Publier dans le Store ».'
+            a: 'L’approbation publie l’application aussitôt. Si la mise en ligne automatique n’a pas pu se faire, un message l’indique dans l’espace de votre application : choisissez « Publier maintenant ».'
           },
           {
             q: 'Le portail développeur n’apparaît pas sur mon téléphone.',
@@ -110,9 +110,10 @@ export const pages = {
       {
         title: '3. Technique',
         list: [
-          'Référencement par URL : adresse HTTPS publique, sans redirection vers un domaine non déclaré.',
-          'Dépôt de build : fichiers de production uniquement ; aucun script n’est exécuté par PWA Store ; les ressources externes doivent être déclarées.',
-          'Toute modification substantielle de la fiche entraîne une nouvelle revue.'
+          'Informations requises avant toute soumission : catégorie, description courte, description d’au moins 30 caractères, icône carrée (192 × 192 pixels minimum), au moins une capture d’écran, au moins une langue, lien officiel de la PWA, e-mail de contact, politique de confidentialité et données collectées.',
+          'Référencement par URL : adresse HTTPS publique, contrôlée automatiquement au moment de la soumission puis surveillée régulièrement.',
+          'Dépôt de build : fichiers de production uniquement (index.html à la racine, aucun fichier exécutable) ; aucun script n’est exécuté par PWA Store. Les ressources externes (polices, API, CDN…) sont détectées automatiquement par l’analyse et examinées par l’administration ; aucune déclaration manuelle n’est demandée.',
+          'Toute modification d’une application publiée (fiche, images ou nouvelle version) est examinée avant d’être visible. Pendant l’examen, l’application reste en ligne telle qu’elle a été approuvée.'
         ]
       },
       {

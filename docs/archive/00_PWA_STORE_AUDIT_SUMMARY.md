@@ -1,8 +1,10 @@
-# TWA Store — Synthèse de l’audit
+> Document historique (archivé le 12 octobre 2026). Référence actuelle : [PWASTORE_DOCUMENTATION.md](../PWASTORE_DOCUMENTATION.md).
+
+# PWA Store — Synthèse de l’audit
 
 > Audit du code accessible au 10 octobre 2026. **EXISTANT** : mécanisme constaté dans le code ; cela ne vaut pas recette en production. **PARTIEL** : chaîne incomplète ou incohérente. **ABSENT** : aucun mécanisme trouvé dans le périmètre examiné. **RECOMMANDÉ** : évolution proposée, non réalisée. **NON VÉRIFIÉ** : état inaccessible ou non testé.
 >
-> Références : **F:** = `/Users/apple/Documents/Quasar Projects/oneappapp/` ; **B:** = `/Users/apple/LaravelProjects/oneapp/`. Les chemins sont relatifs à ces racines. `Api/…Controller` désigne `B:app/Http/Controllers/Api/…Controller.php`. « TWA Store » est le nom demandé pour cette documentation ; le frontend affiche **PWA Store** et la vitrine Laravel **OneApp**. Aucun projet Android Trusted Web Activity n'a été identifié.
+> Références : **F:** = `/Users/apple/Documents/Quasar Projects/oneappapp/` ; **B:** = `/Users/apple/LaravelProjects/oneapp/`. Les chemins sont relatifs à ces racines. `Api/…Controller` désigne `B:app/Http/Controllers/Api/…Controller.php`. Le produit s’appelle **PWA Store** (nom affiché par le frontend) et la vitrine Laravel **OneApp**. Aucun projet Android Trusted Web Activity n'a été identifié.
 
 ## Résumé exécutif
 
@@ -92,7 +94,7 @@ Les builds ou essais évoqués dans le README et les travaux antérieurs ne sont
 
 Décisions du porteur de projet : nom canonique ; Quasar, Blade ou coexistence assumée ; référencement externe par URL, hébergement ZIP ou les deux ; preuve d’identité minimale des éditeurs ; autorité et délai de modération ; gratuité et conditions d’une contribution ; données conservées et durée ; domaines d’hébergement isolés. Ces décisions n’empêchent pas la documentation, mais certaines conditionnent l’implémentation.
 
-Les cinq actions prioritaires sont : **contenir les chemins de déploiement (C01)** ; **isoler les PWA et exclure les données privées du cache (C02)** ; **séparer déploiement et ouverture publique, avec politique de retrait (A03/C03)** ; **réparer les contrats de modération (A02)** ; **fiabiliser la persistance des médias et la sauvegarde (A04/A05)**. Le [plan](./06_TWA_STORE_IMPLEMENTATION_PLAN.md) détaille leurs critères de réception.
+Les cinq actions prioritaires sont : **contenir les chemins de déploiement (C01)** ; **isoler les PWA et exclure les données privées du cache (C02)** ; **séparer déploiement et ouverture publique, avec politique de retrait (A03/C03)** ; **réparer les contrats de modération (A02)** ; **fiabiliser la persistance des médias et la sauvegarde (A04/A05)**. Le [plan](./06_PWA_STORE_IMPLEMENTATION_PLAN.md) détaille leurs critères de réception.
 
 ## Points d’entrée pour vérifier les constats
 
@@ -105,10 +107,10 @@ Le contrôle d’intégrité des instantanés pris avant l’audit ne relève au
 
 ## Prise en compte explicite des fonctionnalités du backend
 
-Le [catalogue fonctionnel Laravel du PRD](./01_TWA_STORE_PRD.md#catalogue-fonctionnel-laravel-et-intégration-dans-quasar) recense BF01–BF13 et sépare **capacité serveur** et **raccordement Quasar**. Il inclut les fonctions peu visibles dans l’interface : administration des catégories, bibliothèque personnelle, archivage/désarchivage, suivi par appareil, calcul des mises à jour, intentions avec expiration, téléchargement ZIP et agrégats d’usage.
+Le [catalogue fonctionnel Laravel du PRD](./01_PWA_STORE_PRD.md#catalogue-fonctionnel-laravel-et-intégration-dans-quasar) recense BF01–BF13 et sépare **capacité serveur** et **raccordement Quasar**. Il inclut les fonctions peu visibles dans l’interface : administration des catégories, bibliothèque personnelle, archivage/désarchivage, suivi par appareil, calcul des mises à jour, intentions avec expiration, téléchargement ZIP et agrégats d’usage.
 
-Ces capacités ne sont pas classées absentes parce que leur écran Quasar manque. Le backend comprend également une vitrine Blade et ses aides d’installation. Les limites restent explicites : push simulé, absence de preuve d’installation, reprise d’intention incomplète et calcul des mises à jour à fiabiliser. Les [parcours API](./03_TWA_STORE_APP_FLOW.md#15-parcours-des-capacités-laravel-non-complètement-exposées-dans-quasar) et le [plan de raccordement](./06_TWA_STORE_IMPLEMENTATION_PLAN.md#raccordement-des-fonctionnalités-laravel-existantes) expliquent comment exploiter cet existant.
+Ces capacités ne sont pas classées absentes parce que leur écran Quasar manque. Le backend comprend également une vitrine Blade et ses aides d’installation. Les limites restent explicites : push simulé, absence de preuve d’installation, reprise d’intention incomplète et calcul des mises à jour à fiabiliser. Les [parcours API](./03_PWA_STORE_APP_FLOW.md#15-parcours-des-capacités-laravel-non-complètement-exposées-dans-quasar) et le [plan de raccordement](./06_PWA_STORE_IMPLEMENTATION_PLAN.md#raccordement-des-fonctionnalités-laravel-existantes) expliquent comment exploiter cet existant.
 
 ## Documents associés
 
-[00](./00_TWA_STORE_AUDIT_SUMMARY.md) · [01](./01_TWA_STORE_PRD.md) · [02](./02_TWA_STORE_TRD.md) · [03](./03_TWA_STORE_APP_FLOW.md) · [04](./04_TWA_STORE_UX_UI.md) · [05](./05_TWA_STORE_BACKEND_SCHEMA.md) · [06](./06_TWA_STORE_IMPLEMENTATION_PLAN.md)
+[00](./00_PWA_STORE_AUDIT_SUMMARY.md) · [01](./01_PWA_STORE_PRD.md) · [02](./02_PWA_STORE_TRD.md) · [03](./03_PWA_STORE_APP_FLOW.md) · [04](./04_PWA_STORE_UX_UI.md) · [05](./05_PWA_STORE_BACKEND_SCHEMA.md) · [06](./06_PWA_STORE_IMPLEMENTATION_PLAN.md)

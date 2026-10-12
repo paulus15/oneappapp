@@ -4,7 +4,7 @@ Audit réalisé le 11 octobre 2026 sur le code réel des deux projets, après le
 
 - Backend : `/Users/apple/LaravelProjects/oneapp`
 - Frontend : `/Users/apple/Documents/Quasar Projects/oneappapp`
-- Documents antérieurs conservés : `docs/project-audit/00` à `06`. Ce document les remplace pour l'état actuel ; ils restent la source pour l'historique des décisions.
+- Documents antérieurs conservés : [`docs/archive/00` à `06`](archive/) (archivés le 12 octobre 2026). Ce document les remplace pour l'état actuel ; ils restent la source pour l'historique des décisions.
 
 Aucun secret n'est recopié ici. Les variables d'environnement sont citées par leur nom uniquement.
 

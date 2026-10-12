@@ -1,6 +1,6 @@
 # Processus de publication — conception cible et plan
 
-Statut : **proposition à valider** (phase 4). Aucun code n’est modifié avant validation.
+Statut : **validé et implémenté** (12 octobre 2026). Décisions : §7. Les écarts entre cette conception et la réalisation sont signalés dans la note « État : implémenté ».
 Diagnostic de départ : [PWASTORE_PUBLICATION_AUDIT.md](PWASTORE_PUBLICATION_AUDIT.md).
 
 > Le développeur prépare → PWA Store analyse → le développeur soumet → l’administrateur décide → PWA Store publie.
@@ -149,11 +149,29 @@ Données existantes : les apps déjà `submitted` / `in_review` reçoivent une d
 
 ---
 
-## 7. Décisions à valider
+## 7. Décisions validées (12 octobre 2026)
 
-1. **Admin non opérateur** : retirer à l’administrateur la possibilité de modifier la fiche, déposer, soumettre ou publier à la place du développeur. _(Recommandé.)_
-2. **Fiche d’une app publiée** : garder l’app en ligne et soumettre les modifications comme « en attente ». _(Recommandé, corrige C1.)_
-3. **Nouvelles exigences de soumission** : au moins une capture, e-mail de contact, politique de confidentialité, une langue. _(Recommandé ; les apps déjà publiées ne sont pas affectées.)_
-4. **Publication automatique dès l’approbation**, au choix du développeur à la soumission. _(Recommandé ; par défaut : publication manuelle, comme aujourd’hui.)_
-5. **Motif facultatif à l’approbation**, obligatoire pour correction et refus. _(Recommandé.)_
-6. **Archivage** des anciens documents « TWA Store » dans `docs/archive/`. _(Recommandé.)_
+| #   | Sujet                         | Décision du porteur de projet                                                                                                                                                                                         |
+| --- | ----------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | Administrateur non opérateur  | **Oui.** L’administrateur ne modifie plus la fiche, ne dépose rien, ne soumet ni ne publie à la place du développeur. Toute modification doit être soumise à l’administrateur avant d’être visible.                   |
+| 2   | Fiche d’une app publiée       | L’application **reste en ligne** pendant l’examen des modifications (fiche, captures comprises, ou nouvelle version).                                                                                                 |
+| 3   | Exigences de soumission       | **Toutes les informations sont obligatoires**, y compris le lien officiel de la PWA. Le développeur choisit ZIP ou lien ; un badge avec infobulle distingue « Hébergée par PWA Store » et « Hébergée par l’éditeur ». |
+| 4   | Publication après approbation | L’approbation **publie immédiatement**, sans option.                                                                                                                                                                  |
+| 5   | Motif                         | Facultatif pour approuver, obligatoire pour une demande de correction ou un refus.                                                                                                                                    |
+| 6   | Anciens documents             | Archivés dans `docs/archive/`, renommés « PWA Store » (le produit s’est toujours appelé PWA Store).                                                                                                                   |
+
+### État : implémenté
+
+Différences avec la conception ci-dessus, à la suite des décisions :
+
+- Deux types de demande seulement : `initial` (première publication) et `update` (modification de fiche et/ou nouvelle version d’une app en ligne), au lieu de `version` et `listing` séparés.
+- Pas d’option « Publier automatiquement » : l’approbation publie. Si la mise en ligne échoue (hébergement des builds indisponible), l’app reste approuvée et le développeur la publie depuis son espace (« Publier maintenant »).
+- Toute modification de fiche, captures comprises, passe par une demande ; plus d’application directe des changements mineurs.
+- Le contrôle de l’URL est relancé à la soumission, sauf si un contrôle réussi date de moins d’une heure.
+
+Fichiers principaux :
+
+- Backend : `app/Services/PublicationWorkflow.php`, `app/Http/Controllers/Api/PublicationRequestController.php`, `app/Models/PublicationRequest.php`, migration `database/migrations/2026_10_12_000010_create_publication_requests.php` (table `publication_requests`, `applications.pending_changes`, `contact_email`, `privacy`, `users.locale`).
+- Frontend : `src/pages/developer/AppWorkspacePage.vue`, `src/pages/developer/NewAppPage.vue`, `src/pages/admin/AdminRequestsPage.vue`, `src/pages/admin/AdminRequestPage.vue`, `src/components/HostingBadge.vue`, `src/components/BuildUploader.vue`.
+
+Tests : `tests/Feature/PublicationRequestTest.php`, `QuarantineReviewTest.php`, `RequestLocaleTest.php`, `PublicationWorkflowTest.php`, `ExternalResourcesTest.php` (134 tests Laravel au total), 26 tests unitaires et 13 scénarios de bout en bout (`test/e2e/journey.spec.mjs`, `access.spec.mjs`, `external-resources.spec.mjs`).

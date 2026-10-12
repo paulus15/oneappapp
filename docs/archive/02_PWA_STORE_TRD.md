@@ -1,8 +1,10 @@
-# TWA Store — TRD
+> Document historique (archivé le 12 octobre 2026). Référence actuelle : [PWASTORE_DOCUMENTATION.md](../PWASTORE_DOCUMENTATION.md).
+
+# PWA Store — TRD
 
 > Audit du code accessible au 10 octobre 2026. **EXISTANT** : mécanisme constaté dans le code ; cela ne vaut pas recette en production. **PARTIEL** : chaîne incomplète ou incohérente. **ABSENT** : aucun mécanisme trouvé dans le périmètre examiné. **RECOMMANDÉ** : évolution proposée, non réalisée. **NON VÉRIFIÉ** : état inaccessible ou non testé.
 >
-> Références : **F:** = `/Users/apple/Documents/Quasar Projects/oneappapp/` ; **B:** = `/Users/apple/LaravelProjects/oneapp/`. Les chemins sont relatifs à ces racines. `Api/…Controller` désigne `B:app/Http/Controllers/Api/…Controller.php`. « TWA Store » est le nom demandé pour cette documentation ; le frontend affiche **PWA Store** et la vitrine Laravel **OneApp**. Aucun projet Android Trusted Web Activity n'a été identifié.
+> Références : **F:** = `/Users/apple/Documents/Quasar Projects/oneappapp/` ; **B:** = `/Users/apple/LaravelProjects/oneapp/`. Les chemins sont relatifs à ces racines. `Api/…Controller` désigne `B:app/Http/Controllers/Api/…Controller.php`. Le produit s’appelle **PWA Store** (nom affiché par le frontend) et la vitrine Laravel **OneApp**. Aucun projet Android Trusted Web Activity n'a été identifié.
 
 ## Architecture observée
 
@@ -138,7 +140,7 @@ Pour l’évolutivité, traiter d’abord la pagination et les agrégats N+1 du 
 
 ## Responsabilités fonctionnelles du backend
 
-Le backend ne se limite pas à la persistance du catalogue. Il fournit les services BF01–BF11 décrits dans le [PRD](./01_TWA_STORE_PRD.md#catalogue-fonctionnel-laravel-et-intégration-dans-quasar), ainsi que les routes de présentation Blade BF12 et leurs ressources PWA BF13.
+Le backend ne se limite pas à la persistance du catalogue. Il fournit les services BF01–BF11 décrits dans le [PRD](./01_PWA_STORE_PRD.md#catalogue-fonctionnel-laravel-et-intégration-dans-quasar), ainsi que les routes de présentation Blade BF12 et leurs ressources PWA BF13.
 
 | Groupe de services EXISTANT | Entrée / sortie principale                                                    | Frontière à préserver                                                                           |
 | --------------------------- | ----------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------- |
@@ -150,11 +152,11 @@ Le backend ne se limite pas à la persistance du catalogue. Il fournit les servi
 | Avis et analytics           | Note/événement → enregistrement ; application → synthèse                      | Un avis utilisateur, un événement déclaratif et une mesure fiable ont des garanties différentes |
 | Notification                | Destinataire/message → ligne avec passerelle simulée                          | Livraison réelle absente : aucun fournisseur appelé                                             |
 
-**RECOMMANDÉ.** Les nouvelles pages Quasar doivent appeler ces contrats existants et présenter leurs erreurs/états réels. Les opérations non raccordées ne nécessitent pas par défaut un nouveau backend. Pour les contrats exacts, types, permissions et réponses, utiliser le [document 05](./05_TWA_STORE_BACKEND_SCHEMA.md#contrats-api--routes-déclarées). Les limites de sécurité et d’intégrité recensées restent à corriger avant raccordement public.
+**RECOMMANDÉ.** Les nouvelles pages Quasar doivent appeler ces contrats existants et présenter leurs erreurs/états réels. Les opérations non raccordées ne nécessitent pas par défaut un nouveau backend. Pour les contrats exacts, types, permissions et réponses, utiliser le [document 05](./05_PWA_STORE_BACKEND_SCHEMA.md#contrats-api--routes-déclarées). Les limites de sécurité et d’intégrité recensées restent à corriger avant raccordement public.
 
 ## Documents associés
 
-[00](./00_TWA_STORE_AUDIT_SUMMARY.md) · [01](./01_TWA_STORE_PRD.md) · [02](./02_TWA_STORE_TRD.md) · [03](./03_TWA_STORE_APP_FLOW.md) · [04](./04_TWA_STORE_UX_UI.md) · [05](./05_TWA_STORE_BACKEND_SCHEMA.md) · [06](./06_TWA_STORE_IMPLEMENTATION_PLAN.md)
+[00](./00_PWA_STORE_AUDIT_SUMMARY.md) · [01](./01_PWA_STORE_PRD.md) · [02](./02_PWA_STORE_TRD.md) · [03](./03_PWA_STORE_APP_FLOW.md) · [04](./04_PWA_STORE_UX_UI.md) · [05](./05_PWA_STORE_BACKEND_SCHEMA.md) · [06](./06_PWA_STORE_IMPLEMENTATION_PLAN.md)
 
 ## Contrats livrés : OTP, Country et espace adapté (11 octobre 2026)
 

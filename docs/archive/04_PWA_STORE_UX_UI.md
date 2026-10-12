@@ -1,8 +1,10 @@
-# TWA Store — UX/UI et système de design observé
+> Document historique (archivé le 12 octobre 2026). Référence actuelle : [PWASTORE_DOCUMENTATION.md](../PWASTORE_DOCUMENTATION.md).
+
+# PWA Store — UX/UI et système de design observé
 
 > Audit du code accessible au 10 octobre 2026. **EXISTANT** : mécanisme constaté dans le code ; cela ne vaut pas recette en production. **PARTIEL** : chaîne incomplète ou incohérente. **ABSENT** : aucun mécanisme trouvé dans le périmètre examiné. **RECOMMANDÉ** : évolution proposée, non réalisée. **NON VÉRIFIÉ** : état inaccessible ou non testé.
 >
-> Références : **F:** = `/Users/apple/Documents/Quasar Projects/oneappapp/` ; **B:** = `/Users/apple/LaravelProjects/oneapp/`. Les chemins sont relatifs à ces racines. `Api/…Controller` désigne `B:app/Http/Controllers/Api/…Controller.php`. « TWA Store » est le nom demandé pour cette documentation ; le frontend affiche **PWA Store** et la vitrine Laravel **OneApp**. Aucun projet Android Trusted Web Activity n'a été identifié.
+> Références : **F:** = `/Users/apple/Documents/Quasar Projects/oneappapp/` ; **B:** = `/Users/apple/LaravelProjects/oneapp/`. Les chemins sont relatifs à ces racines. `Api/…Controller` désigne `B:app/Http/Controllers/Api/…Controller.php`. Le produit s’appelle **PWA Store** (nom affiché par le frontend) et la vitrine Laravel **OneApp**. Aucun projet Android Trusted Web Activity n'a été identifié.
 
 ## Périmètre et identité
 
@@ -116,4 +118,4 @@ Sources : B:Api/CategoryController, InstallationController, InstallIntentControl
 
 ## Documents associés
 
-[00](./00_TWA_STORE_AUDIT_SUMMARY.md) · [01](./01_TWA_STORE_PRD.md) · [02](./02_TWA_STORE_TRD.md) · [03](./03_TWA_STORE_APP_FLOW.md) · [04](./04_TWA_STORE_UX_UI.md) · [05](./05_TWA_STORE_BACKEND_SCHEMA.md) · [06](./06_TWA_STORE_IMPLEMENTATION_PLAN.md)
+[00](./00_PWA_STORE_AUDIT_SUMMARY.md) · [01](./01_PWA_STORE_PRD.md) · [02](./02_PWA_STORE_TRD.md) · [03](./03_PWA_STORE_APP_FLOW.md) · [04](./04_PWA_STORE_UX_UI.md) · [05](./05_PWA_STORE_BACKEND_SCHEMA.md) · [06](./06_PWA_STORE_IMPLEMENTATION_PLAN.md)
