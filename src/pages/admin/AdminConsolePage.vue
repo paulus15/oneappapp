@@ -144,6 +144,7 @@
               :to="`/apps/${selectedApp.id}`"
             />
           </div>
+          <AdminApplicationSubmission v-if="canManageCatalog" :key="selectedApp.id" :application="selectedApp" @submitted="fetchApps" />
           <p v-if="selectedApp.moderation_reason" class="text-caption"
             >{{ ui('Dernier motif :') }} {{ selectedApp.moderation_reason }}</p
           >
@@ -282,6 +283,7 @@ import AppIcon from '@/components/AppIcon.vue'
 import AdminNav from '@/components/AdminNav.vue'
 import { adminApi } from '@/services/admin'
 import { accountApi, apiMessage } from '@/services/account'
+import AdminApplicationSubmission from '@/components/AdminApplicationSubmission.vue'
 import { useAuthStore } from '@/stores/auth'
 import {
   adminDecisions,

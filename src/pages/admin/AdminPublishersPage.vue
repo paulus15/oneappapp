@@ -203,6 +203,7 @@
 import { computed, onMounted, reactive, ref } from 'vue'
 import { useQuasar } from 'quasar'
 import AdminNav from '@/components/AdminNav.vue'
+import AdminApplicationSubmission from '@/components/AdminApplicationSubmission.vue'
 import AdminPublisherAccounts from '@/components/AdminPublisherAccounts.vue'
 import { adminApi } from '@/services/admin'
 import { apiMessage } from '@/services/account'

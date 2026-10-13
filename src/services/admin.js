@@ -15,6 +15,9 @@ export const adminApi = {
     api.get('/admin/publisher-applications', { params }),
   assignPublisher: (id, publisher_id) =>
     api.put(`/admin/apps/${id}/publisher`, { publisher_id }),
+  submissionSettings: (id, sdk_check_required) => api.put(`/admin/apps/${id}/submission-settings`, { sdk_check_required }),
+  submissionReadiness: id => api.get(`/admin/apps/${id}/submission-readiness`),
+  submitPublisherApplication: id => api.post(`/admin/apps/${id}/submit`),
   stats: () => api.get('/admin/stats'),
   requests: params => api.get('/admin/publication-requests', { params }),
   request: id => api.get(`/admin/publication-requests/${id}`),

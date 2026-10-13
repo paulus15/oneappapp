@@ -835,7 +835,7 @@
                   <q-icon name="info" color="grey-7" />
                   <span>{{ t('workspace.recap.nothing') }}</span>
                 </li>
-                <!-- Informative only: the measurement line never blocks a submission. -->
+                <!-- The API enforces this requirement; only admins can waive it. -->
                 <li v-if="app.source_type === 'url'" class="gap">
                   <q-icon
                     :name="
@@ -850,9 +850,11 @@
                     "
                   />
                   <span>{{
-                    app.sdk_check
-                      ? t(`sdk.check.status.${app.sdk_check.status}`)
-                      : t('sdk.recapUnchecked')
+                    app.sdk_check_required === false
+                      ? ui('Contrôle du script facultatif pour cette application.')
+                      : app.sdk_check
+                        ? t(`sdk.check.status.${app.sdk_check.status}`)
+                        : t('sdk.recapUnchecked')
                   }}</span>
                   <q-btn
                     v-if="app.sdk_check?.status !== 'connected'"
