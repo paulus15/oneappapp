@@ -1,6 +1,7 @@
 import { api } from '@/boot/axios'
 
 export const catalogApi = {
+  entity: id => api.get(`/entities/${id}`),
   home: () => api.get('/home'),
   apps: params => api.get('/apps', { params }),
   rankings: params => api.get('/rankings', { params }),

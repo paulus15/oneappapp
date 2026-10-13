@@ -2,6 +2,13 @@ import { ui } from '@/i18n/text'
 import { api } from '@/boot/axios'
 
 export const adminApi = {
+  publishers: params => api.get('/admin/publishers', { params }),
+  createPublisher: data => api.post('/admin/publishers', data),
+  updatePublisher: (id, data) => api.put(`/admin/publishers/${id}`, data),
+  publisherApplications: params =>
+    api.get('/admin/publisher-applications', { params }),
+  assignPublisher: (id, publisher_id) =>
+    api.put(`/admin/apps/${id}/publisher`, { publisher_id }),
   stats: () => api.get('/admin/stats'),
   requests: params => api.get('/admin/publication-requests', { params }),
   request: id => api.get(`/admin/publication-requests/${id}`),

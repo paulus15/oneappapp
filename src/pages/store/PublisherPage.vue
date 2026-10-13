@@ -7,11 +7,16 @@
     <template v-else-if="profile">
       <header class="workspace-heading"
         ><span class="eyebrow"
-          ><q-icon name="verified" /> {{ ui('Éditeur vérifié ·') }}
+          ><q-icon :name="profile.managed_by_admin ? 'business' : 'verified'" />
+          {{
+            profile.managed_by_admin ? ui('Éditeur ·') : ui('Éditeur vérifié ·')
+          }}
           {{
             profile.type === 'organization'
               ? ui('Organisation')
-              : ui('Développeur')
+              : profile.managed_by_admin
+                ? ui('Individuel')
+                : ui('Développeur')
           }}</span
         ><h1>{{ profile.public_name }}</h1
         ><p v-if="profile.description">{{ profile.description }}</p
@@ -73,22 +78,30 @@ const host = url => {
   }
 }
 watch(
-  () => route.params.id,
-  async id => {
+  () => [route.params.id, route.meta.entity],
+  async ([id, entity], _previous, onCleanup) => {
+    let stale = false
+    onCleanup(() => {
+      stale = true
+    })
     loading.value = true
     error.value = ''
     try {
-      const { data } = await catalogApi.publisher(id)
+      const { data } = await (entity
+        ? catalogApi.entity(id)
+        : catalogApi.publisher(id))
+      if (stale) return
       profile.value = data.profile
       applications.value = data.applications
     } catch (e) {
+      if (stale) return
       profile.value = null
       error.value =
         e.response?.status === 404
           ? ui('Cet éditeur n’existe pas ou n’est plus vérifié.')
           : apiMessage(e)
     } finally {
-      loading.value = false
+      if (!stale) loading.value = false
     }
   },
   { immediate: true }

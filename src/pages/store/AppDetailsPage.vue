@@ -83,7 +83,12 @@
           <div class="dev-name">
             {{ t('store.details.publishedBy') }}
             <router-link
-              v-if="
+              v-if="app.publisher"
+              :to="`/entities/${app.publisher.id}`"
+              >{{ app.publisher.public_name }}</router-link
+            >
+            <router-link
+              v-else-if="
                 app.developer?.developer_profile?.status === 'verified' &&
                 app.developer.developer_profile.public_name
               "
@@ -461,6 +466,7 @@ import SuggestionButton from '@/components/SuggestionButton.vue'
 import { useWorkspaceAccess } from '@/composables/useWorkspaceAccess'
 import { ui } from '@/i18n/text'
 import { permissionInfo } from '@/utils/appPermissions'
+import { canWebInstall, webInstall } from '@/utils/webInstall'
 import { catalogApi } from '@/services/catalog'
 import { communityApi } from '@/services/community'
 import { toCard } from '@/utils/appCard'
@@ -812,6 +818,77 @@ async function launchApp() {
     await signInToActivate()
     return
   }
+  if (extracting.value) return
+  // Supporting browsers install the app from here, with their own prompt: no redirection.
+  if (!isInstalled.value && canWebInstall(app.value.web_install)) {
+    await installFromStore()
+    return
+  }
+  await openApp()
+}
+
+async function installFromStore() {
+  extracting.value = true
+  try {
+    // First call after the click, so the browser still sees the user's gesture.
+    const outcome = await webInstall(app.value.web_install)
+    if (outcome === 'installed') {
+      await recordWebInstall()
+      $q.notify({
+        type: 'positive',
+        message: ui('{app} est installée sur cet appareil.', {
+          app: app.value.name
+        })
+      })
+    } else if (outcome === 'cancelled') {
+      $q.notify({ type: 'info', message: ui('Installation annulée.') })
+    } else {
+      // Not installable from here (manifest changed, browser policy…): offer the usual link.
+      $q.notify({
+        type: 'warning',
+        message: ui(
+          'L’installation directe n’est pas possible pour cette application.'
+        ),
+        actions: [
+          {
+            label: ui('Ouvrir l’application'),
+            color: 'white',
+            handler: openApp
+          }
+        ]
+      })
+    }
+  } finally {
+    extracting.value = false
+  }
+}
+
+// Counted like an activation, and saved as an installation confirmed by the browser.
+async function recordWebInstall() {
+  localInstalled.value = true
+  app.value.is_installed = true
+  try {
+    localStorage.setItem(`pwa-installed-${app.value.id}`, '1')
+  } catch {}
+  try {
+    const { data } = await api.post(`/apps/${app.value.id}/activate`)
+    app.value.activations_count = data.activations_count
+    const device = deviceIdentity()
+    if (device)
+      await api.post('/installations', {
+        application_id: app.value.id,
+        app_version_id: null,
+        device_uuid: device,
+        platform: devicePlatform(),
+        status: 'installed',
+        metadata: { source: 'web_install' }
+      })
+  } catch {
+    // The app is installed; only the statistics missed this one.
+  }
+}
+
+async function openApp() {
   if (extracting.value) return
   extracting.value = true
   // Open synchronously to preserve the user's browser gesture.

@@ -2,6 +2,14 @@ import { ui } from '@/i18n/text'
 // One list drives both the admin navigation and the permission each page requires.
 export const adminLinks = [
   {
+    to: '/admin/publishers',
+    get label() {
+      return ui('Entreprises et individuels')
+    },
+    icon: 'business',
+    permission: 'catalog.manage'
+  },
+  {
     to: '/admin',
     get label() {
       return ui('Tableau de bord')

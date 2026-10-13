@@ -72,6 +72,11 @@ const routes = [
         component: () => import('@/pages/store/PublisherPage.vue')
       },
       {
+        path: 'entities/:id(\\d+)',
+        component: () => import('@/pages/store/PublisherPage.vue'),
+        meta: { entity: true }
+      },
+      {
         path: 'contact',
         component: () => import('@/pages/static/ContactPage.vue')
       },
@@ -143,6 +148,15 @@ const routes = [
           requiresAuth: true,
           adminOnly: true,
           permission: 'users.manage'
+        }
+      },
+      {
+        path: 'admin/publishers',
+        component: () => import('@/pages/admin/AdminPublishersPage.vue'),
+        meta: {
+          requiresAuth: true,
+          adminOnly: true,
+          permission: 'catalog.manage'
         }
       },
       {

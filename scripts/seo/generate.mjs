@@ -59,6 +59,19 @@ export async function catalogPages(apiUrl, fetcher = fetch) {
         !app.name
       )
         continue
+      if (
+        /^\d+$/.test(String(app.publisher?.id)) &&
+        app.publisher?.public_name
+      ) {
+        pages.push({
+          path: `/entities/${app.publisher.id}`,
+          details: {
+            title: `${app.publisher.public_name} | PWAStore`,
+            name: app.publisher.public_name,
+            description: app.publisher.description
+          }
+        })
+      }
       pages.push({
         path: `/apps/${app.id}`,
         details: {

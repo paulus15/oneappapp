@@ -1,7 +1,7 @@
 export const SITE_URL = 'https://pwastore.online'
 export const SITE_NAME = 'PWAStore'
 // Absolute URL: link previews ignore relative paths.
-export const SITE_IMAGE = `${SITE_URL}/icons/icon-512x512.png`
+export const SITE_IMAGE = `${SITE_URL}/brand/pwastore-social.png`
 
 // Only public landing pages belong in the static sitemap. Dynamic listings are added at build time.
 export const PUBLIC_PAGES = {
@@ -160,7 +160,7 @@ export function routeSeo(route, locale = 'fr', details = {}) {
   const language = locale === 'en' ? 'en' : 'fr'
   const copy = PUBLIC_PAGES[path]?.[language]
   const dynamic =
-    /^\/(apps\/\d+|categories\/[^/]+|collections\/[^/]+|publishers\/\d+)$/.test(
+    /^\/(apps\/\d+|categories\/[^/]+|collections\/[^/]+|publishers\/\d+|entities\/\d+)$/.test(
       path
     )
   const privatePage = !!route.meta?.requiresAuth || (!copy && !dynamic)
@@ -253,14 +253,16 @@ export function applySeo(seo, doc = document) {
     url: seo.canonical,
     image: seo.image,
     'image:alt': SITE_NAME,
+    'image:width': '1200',
+    'image:height': '630',
+    'image:type': 'image/png',
     site_name: SITE_NAME,
     type: 'website',
     locale: seo.language === 'en' ? 'en_US' : 'fr_FR'
   }))
     meta('property', `og:${key}`, value)
   for (const [key, value] of Object.entries({
-    // Square icon: the small card shows it whole.
-    card: 'summary',
+    card: 'summary_large_image',
     title: seo.title,
     description: seo.description,
     image: seo.image

@@ -16,6 +16,15 @@ const googleSiteVerification = process.env.PWA_GOOGLE_SITE_VERIFICATION || ''
 if (googleSiteVerification && !/^[A-Za-z0-9_-]+$/.test(googleSiteVerification))
   throw new Error('Invalid Google site verification token')
 
+// Origin-trial tokens (e.g. Web Install API for Chrome/Edge), comma-separated. They are public
+// values tied to https://pwastore.online, not secrets.
+const originTrialTokens = (process.env.PWA_ORIGIN_TRIAL_TOKENS || '')
+  .split(',')
+  .map(token => token.trim())
+  .filter(Boolean)
+if (originTrialTokens.some(token => !/^[A-Za-z0-9+/=]+$/.test(token)))
+  throw new Error('Invalid origin trial token')
+
 export default defineConfig((/* ctx */) => {
   return {
     // https://v2.quasar.dev/quasar-cli-vite/prefetch-feature
@@ -46,6 +55,7 @@ export default defineConfig((/* ctx */) => {
     // The page CSP only allows calls to this API origin (application icons may come from any HTTPS host).
     htmlVariables: {
       googleSiteVerification,
+      originTrialTokens,
       apiOrigin: new URL(process.env.VITE_API_URL || 'https://oneapp.test/api')
         .origin
     },
@@ -181,6 +191,7 @@ export default defineConfig((/* ctx */) => {
           // Keep catalogue metadata out of offline snapshots; SPA navigation uses spa.html.
           'apps/**/*.html',
           'categories/**/*.html',
+          'entities/**/*.html',
           '**/*.xml',
           '**/*.txt'
         ]

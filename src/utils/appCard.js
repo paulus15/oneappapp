@@ -18,7 +18,10 @@ export function toCard(app) {
     cover: app.cover && typeof app.cover === 'object' ? app.cover : null,
     shortDescription: app.short_description || '',
     sourceType: app.source_type || 'build',
-    publisher: app.developer?.developer_profile?.public_name || '',
+    publisher:
+      app.publisher?.public_name ||
+      app.developer?.developer_profile?.public_name ||
+      '',
     price: Number(app.price || 0),
     activations: Number(app.activations_count || 0),
     downloads: Number(app.downloads_count || 0),

@@ -521,3 +521,20 @@ Pour les commandes de diagnostic, les permissions et la récupération après in
 | [Plan de test](docs/PWASTORE_TEST_PLAN.md)                           | Préparer les vérifications et les parcours E2E manuels.                 |
 | [Architecture cible](docs/PWASTORE_ARCHITECTURE.md)                  | Comprendre l’organisation métier et les évolutions envisagées.          |
 | [Index de la documentation](docs/PWASTORE_DOCUMENTATION.md)          | Retrouver les autres documents du projet.                               |
+
+## Référencement et partage des liens
+
+Le build génère `robots.txt`, `sitemap.xml` et des fichiers HTML contenant les titres, descriptions, liens canoniques et balises de partage propres aux pages publiques. Le catalogue accessible sans compte est récupéré depuis `VITE_API_URL` lorsque `PWA_REQUIRE_API_URL=1` ; une erreur API arrête le build plutôt que de publier silencieusement un sitemap incomplet. En build local, définir `PWA_SEO_CATALOG_URL` pour inclure le catalogue, sinon seules les pages publiques fixes sont listées. Les fiches et le sitemap sont actualisés au prochain build ; aucun `lastmod` artificiel n’est généré.
+
+Le snippet Nginx `deploy/nginx/pwastore-frontend.conf` doit être mis à jour sur le serveur : il sert les variantes `$uri.html`, les vrais fichiers XML/texte et le shell neutre `spa.html` pour les routes dynamiques. Les URL inconnues répondent 404. Les écrans privés portent `noindex`, sans bloquer le robot qui doit lire cette instruction. Le contenu interactif reste rendu par Vue : ce mécanisme fournit les métadonnées initiales, pas un rendu serveur complet de l’application.
+
+L’image de partage est `https://pwastore.online/brand/pwastore-social.png` (1200 × 630 px). Elle est composée à partir de l’icône officielle ; `node scripts/seo/social-card.mjs` permet de la régénérer avec Chrome installé. Les balises Open Graph et Twitter utilisent des URL absolues. Les données structurées de l’accueil identifient « PWAStore », avec « PWA Store » comme autre nom.
+
+Après déploiement :
+
+1. Valider `pwastore.online` dans Google Search Console, de préférence par DNS. Pour la méthode HTML, renseigner la variable GitHub Actions `PWA_GOOGLE_SITE_VERIFICATION`, puis reconstruire le site ; la balise sera ajoutée sans modifier le code.
+2. Soumettre `https://pwastore.online/sitemap.xml`, puis inspecter l’accueil et une fiche d’application. Vérifier les rendus, les URL canoniques et l’indexabilité.
+3. Vérifier l’aperçu social avec les outils de diagnostic des réseaux concernés ; leurs caches peuvent conserver une ancienne image.
+4. Suivre les impressions, clics et positions, notamment sur « PWAStore », et enrichir les fiches et contenus utiles aux visiteurs. Aucune modification technique ne garantit la première position sur Google.
+
+Références : [SEO JavaScript de Google](https://developers.google.com/search/docs/crawling-indexing/javascript/javascript-seo-basics), [nom du site](https://developers.google.com/search/docs/appearance/site-names) et [sitemaps](https://developers.google.com/search/docs/crawling-indexing/sitemaps/overview).

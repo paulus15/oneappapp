@@ -225,3 +225,19 @@ Lors de la correction du 13 octobre 2026, quatre directives `loadmodule` pointai
 Le signal `queue:restart` demande aux workers existants de quitter proprement ; leur relance dépend du superviseur utilisé. Le contrôle local a exécuté un worker ponctuel sur une file de test dédiée, puis nettoyé cette file et ses clés. Il n’a pas lancé de worker permanent pour les tâches applicatives.
 
 Références d’installation : [PhpRedis](https://github.com/phpredis/phpredis/blob/develop/INSTALL.md) et [Redis sur macOS](https://redis.io/docs/latest/install/install-redis/install-redis-on-mac-os/).
+
+### Entités éditrices administrées
+
+Un éditeur peut être une entreprise (`organization`) ou un individuel (`individual`) sans compte utilisateur ni profil développeur. L’admin disposant de `catalog.manage` gère ces fiches dans `/admin/publishers` : nom public, type, description et site HTTPS facultatif. L’application conserve son responsable technique ; `publisher_id` désigne son identité éditrice publique. Seul l’endpoint administratif de rattachement modifie cette relation, et les créations, modifications et rattachements sont journalisés.
+
+| Méthode    | Route                                 | Fonction                                                                                 |
+| ---------- | ------------------------------------- | ---------------------------------------------------------------------------------------- |
+| GET / POST | `/admin/publishers`                   | Rechercher les entités paginées / créer une entité                                       |
+| PUT        | `/admin/publishers/{publisher}`       | Modifier sa fiche publique                                                               |
+| GET        | `/admin/publisher-applications`       | Rechercher des applications, avec filtres `search` et `publisher_id`                     |
+| PUT        | `/admin/apps/{application}/publisher` | Rattacher ou transférer avec `{publisher_id: id}` ; détacher avec `{publisher_id: null}` |
+| GET        | `/entities/{publisher}`               | Fiche publique et applications visibles dans le catalogue du visiteur                    |
+
+La migration `2026_10_13_180000_create_publishers` crée la table `publishers` et la relation facultative. Elle doit précéder le déploiement du modèle `Application` qui charge l’éditeur. Le catalogue et la fiche application affichent l’entité lorsqu’elle est renseignée ; sinon ils utilisent le profil développeur existant. Le rattachement ne publie pas une application en brouillon et n’attribue pas un badge d’identité vérifiée à l’entité. Les anciennes adresses `/publishers/{profile}` restent celles des profils développeurs ; les entités administrées ont leurs propres adresses `/entities/{publisher}`.
+
+Validation : `vendor/bin/phpunit tests/Feature/PublisherTest.php tests/Feature/CatalogHomeTest.php tests/Feature/PublicVisibilityAndAbuseTest.php` sur SQLite en mémoire ; `test/unit/admin-publishers.spec.js` pour les formulaires et les cartes.
