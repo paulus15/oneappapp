@@ -136,3 +136,34 @@ Correctif supplémentaire : PWA Lab et « Vérifier mon site » expiraient sous 
 2. **Lot médias et données (avant lancement)** : H5, H6, H7, H9, M9, M10, M11, M14, M15.
 3. **Lot conformité et langues** : H8 (avec un juriste), H10, H11, M16, M17.
 4. **Lot documentation, QA et confort** : H12, H13, M12, M18, M19, M20 et les points faibles.
+
+---
+
+## Revue 2 — 2026-10-13 (4 agents : autorisations, entrées/fichiers, frontend, configuration)
+
+Lecture seule, constats vérifiés dans le code. Total : **30** — Critique 0, Élevée 1, Moyenne 7, Faible 22. Non corrigés à ce stade.
+
+### Élevée
+
+- **E1 — Revue initiale contournée par des `pending_changes` résiduels.** App publiée → modification en attente « propre » → archiver → restaurer (brouillon, `pending_changes` conservés) → `PUT` écrit le contenu malveillant dans les colonnes de base → soumission : le modérateur voit la fiche effective (les `pending_changes` l'emportent), l'approbation `initial` publie les colonnes de base jamais vues. `ApplicationLifecycle` (archived/draft), `PublicationWorkflow::decide` (branche initial), `Application::effectiveListing`.
+
+### Moyenne
+
+- **M1 — SSRF : hôte terminé par un point** (`https://evil.com./`) : `CURLOPT_RESOLVE` épinglé pour `evil.com`, curl résout `evil.com.` lui-même → rebinding DNS possible. `ExternalPwaChecker.php:50,99-101`.
+- **M2 — Markdown des avis dans les e-mails** : `[lien](https://phish…)` ou pixel `![](…)` dans un e-mail officiel au développeur. `ReviewController.php:53`, `UserNotice.php:39`.
+- **M3 — `PUT /account` sans limite** : oracle sur le mot de passe courant avec un jeton volé. `routes/api.php:102`.
+- **M4 — `/analytics/events` falsifiable** : crashs/appareils gonflés pour une app concurrente, déduplication contournée par `device_model`. `AnalyticsController.php:32-38`.
+- **M5 — Pas de proxy de confiance** : derrière nginx, une seule IP pour tous → limites partagées (blocage de l'inscription/connexion pour tous), HSTS jamais envoyé, vues uniques faussées. `bootstrap/app.php`. À confirmer sur le VPS.
+- **M6 — Déploiement sans tests** : push sur `main` → production + `migrate --force`. `vps-deploy.yml`.
+- **M7 — Actions CI épinglées par tag** : `webfactory/ssh-agent` reçoit la clé SSH du VPS. `vps-deploy.yml:25,28`.
+
+### Faible
+
+- F1 Jeton dans `localStorage` (ex-M13). F2 Déconnexion hors-ligne sans révocation serveur. F3 CSP en `<meta>` sans `frame-ancestors` (en-têtes à poser à l'hébergement).
+- F4 Saturation du plafond des signaux SDK ; `redeem()` avant le plafond. F5 `extract` sans throttle (ZIP désactivé). F6 Domaine d'exécution hors Public Suffix List. F7 Manifestes malformés → 500 / suspension à tort (`ExternalPwaChecker`, `PwaLab`). F8 `normalize-media` : JPEG nommé `.webp` non détecté.
+- F9 Champs de modération des versions exposés (`reviewer_id`, `moderation_reason`…). F10 Énumération de comptes (inscription, temps de réponse de `forgot`/login). F11 Activations hachées avec `app.key` au lieu de `pwa_store.hash_key`. F12 Avis masqué → supprimer/republier. F13 Admin-développeur lit les notes internes de son propre dossier. F14 `privacy` libre, `description` sans max, icône d'une autre app réutilisable. F15 Divers : catégories inactives visibles, 403/404 révélateurs, pas de limite globale API, ZIP approuvés téléchargeables anonymement.
+- F16 Artefacts d'agents suivis dans git (dont `app/Http/Controllers/Api/ruvector.db`, déployé). F17 `.gitignore` incomplet (`.env.*`, `*.sqlite`). F18 HSTS absent du runtime. F19 `SESSION_SECURE_COOKIE` non imposé. F20 Garde-fou production incomplet (`APP_KEY`, `APP_URL` http, `LOG_LEVEL`). F21 Pas de durée de conservation pour `audit_logs` et `sessions`. F22 Justificatifs d'identité non chiffrés au repos.
+
+### Vérifié correct
+
+`npm audit` et `composer audit` : 0 vulnérabilité. Aucun secret dans l'historique git. Pas de `v-html`, redirections validées, lancement en `https` seulement. Aucune route sensible sans `auth:sanctum` ; permissions admin fines partout ; pas d'auto-approbation ni d'escalade de rôle ; OTP, verrous et révocation des jetons corrects ; ZIP (zip slip, symlinks, bombes) et images sûrs ; SQL lié ; référence de lancement conforme.
