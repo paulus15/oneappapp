@@ -2,7 +2,7 @@
   <section>
     <p class="text-muted">{{
       ui(
-        'Vos suggestions sont privées : seul l’éditeur de l’application peut les lire.'
+        'Vos suggestions sont privées : seul l’éditeur de l’application (ou l’équipe PWA Store pour vos messages sur la plateforme) peut les lire.'
       )
     }}</p>
     <q-banner v-if="error" class="workspace-alert" role="alert">{{
@@ -20,7 +20,7 @@
               ><strong>{{ item.title }}</strong></q-item-label
             >
             <q-item-label caption
-              >{{ item.application?.name }} ·
+              >{{ item.application?.name || ui('PWA Store') }} ·
               {{
                 new Date(item.created_at).toLocaleDateString(currentLocale())
               }}
@@ -43,6 +43,7 @@
           </q-card-section>
           <q-card-actions align="right">
             <q-btn
+              v-if="item.application"
               flat
               no-caps
               :label="ui('Voir l’application')"

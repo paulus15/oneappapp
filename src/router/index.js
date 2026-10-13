@@ -161,6 +161,9 @@ export default defineRouter((/* { store, ssrContext } */) => {
       get '/admin/reports'() {
         return ui('Signalements')
       },
+      get '/admin/feedback'() {
+        return ui('Retours sur la plateforme')
+      },
       get '/admin/reviews'() {
         return ui('Modération des avis')
       },

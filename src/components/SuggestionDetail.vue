@@ -41,7 +41,11 @@
       </div>
     </div>
     <div v-if="suggestion.developer_reply" class="reply"
-      ><strong>{{ ui('Réponse de l’éditeur') }}</strong>
+      ><strong>{{
+        suggestion.application
+          ? ui('Réponse de l’éditeur')
+          : ui('Réponse de l’équipe PWA Store')
+      }}</strong>
       <p>{{ suggestion.developer_reply }}</p></div
     >
     <q-banner v-if="error" class="workspace-alert q-mt-sm" role="alert">{{

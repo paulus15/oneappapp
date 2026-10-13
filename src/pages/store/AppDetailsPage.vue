@@ -451,9 +451,11 @@ const card = computed(() => (app.value ? toCard(app.value) : {}))
 
 // Declared on the listing; builds published before that kept them on the version.
 const declaredPermissions = computed(() =>
-  (app.value?.permissions ?? latestVersion.value?.permissions_required ?? []).map(
-    permissionInfo
-  )
+  (
+    app.value?.permissions ??
+    latestVersion.value?.permissions_required ??
+    []
+  ).map(permissionInfo)
 )
 const latestVersion = computed(() => {
   if (!app.value?.versions || app.value.versions.length === 0) return null

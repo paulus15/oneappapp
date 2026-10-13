@@ -19,7 +19,10 @@ const PERMISSIONS = {
   hid: { icon: 'keyboard', label: () => ui('Périphériques HID') },
   nfc: { icon: 'nfc', label: () => ui('NFC') },
   midi: { icon: 'piano', label: () => ui('Instruments MIDI') },
-  sensors: { icon: 'screen_rotation', label: () => ui('Capteurs de mouvement') },
+  sensors: {
+    icon: 'screen_rotation',
+    label: () => ui('Capteurs de mouvement')
+  },
   wake_lock: { icon: 'light_mode', label: () => ui('Écran toujours allumé') },
   files: { icon: 'folder_open', label: () => ui('Fichiers de l’appareil') }
 }

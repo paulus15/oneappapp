@@ -4,23 +4,25 @@
     no-caps
     :dense="dense"
     color="primary"
-    icon="lightbulb"
-    :label="ui('Suggérer une amélioration')"
+    :icon="platform ? 'forum' : 'lightbulb'"
+    :label="buttonLabel"
     @click="open"
   />
   <q-dialog v-model="dialog" :maximized="$q.screen.lt.sm" @hide="reset">
     <q-card class="suggestion-card">
       <q-form @submit="send">
         <q-card-section>
-          <h2>{{ ui('Suggérer une amélioration') }}</h2>
-          <p class="text-muted">{{
-            ui(
-              'Votre suggestion est privée : seul l’éditeur de {app} (et l’équipe de modération si nécessaire) pourra la lire. Pour un avis public, utilisez la section Avis.',
-              { app: appName }
-            )
-          }}</p>
+          <h2>{{ heading }}</h2>
+          <p class="text-muted">{{ intro }}</p>
         </q-card-section>
         <q-card-section class="workspace-form">
+          <q-option-group
+            v-if="platform"
+            v-model="category"
+            :options="categoryOptions"
+            type="radio"
+            inline
+          />
           <q-input
             v-model="title"
             outlined
@@ -119,7 +121,7 @@
             color="primary"
             unelevated
             no-caps
-            :label="ui('Envoyer la suggestion')"
+            :label="platform ? ui('Envoyer') : ui('Envoyer la suggestion')"
             :disable="!canSend"
             :loading="busy"
           />
@@ -136,7 +138,10 @@ import { useQuasar } from 'quasar'
 import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { apiMessage } from '@/services/account'
-import { suggestionsApi } from '@/services/suggestions'
+import {
+  FEEDBACK_CATEGORY_LABELS,
+  suggestionsApi
+} from '@/services/suggestions'
 import {
   checkSuggestionFiles,
   formatFileSize,
@@ -146,9 +151,12 @@ import {
   SUGGESTION_LIMITS
 } from '@/utils/suggestions'
 
+// With `platform`, the message is about PWA Store itself and goes to the platform team.
 const props = defineProps({
-  appId: { type: Number, required: true },
+  appId: { type: Number, default: null },
   appName: { type: String, default: '' },
+  platform: Boolean,
+  label: { type: String, default: '' },
   dense: Boolean
 })
 const $q = useQuasar(),
@@ -162,8 +170,32 @@ const dialog = ref(false),
   fileErrors = ref([]),
   busy = ref(false),
   error = ref(''),
-  picker = ref(null)
+  picker = ref(null),
+  category = ref('idea')
 let counter = 0
+
+const heading = computed(() =>
+  props.platform
+    ? ui('Votre avis sur PWA Store')
+    : ui('Suggérer une amélioration')
+)
+const buttonLabel = computed(() => props.label || heading.value)
+const intro = computed(() =>
+  props.platform
+    ? ui(
+        'Une idée, un problème, une remarque sur la plateforme ? Votre message est lu uniquement par l’équipe PWA Store ; il n’est jamais publié.'
+      )
+    : ui(
+        'Votre suggestion est privée : seul l’éditeur de {app} (et l’équipe de modération si nécessaire) pourra la lire. Pour un avis public, utilisez la section Avis.',
+        { app: props.appName }
+      )
+)
+const categoryOptions = computed(() =>
+  Object.keys(FEEDBACK_CATEGORY_LABELS).map(value => ({
+    value,
+    label: FEEDBACK_CATEGORY_LABELS[value]
+  }))
+)
 
 // No image, video or HTML source button: files are attached outside the editor.
 const toolbar = [
@@ -253,16 +285,23 @@ async function send() {
     form.append('title', title.value.trim())
     form.append('body', body.value)
     files.value.forEach(item => form.append('files[]', item.file))
-    await suggestionsApi.create(props.appId, form)
+    if (props.platform) {
+      form.append('category', category.value)
+      await suggestionsApi.sendFeedback(form)
+    } else await suggestionsApi.create(props.appId, form)
     title.value = ''
     body.value = ''
     dialog.value = false
     $q.notify({
       type: 'positive',
       get message() {
-        return ui(
-          'Merci ! Votre suggestion a été transmise à l’éditeur. Suivez-la dans « Mes suggestions ».'
-        )
+        return props.platform
+          ? ui(
+              'Merci ! Votre message a été transmis à l’équipe PWA Store. Suivez-le dans « Mes suggestions ».'
+            )
+          : ui(
+              'Merci ! Votre suggestion a été transmise à l’éditeur. Suivez-la dans « Mes suggestions ».'
+            )
       }
     })
   } catch (e) {

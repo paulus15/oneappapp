@@ -298,6 +298,15 @@
           />
         </div>
 
+        <!-- Feedback about the platform, read by the PWA Store team only. -->
+        <div class="q-px-md q-pb-sm">
+          <SuggestionButton
+            platform
+            class="full-width"
+            :label="ui('Donner mon avis sur PWA Store')"
+          />
+        </div>
+
         <!-- Install Store Button -->
         <div v-if="canInstallStore" class="q-px-md q-pb-md">
           <q-btn
@@ -379,6 +388,7 @@ import { ui } from '@/i18n/text'
 
 import NotificationBell from '@/components/NotificationBell.vue'
 import CountryChoice from '@/components/CountryChoice.vue'
+import SuggestionButton from '@/components/SuggestionButton.vue'
 import CountryMissingBanner from '@/components/CountryMissingBanner.vue'
 import { useWorkspaceAccess } from '@/composables/useWorkspaceAccess'
 const { isMobile } = useWorkspaceAccess()

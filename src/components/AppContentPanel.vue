@@ -123,19 +123,27 @@
         class="workspace-alert q-mt-sm"
         role="status"
       >
-        <template #avatar><q-icon name="travel_explore" color="warning" /></template>
+        <template #avatar
+          ><q-icon name="travel_explore" color="warning"
+        /></template>
         {{
           ui(
             'Notre analyse du code a repéré des autorisations non cochées : {list}. Cochez-les si votre application les utilise ; sinon, l’équipe de vérification vous posera la question.',
-            { list: undeclared.map(key => permissionInfo(key).label).join(', ') }
+            {
+              list: undeclared.map(key => permissionInfo(key).label).join(', ')
+            }
           )
         }}
       </q-banner>
-      <p v-else-if="app.detected_permissions" class="text-caption text-muted q-mt-sm">{{
-        ui(
-          'Analyse du code : aucune autorisation non déclarée. Cette détection est automatique et peut manquer des cas : votre déclaration fait foi.'
-        )
-      }}</p>
+      <p
+        v-else-if="app.detected_permissions"
+        class="text-caption text-muted q-mt-sm"
+        >{{
+          ui(
+            'Analyse du code : aucune autorisation non déclarée. Cette détection est automatique et peut manquer des cas : votre déclaration fait foi.'
+          )
+        }}</p
+      >
     </section>
 
     <!-- 3. Content rating -->
@@ -309,9 +317,7 @@ async function save() {
   data.append('contains_ads', ads.value ? 1 : 0)
   // The flag carries "no permission": multipart cannot send an empty list.
   data.append('permissions_declared', 1)
-  permissions.value.forEach((perm, i) =>
-    data.append(`permissions[${i}]`, perm)
-  )
+  permissions.value.forEach((perm, i) => data.append(`permissions[${i}]`, perm))
   for (const [key, value] of Object.entries(answers))
     data.append(
       `content_rating[${key}]`,

@@ -49,6 +49,14 @@ export const adminLinks = [
     permission: 'reports.handle'
   },
   {
+    to: '/admin/feedback',
+    get label() {
+      return ui('Retours sur la plateforme')
+    },
+    icon: 'forum',
+    permission: 'reports.handle'
+  },
+  {
     to: '/admin/reviews',
     get label() {
       return ui('Avis')

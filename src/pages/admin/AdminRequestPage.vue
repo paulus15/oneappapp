@@ -159,6 +159,40 @@
                   }}</span
                 >
               </dd>
+              <dt>{{ ui('Autorisations') }}</dt>
+              <dd>
+                <span v-if="listing.permissions == null">—</span>
+                <span v-else-if="!listing.permissions.length">{{
+                  ui('Aucune déclarée')
+                }}</span>
+                <span v-else class="permission-chips">
+                  <q-chip
+                    v-for="perm in listing.permissions.map(permissionInfo)"
+                    :key="perm.key"
+                    dense
+                    :icon="perm.icon"
+                    class="soft-chip"
+                    >{{ perm.label }}</q-chip
+                  >
+                </span>
+                <div
+                  v-if="undeclaredPermissions.length"
+                  class="permission-warning"
+                  role="status"
+                >
+                  <q-icon name="travel_explore" color="warning" />
+                  {{
+                    ui(
+                      'Détectées dans le code mais non déclarées : {list}. Vérifiez leur usage pendant le test.',
+                      {
+                        list: undeclaredPermissions
+                          .map(key => permissionInfo(key).label)
+                          .join(', ')
+                      }
+                    )
+                  }}
+                </div>
+              </dd>
               <dt>{{ t('content.dossier.access') }}</dt>
               <dd>
                 <span>{{
@@ -487,6 +521,7 @@ import { apiMessage } from '@/services/account'
 import { resolveMediaUrl } from '@/utils/media'
 import { safeExternalUrl } from '@/utils/listing'
 import { safeColor } from '@/utils/cover'
+import { permissionInfo } from '@/utils/appPermissions'
 
 // Everything needed to decide, built from what the developer submitted (the snapshot).
 const route = useRoute(),
@@ -514,6 +549,12 @@ const dossier = ref(null),
 const request = computed(() => dossier.value.request)
 const snapshot = computed(() => request.value.snapshot || {})
 const listing = computed(() => snapshot.value.listing || {})
+// Compared with the declaration frozen in this request, not the live listing.
+const undeclaredPermissions = computed(() =>
+  (dossier.value?.application?.detected_permissions || []).filter(
+    key => !(listing.value.permissions || []).includes(key)
+  )
+)
 const previous = computed(() => snapshot.value.published_listing)
 const version = computed(() => snapshot.value.version)
 const changedFields = computed(() =>
@@ -887,5 +928,17 @@ h3 {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
+}
+.permission-chips {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 2px;
+}
+.permission-warning {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  margin-top: 6px;
+  font-size: 13px;
 }
 </style>

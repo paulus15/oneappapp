@@ -173,6 +173,15 @@ const routes = [
         }
       },
       {
+        path: 'admin/feedback',
+        component: () => import('@/pages/admin/AdminFeedbackPage.vue'),
+        meta: {
+          requiresAuth: true,
+          adminOnly: true,
+          permission: 'reports.handle'
+        }
+      },
+      {
         path: 'admin/reviews',
         component: () => import('@/pages/admin/AdminReviewsPage.vue'),
         meta: {
