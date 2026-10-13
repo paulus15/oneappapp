@@ -151,6 +151,10 @@ export default defineConfig((/* ctx */) => {
       workboxMode: 'GenerateSW', // 'GenerateSW' or 'InjectManifest'
       // Precache only Latin font subsets; others are fetched by the browser if a page needs them.
       extendPWAGenerateSWOptions(cfg) {
+        // Quasar defaults to immediate activation. Wait for the user's reload
+        // confirmation in register-sw.js instead, preserving in-progress forms.
+        cfg.skipWaiting = false
+        cfg.cleanupOutdatedCaches = true
         cfg.globIgnores = [
           ...(cfg.globIgnores || []),
           '**/*-{cyrillic,cyrillic-ext,greek,greek-ext,vietnamese}-*.woff2'

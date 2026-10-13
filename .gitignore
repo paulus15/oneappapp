@@ -32,3 +32,6 @@ yarn-error.log*
 # Local agent tooling caches (ruflo)
 agentdb.rvf
 agentdb.rvf.lock
+
+# Python deployment tooling
+__pycache__/

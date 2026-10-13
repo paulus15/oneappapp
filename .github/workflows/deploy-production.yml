@@ -1,0 +1,76 @@
+name: Deploy frontend production
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pwastore-frontend-production
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            src-pwa/package-lock.json
+      - run: npm ci
+      - run: npm ci --prefix src-pwa
+      - run: npm run lint:check
+      - run: npm run test:unit
+      - name: Build PWA for production
+        run: npm run build:pwa
+        env:
+          PWA_REQUIRE_API_URL: '1'
+          VITE_API_URL: https://api.pwastore.online/api
+      - name: Verify and identify the compiled release
+        run: node scripts/deploy/package.mjs
+      - name: Test deployment safety
+        run: python3 -m unittest discover -s test/deploy -v
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: frontend-${{ github.sha }}
+          path: dist/pwa/
+          if-no-files-found: error
+          retention-days: 7
+
+  deploy:
+    needs: build
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    environment:
+      name: production
+      url: https://pwastore.online
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: frontend-${{ github.sha }}
+          path: artifact
+      - name: Transfer, activate, verify and roll back on failure
+        run: bash scripts/deploy/upload.sh
+        env:
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_PORT: ${{ secrets.VPS_PORT }}
+          VPS_USER: ${{ secrets.VPS_USER }}
+          VPS_SSH_KEY: ${{ secrets.VPS_SSH_KEY }}
+          VPS_SSH_KNOWN_HOSTS: ${{ secrets.VPS_SSH_KNOWN_HOSTS }}
+      - name: Report deployment failure
+        if: failure()
+        run: echo 'Échec du déploiement. Consulter les logs SSH pour le résultat du rollback ; vérifier le lien app avant toute relance.' >> "$GITHUB_STEP_SUMMARY"
