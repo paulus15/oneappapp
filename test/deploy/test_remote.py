@@ -77,6 +77,28 @@ class DeploymentTests(unittest.TestCase):
             remote.activate(new, *remote.verify(new))
         self.assertTrue(remote.APP.is_dir())
 
+    def test_bootstrap_migrates_real_app_directory(self):
+        incoming = remote.BASE / 'shared/frontend/incoming'
+        with patch.object(remote, 'INCOMING', incoming):
+            remote.APP.unlink()
+            remote.APP.mkdir()
+            (remote.APP / 'index.html').write_text('legacy site')
+            remote.bootstrap()
+            self.assertTrue(incoming.is_dir())
+        self.assertTrue(remote.APP.is_symlink())
+        active = remote.APP.resolve()
+        self.assertEqual(active.parent, remote.RELEASES)
+        self.assertTrue(active.name.startswith('legacy-'))
+        self.assertEqual((active / 'index.html').read_text(), 'legacy site')
+        originals = list(incoming.parent.glob('original-*'))
+        self.assertEqual(len(originals), 1)
+        self.assertEqual((originals[0] / 'index.html').read_text(), 'legacy site')
+
+    def test_bootstrap_keeps_existing_symlink(self):
+        with patch.object(remote, 'INCOMING', remote.BASE / 'shared/frontend/incoming'):
+            remote.bootstrap()
+        self.assertEqual(remote.APP.resolve(), self.old)
+
     def test_retention_keeps_five_and_protects_active(self):
         for i in range(2, 9):
             folder = self.release(i)

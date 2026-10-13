@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 """Executed over verified SSH; only manages the frontend's reserved directories."""
+import ctypes
+import datetime
 import fcntl
 import hashlib
 import json
@@ -163,6 +165,46 @@ def prune():
         marker.unlink()
 
 
+def exchange(first, second):
+    """Atomically swap two paths (Linux renameat2); plain renames elsewhere."""
+    renameat2 = getattr(ctypes.CDLL(None, use_errno=True), 'renameat2', None)
+    if renameat2 is not None:
+        if renameat2(-100, os.fsencode(first), -100, os.fsencode(second), 2) != 0:
+            raise OSError(ctypes.get_errno(), 'Atomic exchange failed; app preserved')
+        return
+    parked = first.with_name(first.name + '.exchange')
+    os.rename(first, parked)
+    os.rename(second, first)
+    os.rename(parked, second)
+
+
+def bootstrap():
+    """First deployment: create the reserved layout and turn app into a release symlink."""
+    for directory in (RELEASES, INCOMING, HEALTHY):
+        directory.mkdir(mode=0o755, parents=True, exist_ok=True)
+    if APP.is_symlink():
+        return
+    stamp = datetime.datetime.now(datetime.timezone.utc).strftime('%Y%m%dT%H%M%SZ')
+    baseline = RELEASES / ('legacy-' + stamp)
+    if not APP.exists():
+        baseline.mkdir(mode=0o755)
+        (baseline / 'index.html').write_text('<!doctype html><title>PWAStore</title><p>Maintenance</p>\n')
+        APP.symlink_to(baseline)
+        print('BOOTSTRAP: created ' + baseline.name, flush=True)
+        return
+    require(APP.is_dir(), 'app exists but is neither a directory nor a symlink; inspect first')
+    shutil.copytree(APP, baseline, symlinks=True)
+    require(not any(path.is_symlink() for path in baseline.rglob('*')),
+            'Existing app contains symlinks; inspect manually')
+    for path in [baseline, *baseline.rglob('*')]:
+        path.chmod(0o755 if path.is_dir() else 0o644)
+    # The original directory ends up at original-<stamp>, untouched.
+    backup = INCOMING.parent / ('original-' + stamp)
+    backup.symlink_to(baseline)
+    exchange(APP, backup)
+    print('BOOTSTRAP: app migrated to ' + baseline.name + ', original kept at ' + str(backup), flush=True)
+
+
 def interrupted(signum, frame):
     raise InterruptedError('Deployment interrupted: ' + str(signum))
 
@@ -170,6 +212,11 @@ def interrupted(signum, frame):
 def main():
     mode, identifier = sys.argv[1:3]
     target = release_path(identifier)
+    if mode == 'prepare':
+        INCOMING.mkdir(mode=0o755, parents=True, exist_ok=True)
+        with (INCOMING.parent / 'deploy.lock').open('a') as lock:
+            fcntl.flock(lock, fcntl.LOCK_EX)
+            bootstrap()
     for directory in (RELEASES, INCOMING, HEALTHY):
         require(directory.is_dir() and directory.resolve() == directory, 'Missing or redirected directory: ' + str(directory))
     with (BASE / 'shared/frontend/deploy.lock').open('a') as lock:

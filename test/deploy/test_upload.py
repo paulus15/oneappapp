@@ -26,8 +26,13 @@ class UploadDiagnosticsTests(unittest.TestCase):
         self.assertNotIn('PRIVATE-KEY-TEST-DO-NOT-PRINT', output)
         self.assertNotIn('KNOWN-HOSTS-TEST-DO-NOT-PRINT', output)
 
-    def test_root_has_an_actionable_error(self):
-        self.check_failure({'VPS_USER': 'root'}, 'Créer le compte dédié')
+    def test_root_is_accepted_with_a_warning(self):
+        env = self.environment()
+        env['VPS_USER'] = 'root'
+        result = subprocess.run(['bash', str(SCRIPT)], env=env, text=True,
+                                capture_output=True, timeout=10)
+        self.assertIn('::warning::Déploiement avec root', result.stdout)
+        self.assertNotIn('VPS_USER', result.stderr)
 
     def test_empty_secret_names_the_missing_variable(self):
         self.check_failure({'VPS_SSH_KEY': ''}, 'VPS_SSH_KEY absent')
