@@ -214,6 +214,11 @@ const workspaceNavigation = computed(() => [
   { label: ui('Statistiques'), icon: 'insights', to: '/developer/stats' },
   { label: t('devnav.measure'), icon: 'sensors', to: '/developer/measure' },
   { label: ui('Avis et retours'), icon: 'reviews', to: '/developer/reviews' },
+  {
+    label: ui('Suggestions'),
+    icon: 'lightbulb',
+    to: '/developer/suggestions'
+  },
   { label: ui('PWA Lab'), icon: 'science', to: '/developer/lab' }
   // Volet Revenus masqué en attendant l’activation de la monétisation.
   // {

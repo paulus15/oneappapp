@@ -69,7 +69,7 @@ deployment_step='vérification, activation et contrôles HTTPS'
 log "$deployment_step"
 ssh -F "$ssh_dir/config" production "python3 - deploy $release $checksum $GITHUB_SHA" < scripts/deploy/remote.py
 if [[ -n "${GITHUB_STEP_SUMMARY:-}" ]]; then
-  printf '### Frontend déployé\n\n- Commit : `%s`\n- Release : `%s`\n- Chemin actif : `/var/www/apps/pwastore/app`\n- URL : https://pwastore.online\n- Intégrité, routes, cache PWA et API/CORS vérifiés.\n' \
+  printf '### Frontend déployé\n\n- Commit : `%s`\n- Release : `%s`\n- Chemin actif : `/var/www/apps/pwastore/app`\n- URL : https://pwastore.online\n- Intégrité et routes HTTPS du frontend vérifiées. Contrôle complémentaire : `python3 scripts/deploy/check_runtime.py`.\n' \
     "$GITHUB_SHA" "$release" >> "$GITHUB_STEP_SUMMARY"
 fi
 log 'Déploiement terminé.'

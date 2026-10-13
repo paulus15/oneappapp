@@ -163,6 +163,11 @@
               target-type="application"
               :target-id="app.id"
             />
+            <SuggestionButton
+              v-if="app.status === 'published' && !isOwnerOrAdmin"
+              :app-id="app.id"
+              :app-name="app.name"
+            />
             <q-btn
               v-if="isOwnerOrAdmin"
               flat
@@ -434,6 +439,7 @@ import CoverImage from '@/components/CoverImage.vue'
 import HostingBadge from '@/components/HostingBadge.vue'
 import ReportButton from '@/components/ReportButton.vue'
 import ScrollRow from '@/components/ScrollRow.vue'
+import SuggestionButton from '@/components/SuggestionButton.vue'
 import { useWorkspaceAccess } from '@/composables/useWorkspaceAccess'
 import { ui } from '@/i18n/text'
 import { catalogApi } from '@/services/catalog'

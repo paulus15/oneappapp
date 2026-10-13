@@ -272,6 +272,12 @@ const routes = [
         meta: { requiresAuth: true, developerOnly: true }
       },
       {
+        path: 'suggestions',
+        component: () =>
+          import('@/pages/developer/DeveloperSuggestionsPage.vue'),
+        meta: { requiresAuth: true, developerOnly: true }
+      },
+      {
         path: 'lab',
         component: () => import('@/pages/developer/PwaLabPage.vue'),
         meta: { requiresAuth: true, developerOnly: true }

@@ -25,7 +25,13 @@ export const SUGGESTION_ACCEPT = Object.keys(SUGGESTION_FILE_TYPES)
   .map(ext => `.${ext}`)
   .join(',')
 
-export const SUGGESTION_STATUSES = ['new', 'read', 'planned', 'done', 'declined']
+export const SUGGESTION_STATUSES = [
+  'new',
+  'read',
+  'planned',
+  'done',
+  'declined'
+]
 
 export function fileExtension(name) {
   const match = /\.([^./\\]+)$/.exec(String(name || ''))
@@ -129,7 +135,8 @@ function safeHref(value) {
 }
 
 function clean(node) {
-  for (const child of [...node.childNodes]) {
+  // Snapshot the live collection before removing or replacing nodes.
+  for (const child of Array.from(node.childNodes)) {
     if (child.nodeType === 3) continue
     if (child.nodeType !== 1 || DROPPED_TAGS.has(child.tagName)) {
       child.remove()
@@ -140,8 +147,9 @@ function clean(node) {
       child.replaceWith(...child.childNodes)
       continue
     }
-    const href = child.tagName === 'A' ? safeHref(child.getAttribute('href')) : null
-    for (const attribute of [...child.attributes])
+    const href =
+      child.tagName === 'A' ? safeHref(child.getAttribute('href')) : null
+    for (const attribute of Array.from(child.attributes))
       child.removeAttribute(attribute.name)
     if (child.tagName === 'A') {
       if (!href) {

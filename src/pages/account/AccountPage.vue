@@ -59,6 +59,7 @@
         />
         <q-tab name="favorites" :label="ui('Favoris')" />
         <q-tab name="reviews" :label="ui('Mes avis')" />
+        <q-tab name="suggestions" :label="ui('Mes suggestions')" />
         <q-tab name="profile" :label="ui('Profil et sécurité')" />
         <q-tab name="preferences" :label="ui('Préférences et données')" />
       </q-tabs>
@@ -66,6 +67,7 @@
         <DeveloperOverview v-if="tab === 'activity' && developerView" />
         <PersonalLibrary v-else-if="tab === 'activity' || tab === 'library'" />
         <MyReviews v-else-if="tab === 'reviews'" />
+        <MySuggestions v-else-if="tab === 'suggestions'" />
         <AccountPreferences v-else-if="tab === 'preferences'" />
         <section v-else-if="tab === 'favorites'">
           <p v-if="!favorites.length && !error">{{
@@ -175,7 +177,7 @@ import { ui } from '@/i18n/text'
 
 import { onMounted, reactive, ref, watch } from 'vue'
 import { useQuasar } from 'quasar'
-import { useRouter } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { accountApi, apiMessage } from '@/services/account'
 import { useAuthStore } from '@/stores/auth'
 import { useWorkspaceAccess } from '@/composables/useWorkspaceAccess'
@@ -183,6 +185,7 @@ import CountrySelect from '@/components/CountrySelect.vue'
 import AccountSecurity from '@/components/AccountSecurity.vue'
 import AccountPreferences from '@/components/AccountPreferences.vue'
 import MyReviews from '@/components/MyReviews.vue'
+import MySuggestions from '@/components/MySuggestions.vue'
 import DeveloperOverview from '@/components/DeveloperOverview.vue'
 import PersonalLibrary from '@/components/PersonalLibrary.vue'
 const { t } = useI18n()
@@ -201,7 +204,8 @@ const loading = ref(true),
   sending = ref(false),
   removing = ref(null),
   error = ref(''),
-  tab = ref('activity')
+  // Notifications link to /account?tab=suggestions.
+  tab = ref(useRoute().query.tab === 'suggestions' ? 'suggestions' : 'activity')
 const favorites = ref([]),
   page = ref(1),
   lastPage = ref(1)

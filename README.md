@@ -257,7 +257,7 @@ flowchart TD
     F --> G[Vérification des fichiers reçus]
     G --> H[Nouvelle release]
     H --> I[Activation du lien /var/www/apps/pwastore/app]
-    I --> J{Contrôles HTTPS et API réussis ?}
+    I --> J{Contrôles HTTPS du frontend réussis ?}
     J -->|Oui| K[Version conservée comme saine]
     J -->|Non| L[Retour à la version précédente]
 ```

@@ -76,9 +76,7 @@
               @change="pick"
             />
             <ul v-if="fileErrors.length" class="file-errors" role="alert">
-              <li v-for="(message, i) in fileErrors" :key="i">{{
-                message
-              }}</li>
+              <li v-for="(message, i) in fileErrors" :key="i">{{ message }}</li>
             </ul>
             <div v-if="files.length" class="previews">
               <div v-for="(item, i) in files" :key="item.key" class="preview">
