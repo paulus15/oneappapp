@@ -45,6 +45,11 @@ Guide de mise en production des deux projets : l’API Laravel (`oneapp`) et le 
 | `PWA_RETENTION_AUDIT_IP_MONTHS`                                                                                                     | adresses IP du journal d’audit, effacées ensuite (12 mois)                                                                                             |
 | `PWA_RETENTION_TECHNICAL_MONTHS`                                                                                                    | contrôles d’URL et analyses PWA Lab (12 mois)                                                                                                          |
 | `PWA_RETENTION_NOTIFICATIONS_MONTHS`                                                                                                | notifications lues (6 mois)                                                                                                                            |
+| `PWA_RETENTION_AUDIT_MONTHS`                                                                                                        | journal d’audit : vide = conservé ; durée à fixer avec la revue juridique (ex. `60` pour cinq ans)                                                     |
+| `LOG_LEVEL`                                                                                                                         | `warning`                                                                                                                                              |
+| `TRUSTED_PROXIES`                                                                                                                   | vide si nginx parle directement à PHP-FPM ; adresses d’un répartiteur de charge ou d’un CDN placé devant nginx (séparées par des virgules)             |
+| `PWA_API_PER_MINUTE`                                                                                                                | plafond global de requêtes par compte ou par adresse (300)                                                                                             |
+| `PWA_HASH_KEY`                                                                                                                      | clé des empreintes pseudonymes (vues, appareils, activations), distincte d’`APP_KEY` ; une fois fixée, ne plus la changer                              |
 
 Les durées de conservation sont celles annoncées dans la politique de confidentialité (`src/content/pages.js` du frontend) : les modifier impose de mettre la politique à jour.
 
@@ -115,6 +120,21 @@ Déployer le contenu de `dist/pwa/` sur un hébergement statique HTTPS avec :
 
 - **repli SPA** : toute route inconnue sert `index.html` (le routeur est en mode `history`) ;
 - **cache** : `assets/*` en `Cache-Control: public, max-age=31536000, immutable` ; `index.html`, `sw.js` et `manifest.json` en `no-cache` pour que les mises à jour soient prises immédiatement.
+- **en-têtes de sécurité** (une balise `<meta>` ne peut pas interdire l’affichage dans un cadre) :
+
+```nginx
+add_header Content-Security-Policy "frame-ancestors 'none'" always;
+add_header X-Frame-Options "DENY" always;
+add_header X-Content-Type-Options "nosniff" always;
+add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
+```
+
+Exemple : sans `frame-ancestors`, un site tiers peut afficher le Store dans un cadre invisible et faire cliquer « Supprimer » à la place d’un autre bouton (clickjacking).
+
+### Hébergement des builds (si `PWA_BUILD_UPLOADS=true`)
+
+Les applications hébergées vivent sur `pwa-{id}.<PWA_RUNTIME_DOMAIN>`. Avant d’activer le dépôt ZIP, inscrire ce domaine à la [Public Suffix List](https://publicsuffix.org/submit/) : chaque `pwa-{id}` devient alors un site distinct, et une application ne peut plus poser de cookie lu par les autres. Le domaine doit rester différent de celui du Store.
 
 ## 3. Sauvegardes
 

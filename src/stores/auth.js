@@ -1,5 +1,6 @@
 import { ui } from '@/i18n/text'
 import { defineStore } from 'pinia'
+import { Notify } from 'quasar'
 import { api } from '@/boot/axios'
 import { setLocale } from '@/i18n'
 let hydration
@@ -152,6 +153,16 @@ export const useAuthStore = defineStore('auth', {
     async logout() {
       try {
         await api.post('/auth/logout')
+      } catch {
+        // Offline or server error: this device is signed out anyway, but the session may stay
+        // open on the server until it expires. Say so instead of failing silently.
+        Notify.create({
+          type: 'warning',
+          timeout: 8000,
+          message: ui(
+            'Déconnecté sur cet appareil. La session n’a pas pu être fermée sur le serveur : fermez-la depuis « Sécurité du compte » une fois en ligne.'
+          )
+        })
       } finally {
         this.clearSession()
       }
