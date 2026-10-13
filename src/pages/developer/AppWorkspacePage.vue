@@ -851,7 +851,9 @@
                   />
                   <span>{{
                     app.sdk_check_required === false
-                      ? ui('Contrôle du script facultatif pour cette application.')
+                      ? ui(
+                          'Contrôle du script facultatif pour cette application.'
+                        )
                       : app.sdk_check
                         ? t(`sdk.check.status.${app.sdk_check.status}`)
                         : t('sdk.recapUnchecked')

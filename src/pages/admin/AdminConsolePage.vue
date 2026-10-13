@@ -144,7 +144,12 @@
               :to="`/apps/${selectedApp.id}`"
             />
           </div>
-          <AdminApplicationSubmission v-if="canManageCatalog" :key="selectedApp.id" :application="selectedApp" @submitted="fetchApps" />
+          <AdminApplicationSubmission
+            v-if="canManageCatalog"
+            :key="selectedApp.id"
+            :application="selectedApp"
+            @submitted="fetchApps"
+          />
           <p v-if="selectedApp.moderation_reason" class="text-caption"
             >{{ ui('Dernier motif :') }} {{ selectedApp.moderation_reason }}</p
           >
