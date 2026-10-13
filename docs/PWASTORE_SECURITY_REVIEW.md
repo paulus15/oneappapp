@@ -153,16 +153,16 @@ Lecture seule, constats vérifiés dans le code. Total : **30** — Critique 0, 
 - **M2 — ✅ corrigé (lot 1) — Markdown des avis dans les e-mails** : `[lien](https://phish…)` ou pixel `![](…)` dans un e-mail officiel au développeur. `ReviewController.php:53`, `UserNotice.php:39`.
 - **M3 — ✅ corrigé (lot 1) — `PUT /account` sans limite** : oracle sur le mot de passe courant avec un jeton volé. `routes/api.php:102`.
 - **M4 — ✅ corrigé (lot 1) — `/analytics/events` falsifiable** : crashs/appareils gonflés pour une app concurrente, déduplication contournée par `device_model`. `AnalyticsController.php:32-38`.
-- **M5 — Pas de proxy de confiance** : derrière nginx, une seule IP pour tous → limites partagées (blocage de l'inscription/connexion pour tous), HSTS jamais envoyé, vues uniques faussées. `bootstrap/app.php`. À confirmer sur le VPS.
-- **M6 — Déploiement sans tests** : push sur `main` → production + `migrate --force`. `vps-deploy.yml`.
-- **M7 — Actions CI épinglées par tag** : `webfactory/ssh-agent` reçoit la clé SSH du VPS. `vps-deploy.yml:25,28`.
+- **M5 — ✅ corrigé (lot 2) — Pas de proxy de confiance** : derrière nginx, une seule IP pour tous → limites partagées (blocage de l'inscription/connexion pour tous), HSTS jamais envoyé, vues uniques faussées. `bootstrap/app.php`. À confirmer sur le VPS.
+- **M6 — ✅ corrigé (lot 2) — Déploiement sans tests** : push sur `main` → production + `migrate --force`. `vps-deploy.yml`.
+- **M7 — ✅ corrigé (lot 2) — Actions CI épinglées par tag** : `webfactory/ssh-agent` reçoit la clé SSH du VPS. `vps-deploy.yml:25,28`.
 
 ### Faible
 
 - F1 Jeton dans `localStorage` (ex-M13). F2 Déconnexion hors-ligne sans révocation serveur. F3 CSP en `<meta>` sans `frame-ancestors` (en-têtes à poser à l'hébergement).
 - F4 Saturation du plafond des signaux SDK ; `redeem()` avant le plafond. F5 `extract` sans throttle (ZIP désactivé). F6 Domaine d'exécution hors Public Suffix List. F7 Manifestes malformés → 500 / suspension à tort (`ExternalPwaChecker`, `PwaLab`). F8 `normalize-media` : JPEG nommé `.webp` non détecté.
 - F9 Champs de modération des versions exposés (`reviewer_id`, `moderation_reason`…). F10 Énumération de comptes (inscription, temps de réponse de `forgot`/login). F11 Activations hachées avec `app.key` au lieu de `pwa_store.hash_key`. F12 Avis masqué → supprimer/republier. F13 Admin-développeur lit les notes internes de son propre dossier. F14 `privacy` libre, `description` sans max, icône d'une autre app réutilisable. F15 Divers : catégories inactives visibles, 403/404 révélateurs, pas de limite globale API, ZIP approuvés téléchargeables anonymement.
-- F16 Artefacts d'agents suivis dans git (dont `app/Http/Controllers/Api/ruvector.db`, déployé). F17 `.gitignore` incomplet (`.env.*`, `*.sqlite`). F18 HSTS absent du runtime. F19 `SESSION_SECURE_COOKIE` non imposé. F20 Garde-fou production incomplet (`APP_KEY`, `APP_URL` http, `LOG_LEVEL`). F21 Pas de durée de conservation pour `audit_logs` et `sessions`. F22 Justificatifs d'identité non chiffrés au repos.
+- F16 ✅ Artefacts d'agents suivis dans git (dont `app/Http/Controllers/Api/ruvector.db`, déployé). F17 ✅ `.gitignore` incomplet (`.env.*`, `*.sqlite`). F18 ✅ HSTS absent du runtime. F19 ✅ `SESSION_SECURE_COOKIE` non imposé. F20 ✅ Garde-fou production incomplet (`APP_KEY`, `APP_URL` http, `LOG_LEVEL`). F21 Pas de durée de conservation pour `audit_logs` et `sessions`. F22 Justificatifs d'identité non chiffrés au repos.
 
 ### Vérifié correct
 
