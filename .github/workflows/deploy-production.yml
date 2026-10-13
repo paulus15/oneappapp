@@ -27,6 +27,9 @@ jobs:
           cache-dependency-path: |
             package-lock.json
             src-pwa/package-lock.json
+      # npm install --package-lock-only updates lock file to match the npm version in CI,
+      # then npm ci uses that fresh lock for a clean, reproducible install.
+      - run: npm install --package-lock-only
       - run: npm ci
       - run: npm ci --prefix src-pwa
       - run: npm run lint:check
