@@ -332,7 +332,7 @@ export default {
     declared:
       'Installations déclarées : l’utilisateur a appuyé sur « Déclarer cette PWA installée » sur la fiche. Rien ne le vérifie.',
     confirmed:
-      'Installations confirmées : signal envoyé par le script de mesure ajouté à votre PWA, lors d’une installation réelle depuis l’écran d’accueil.'
+      'Installations attribuées à PWA Store : signal d’installation ou ouverture en mode application après un clic depuis pwastore.online. Sans signal, l’installation reste non confirmée. Sur iPhone et iPad, une ouverture en mode application sert d’indice.'
   },
   common: {
     cancel: 'Annuler',
@@ -470,7 +470,7 @@ export default {
       noData:
         'Aucune donnée reçue. Cela ne signifie pas qu’aucun utilisateur n’utilise votre application.',
       period:
-        'Cumuls depuis le début de la collecte, sans données rétroactives.'
+        'Uniquement après un clic depuis pwastore.online. Les anciennes mesures sans attribution sont exclues.'
     },
     recapUnchecked:
       'Script de mesure des installations : pas encore vérifié (facultatif)',
@@ -490,7 +490,7 @@ export default {
       },
       help: {
         connected:
-          'La ligne a été trouvée sur {url} avec la bonne clé. Les installations seront comptées dès qu’un utilisateur installera ou ouvrira l’application.',
+          'La ligne a été trouvée sur {url} avec la bonne clé. Seules les installations et ouvertures attribuées à un clic depuis pwastore.online seront comptées.',
         missing:
           'Aucune ligne de mesure trouvée sur {url}. Collez-la dans index.html, mettez votre site en ligne, puis vérifiez à nouveau. Un script ajouté par JavaScript après le chargement ne peut pas être détecté.',
         wrong_key:
@@ -504,12 +504,12 @@ export default {
     },
     title: 'Mesure des installations',
     intro:
-      'Ajoutez cette ligne à votre PWA pour que PWA Store confirme les installations et les ouvertures de votre application. Sans elle, aucune installation ne peut être vérifiée.',
+      'Ajoutez cette ligne à votre PWA pour mesurer les installations et les ouvertures des utilisateurs venus de pwastore.online. Les visiteurs sans clic préalable depuis le Store sont exclus.',
     step1: 'Copiez la ligne ci-dessous.',
     step2:
       'Collez-la dans le fichier index.html de votre PWA, juste avant </body>.',
     step3:
-      'Mettez votre site en ligne : le premier signal apparaît ici dès qu’un utilisateur installe ou ouvre l’application.',
+      'Mettez votre site en ligne, puis cliquez sur « Vérifier mon site ». Ouvrez ensuite la PWA depuis sa fiche PWASTORE pour commencer la mesure.',
     copy: 'Copier',
     copied: 'Copié',
     copyFailed:
@@ -524,7 +524,7 @@ export default {
     launches: 'Ouvertures depuis l’écran d’accueil',
     recognized: 'Comptes PWA Store reconnus',
     privacy:
-      'Seuls deux événements sont mesurés (installation, ouverture), avec un identifiant anonyme de l’appareil. Rien de ce que l’utilisateur fait dans l’application n’est collecté.'
+      'Le clic depuis PWASTORE, l’installation et l’ouverture en mode application sont mesurés avec un identifiant pseudonyme d’appareil. Le développeur ne reçoit aucune identité de compte. Si le stockage est effacé ou séparé, l’attribution peut être perdue. Aucun suivi des actions dans l’application.'
   },
   devnav: {
     eyebrow: 'Espace développeur',

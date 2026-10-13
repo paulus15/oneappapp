@@ -314,17 +314,14 @@
             >
             <p class="muted-text">{{ t('store.details.sandboxIntro') }}</p>
             <h3 class="mini-title">{{ t('store.details.permissions') }}</h3>
-            <div
-              v-if="latestVersion?.permissions_required?.length"
-              class="chips"
-            >
+            <div v-if="declaredPermissions.length" class="chips">
               <q-chip
-                v-for="perm in latestVersion.permissions_required"
-                :key="perm"
+                v-for="perm in declaredPermissions"
+                :key="perm.key"
                 dense
-                icon="verified"
+                :icon="perm.icon"
                 class="soft-chip"
-                >{{ perm }}</q-chip
+                >{{ perm.label }}</q-chip
               >
             </div>
             <p v-else class="muted-text">{{
@@ -419,6 +416,7 @@ import AppScreenshots from '@/components/AppScreenshots.vue'
 import SuggestionButton from '@/components/SuggestionButton.vue'
 import { useWorkspaceAccess } from '@/composables/useWorkspaceAccess'
 import { ui } from '@/i18n/text'
+import { permissionInfo } from '@/utils/appPermissions'
 import { catalogApi } from '@/services/catalog'
 import { communityApi } from '@/services/community'
 import { toCard } from '@/utils/appCard'
@@ -451,6 +449,12 @@ const favorited = ref(false),
 
 const card = computed(() => (app.value ? toCard(app.value) : {}))
 
+// Declared on the listing; builds published before that kept them on the version.
+const declaredPermissions = computed(() =>
+  (app.value?.permissions ?? latestVersion.value?.permissions_required ?? []).map(
+    permissionInfo
+  )
+)
 const latestVersion = computed(() => {
   if (!app.value?.versions || app.value.versions.length === 0) return null
   return (

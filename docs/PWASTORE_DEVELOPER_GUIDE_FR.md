@@ -118,9 +118,13 @@ Dans l’onglet **Version** de l’application (et sur la page **Mesure des inst
 
 Cliquez ensuite sur **Vérifier mon site** : PWA Store lit votre page et indique si la ligne est en place, si la clé est la bonne, si elle pointe vers une autre adresse de PWA Store, ou si votre politique de sécurité (CSP) la bloque. Dans ce cas, autorisez l’adresse de PWA Store pour `script-src` et `connect-src`.
 
-Le script ne transmet que deux événements : **installation** et **ouverture depuis l’écran d’accueil**, avec un identifiant pseudonyme de l’appareil, et seulement depuis l’adresse déclarée de l’application publiée. Il ne collecte rien de ce que font vos utilisateurs. Vous devez **informer vos utilisateurs** de cette mesure dans votre politique de confidentialité. Les chiffres sont des indicateurs, pas une preuve comptable.
+La mesure concerne **uniquement les utilisateurs ayant ouvert votre PWA depuis sa fiche sur pwastore.online**, après vérification du script. Le lien contient une référence temporaire, propre à votre application et utilisable une seule fois. Le serveur la valide pour attribuer l’appareil au Store ; les visiteurs directs ne sont pas enregistrés.
 
-Deux compteurs coexistent : **installations déclarées** (comptes du Store qui ont indiqué avoir installé l’application, comptées une fois par compte) et **installations confirmées** (signaux du script).
+Le script transmet l’arrivée depuis le Store (`open`), le signal d’installation (`installed`) et les ouvertures en mode application (`launch`, une par session). Seules ces dernières alimentent le compteur d’ouvertures : un clic ou une visite dans un onglet ne vaut pas un lancement en mode application. Les installations sont comptées une fois par appareil attribué, y compris lorsqu’une première ouverture en mode application sert d’indice d’installation. **Sans signal, l’installation est non confirmée, pas absente.** Sur iPhone/iPad, le navigateur ne fournit pas la même confirmation d’installation. Le stockage effacé ou séparé peut faire perdre l’attribution ; aucun rapprochement entre appareils n’est effectué.
+
+Un identifiant pseudonyme d’appareil est utilisé ; le développeur voit des totaux, jamais l’identité des comptes reconnus. Aucun suivi des actions dans l’application n’est collecté. Informez vos utilisateurs dans votre politique de confidentialité. Ces chiffres sont des indicateurs, pas une preuve comptable.
+
+Deux compteurs coexistent : **installations déclarées** (déclaration d’un compte du Store) et **installations confirmées** (signaux attribués du script). Les anciennes mesures sans attribution vérifiable sont exclues ; elles ne sont pas réattribuées rétroactivement.
 
 ## 9. Erreurs fréquentes
 

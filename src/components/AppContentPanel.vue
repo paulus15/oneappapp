@@ -91,6 +91,53 @@
       />
     </section>
 
+    <!-- Permissions: declared by the developer, then compared with the analysis -->
+    <section class="workspace-card content-section">
+      <h3>{{ ui('Autorisations demandées') }}</h3>
+      <p class="text-muted">{{
+        ui(
+          'Cochez chaque autorisation que votre application demande au navigateur. Elles sont affichées sur sa fiche avant l’installation.'
+        )
+      }}</p>
+      <q-checkbox
+        v-model="noPermission"
+        :label="ui('Mon application ne demande aucune autorisation')"
+        :disable="disable"
+        @update:model-value="value => value && (permissions = [])"
+      />
+      <div class="permission-grid" :class="{ muted: noPermission }">
+        <q-checkbox
+          v-for="perm in permissionOptions"
+          :key="perm.key"
+          v-model="permissions"
+          :val="perm.key"
+          :disable="disable || noPermission"
+          dense
+        >
+          <q-icon :name="perm.icon" class="q-mr-xs" aria-hidden="true" />
+          {{ perm.label }}
+        </q-checkbox>
+      </div>
+      <q-banner
+        v-if="undeclared.length"
+        class="workspace-alert q-mt-sm"
+        role="status"
+      >
+        <template #avatar><q-icon name="travel_explore" color="warning" /></template>
+        {{
+          ui(
+            'Notre analyse du code a repéré des autorisations non cochées : {list}. Cochez-les si votre application les utilise ; sinon, l’équipe de vérification vous posera la question.',
+            { list: undeclared.map(key => permissionInfo(key).label).join(', ') }
+          )
+        }}
+      </q-banner>
+      <p v-else-if="app.detected_permissions" class="text-caption text-muted q-mt-sm">{{
+        ui(
+          'Analyse du code : aucune autorisation non déclarée. Cette détection est automatique et peut manquer des cas : votre déclaration fait foi.'
+        )
+      }}</p>
+    </section>
+
     <!-- 3. Content rating -->
     <section class="workspace-card content-section">
       <div class="rating-head">
@@ -174,7 +221,9 @@
 import { computed, onMounted, reactive, ref } from 'vue'
 import { useQuasar } from 'quasar'
 import { useI18n } from 'vue-i18n'
+import { ui } from '@/i18n/text'
 import { accountApi, apiMessage } from '@/services/account'
+import { APP_PERMISSIONS, permissionInfo } from '@/utils/appPermissions'
 
 // Mirrors App\Services\ContentRating: the server recomputes the age on every save.
 const QUESTIONS = {
@@ -207,6 +256,18 @@ const access = reactive({
 const showPassword = ref(false)
 const ads = ref(props.listing.contains_ads ?? null)
 const answers = reactive({ ...props.listing.content_rating?.answers })
+// null = not answered yet; [] = "no permission", which is a valid answer.
+const permissions = ref([...(props.listing.permissions || [])])
+const noPermission = ref(
+  Array.isArray(props.listing.permissions) && !props.listing.permissions.length
+)
+const permissionOptions = computed(() => APP_PERMISSIONS.map(permissionInfo))
+// Detected in the code but not ticked here (compared with the unsaved choice).
+const undeclared = computed(() =>
+  (props.app.detected_permissions || []).filter(
+    key => !permissions.value.includes(key)
+  )
+)
 const busy = ref(false),
   busyAccess = ref(false)
 const yesNo = computed(() => [
@@ -216,6 +277,7 @@ const yesNo = computed(() => [
 const complete = computed(
   () =>
     ads.value !== null &&
+    (noPermission.value || permissions.value.length > 0) &&
     Object.keys(QUESTIONS).every(key => answers[key]) &&
     [...INTERACTIVE, 'packaged'].every(key => typeof answers[key] === 'boolean')
 )
@@ -245,6 +307,11 @@ async function save() {
   const data = new FormData()
   data.append('_method', 'PUT')
   data.append('contains_ads', ads.value ? 1 : 0)
+  // The flag carries "no permission": multipart cannot send an empty list.
+  data.append('permissions_declared', 1)
+  permissions.value.forEach((perm, i) =>
+    data.append(`permissions[${i}]`, perm)
+  )
   for (const [key, value] of Object.entries(answers))
     data.append(
       `content_rating[${key}]`,
@@ -320,6 +387,15 @@ onMounted(async () => {
 .question-label {
   margin: 0 0 2px;
   font-weight: 600;
+}
+.permission-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+  gap: 4px 12px;
+  margin-top: 6px;
+}
+.permission-grid.muted {
+  opacity: 0.55;
 }
 .save-row {
   display: flex;

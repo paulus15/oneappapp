@@ -118,9 +118,13 @@ In the app’s **Version** tab (and on the **Install measurement** page), copy t
 
 Then click **Check my site**: PWA Store reads your page and tells you whether the line is in place, whether the key is right, whether it points to another PWA Store address, or whether your Content Security Policy (CSP) blocks it. In that case, allow the PWA Store address for `script-src` and `connect-src`.
 
-The script only sends two events: **install** and **launch from the home screen**, with a pseudonymous device identifier, and only from the declared address of the published app. It collects nothing your users do. You must **inform your users** about this measurement in your privacy policy. The figures are indicators, not accounting proof.
+Measurement includes **only users who opened your PWA from its listing on pwastore.online**, after the script has been verified. The launch URL carries a temporary, single-use reference scoped to your app. The server validates it to attribute the device to the Store; direct visitors are not recorded.
 
-Two counters coexist: **declared installs** (Store accounts that said they installed the app, counted once per account) and **confirmed installs** (signals from the script).
+The script reports the Store arrival (`open`), installation signal (`installed`) and standalone launches (`launch`, once per session). Only standalone launches increment the launch counter; a click or browser-tab visit is not a standalone launch. Installations count once per attributed device, including when a first standalone launch indicates installation. **No signal means unconfirmed, not uninstalled.** iPhone/iPad browsers do not supply the same installation confirmation. Cleared or separate storage can lose attribution; devices are not matched across browsers or devices.
+
+A pseudonymous device identifier is used. Developers see totals, never recognized account identities. Actions inside the app are not tracked. Inform your users in your privacy policy. These figures are indicators, not accounting evidence.
+
+Two counters coexist: **declared installs** (a Store account’s declaration) and **confirmed installs** (attributed script signals). Historical measurements without verifiable attribution are excluded and are not retroactively attributed.
 
 ## 9. Common errors
 

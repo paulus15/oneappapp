@@ -33,17 +33,6 @@
       :label="t('builder.releaseNotes')"
       :disable="disable"
     />
-    <fieldset class="uploader-permissions" :disabled="disable">
-      <legend>{{ t('builder.permissions') }}</legend>
-      <q-checkbox
-        v-for="perm in PERMISSIONS"
-        :key="perm"
-        v-model="form.permissions_required"
-        :val="perm"
-        :label="t(`builder.permission.${perm}`)"
-        dense
-      />
-    </fieldset>
     <q-linear-progress
       v-if="busy"
       :value="progress"
@@ -91,21 +80,12 @@ const props = defineProps({
   disable: { type: Boolean, default: false }
 })
 const emit = defineEmits(['uploaded'])
-const PERMISSIONS = [
-  'camera',
-  'location',
-  'notifications',
-  'contacts',
-  'storage',
-  'audio'
-]
 const q = useQuasar()
 const { t } = useI18n()
 const blank = () => ({
   version_number: '',
   release_notes: '',
-  zip_file: null,
-  permissions_required: []
+  zip_file: null
 })
 const form = reactive(blank())
 const busy = ref(false),
@@ -121,9 +101,6 @@ async function upload(generatePwa = false) {
   data.append('version_number', form.version_number.trim())
   if (form.release_notes) data.append('release_notes', form.release_notes)
   data.append('zip_file', form.zip_file)
-  form.permissions_required.forEach((perm, i) =>
-    data.append(`permissions_required[${i}]`, perm)
-  )
   if (generatePwa) data.append('auto_generate_pwa', 1)
   try {
     const { data: version } = await accountApi.uploadVersion(data, {
@@ -171,18 +148,6 @@ async function upload(generatePwa = false) {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   gap: 12px;
-}
-.uploader-permissions {
-  border: 1px solid var(--outline, rgba(0, 0, 0, 0.12));
-  border-radius: 12px;
-  padding: 8px 12px;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px 16px;
-}
-.uploader-permissions legend {
-  padding: 0 6px;
-  font-size: 13px;
 }
 .uploader-failure ul {
   margin: 4px 0 8px;

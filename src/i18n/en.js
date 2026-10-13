@@ -326,7 +326,7 @@ export default {
     declared:
       'Declared installations: the user tapped “I installed this PWA” on the listing. Nothing verifies it.',
     confirmed:
-      'Confirmed installations: a signal sent by the measurement script added to your PWA, on an actual installation from the home screen.'
+      'Installs attributed to PWA Store: an install signal or standalone launch after a click from pwastore.online. Without a signal, installation remains unconfirmed. On iPhone and iPad, a standalone launch serves as an indication.'
   },
   common: {
     cancel: 'Cancel',
@@ -459,7 +459,8 @@ export default {
       received: 'Data received',
       blocked: 'Script detected · check security restrictions',
       noData: 'No data received. This does not mean nobody is using your app.',
-      period: 'Totals since collection began, with no retroactive data.'
+      period:
+        'Only after a click from pwastore.online. Historical measurements without attribution are excluded.'
     },
     recapUnchecked: 'Install measurement script: not checked yet (optional)',
     recapAction: 'Check',
@@ -477,7 +478,7 @@ export default {
       },
       help: {
         connected:
-          'The line was found on {url} with the right key. Installs will be counted as soon as someone installs or opens the app.',
+          'The line was found on {url} with the right key. Only installs and launches attributed to a click from pwastore.online will be counted.',
         missing:
           'No measurement line was found on {url}. Paste it into index.html, put your site online, then check again. A script added by JavaScript after loading cannot be detected.',
         wrong_key:
@@ -491,11 +492,11 @@ export default {
     },
     title: 'Install measurement',
     intro:
-      'Add this line to your PWA so PWA Store can confirm installs and launches of your app. Without it, no install can be verified.',
+      'Add this line to your PWA to measure installs and launches from users arriving through pwastore.online. Visitors without a prior Store click are excluded.',
     step1: 'Copy the line below.',
     step2: 'Paste it into your PWA’s index.html, just before </body>.',
     step3:
-      'Put your site online: the first signal shows up here as soon as someone installs or opens the app.',
+      'Publish your site, then click “Check my site”. Open the PWA from its PWASTORE listing to start measurement.',
     copy: 'Copy',
     copied: 'Copied',
     copyFailed: 'Copy failed: select the line and copy it by hand.',
@@ -508,7 +509,7 @@ export default {
     launches: 'Launches from the home screen',
     recognized: 'PWA Store accounts recognized',
     privacy:
-      'Only two events are measured (install, launch), with an anonymous device identifier. Nothing the user does inside the app is collected.'
+      'The PWASTORE referral, installation and standalone launch are measured using a pseudonymous device identifier. Developers receive no account identity. Cleared or separate storage can lose attribution. Actions inside the app are not tracked.'
   },
   devnav: {
     eyebrow: 'Developer space',
