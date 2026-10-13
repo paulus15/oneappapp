@@ -36,10 +36,12 @@
     <div class="workspace-grid">
       <q-card
         v-for="review in reviews"
+        :id="`review-${review.id}`"
         :key="review.id"
         flat
         bordered
         class="workspace-card"
+        :class="{ 'is-highlighted': review.id === highlightId }"
       >
         <div class="row items-center justify-between">
           <strong>{{ review.application.name }}</strong>
@@ -83,13 +85,16 @@
 import { currentLocale } from '@/i18n'
 import { ui } from '@/i18n/text'
 
-import { onMounted, ref, watch } from 'vue'
+import { nextTick, onMounted, ref, watch } from 'vue'
+import { useRoute } from 'vue-router'
 import { useQuasar } from 'quasar'
 import { api } from '@/boot/axios'
 import { apiMessage } from '@/services/account'
 import { communityApi } from '@/services/community'
 
 const $q = useQuasar()
+// E-mail links point to one review: /developer/reviews?id=…
+const highlightId = Number(useRoute().query.id) || null
 const reviews = ref([]),
   appOptions = ref([]),
   loading = ref(true),
@@ -156,9 +161,19 @@ onMounted(async () => {
   const { data } = await api.get('/developer/apps')
   appOptions.value = data.map(a => ({ value: a.id, label: a.name }))
   await load()
+  if (highlightId) {
+    await nextTick()
+    document
+      .getElementById(`review-${highlightId}`)
+      ?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+  }
 })
 </script>
 <style scoped>
+.is-highlighted {
+  outline: 2px solid var(--pwa-primary);
+  outline-offset: 2px;
+}
 .reply {
   margin: 8px 0;
   padding: 8px 10px;

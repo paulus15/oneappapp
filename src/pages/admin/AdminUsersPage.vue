@@ -192,6 +192,7 @@ import { ui } from '@/i18n/text'
 
 import { computed, onMounted, reactive, ref } from 'vue'
 import { useQuasar } from 'quasar'
+import { useRoute } from 'vue-router'
 import AdminNav from '@/components/AdminNav.vue'
 import { adminApi, PERMISSION_LABELS } from '@/services/admin'
 import { apiMessage } from '@/services/account'
@@ -205,7 +206,13 @@ const users = ref([]),
   error = ref(''),
   dialog = ref(false),
   detail = ref(null)
-const filters = reactive({ search: '', status: null, role: null })
+// Links from admin e-mails (new registration) arrive with ?search=<e-mail>.
+const route = useRoute()
+const filters = reactive({
+  search: typeof route.query.search === 'string' ? route.query.search : '',
+  status: null,
+  role: null
+})
 const pagination = ref({ page: 1, rowsPerPage: 25, rowsNumber: 0 })
 const permissionForm = reactive({ admin: false, permissions: [] })
 const statusLabels = {
