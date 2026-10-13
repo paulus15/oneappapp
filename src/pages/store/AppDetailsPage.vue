@@ -675,6 +675,10 @@ function confirmInstallation() {
 }
 
 async function downloadVersion(id) {
+  if (!authStore.isAuthenticated) {
+    router.push({ path: '/login', query: { redirect: route.fullPath } })
+    return
+  }
   try {
     const { data } = await api.get(`/versions/${id}/download`, {
       responseType: 'blob'

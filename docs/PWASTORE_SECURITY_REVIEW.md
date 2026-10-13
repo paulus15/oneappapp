@@ -176,3 +176,11 @@ Lecture seule, constats vérifiés dans le code. Total : **30** — Critique 0, 
 - F11 : activations hachées avec `PWA_HASH_KEY`, anciennes empreintes reconnues. F12 : supprimer un avis masqué efface le texte mais garde le masquage. F13 : un modérateur ne lit ni n’annote le dossier de sa propre application. F14 : `privacy` limité à la liste déclarée, description ≤ 10 000 caractères, seule l’icône de l’application peut être renvoyée par adresse.
 - F15 : catégories inactives réservées au back-office, fiche non publique → 404, plafond global de 300 requêtes/min. Téléchargement anonyme des ZIP approuvés : conservé (choix produit), limité.
 - F21 : sessions expirées purgées et supprimées à l’anonymisation ; durée du journal d’audit réglable (`PWA_RETENTION_AUDIT_MONTHS`, conservé par défaut en attendant la revue juridique). F22 : justificatifs chiffrés sur le disque (`DocumentVault`), les anciens restent lisibles.
+
+### Lot 4 — compléments (2026-10-13)
+
+- F10 (inscription) : une adresse déjà inscrite reçoit la même réponse qu’une nouvelle (défi leurre) ; son titulaire est prévenu par e-mail après la réponse.
+- F15 (ZIP) : téléchargement réservé aux comptes connectés.
+- F3 : garde anti-cadre côté page (`src/boot/frame-guard.js`) en plus des en-têtes nginx documentés.
+- F1 (jeton en cookie HttpOnly) : **non appliqué**. Le passage a été préparé (middleware `AuthCookie` : cookie HttpOnly, `X-Requested-With` exigé, cookies autorisés seulement vers des origines nommées), mais l’activation sur toutes les routes de l’API a été bloquée par l’outil comme changement sensible du mécanisme d’authentification. Décision du propriétaire attendue.
+- F6 (Public Suffix List) : démarche externe à faire avant `PWA_BUILD_UPLOADS=true`.
