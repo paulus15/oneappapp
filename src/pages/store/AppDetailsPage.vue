@@ -444,6 +444,7 @@
 </template>
 
 <script setup>
+import { usePageSeo } from '@/composables/usePageSeo'
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useQuasar } from 'quasar'
@@ -500,6 +501,20 @@ const isInstalled = computed(() => {
     return false
   }
 })
+
+usePageSeo(() => ({
+  ...(app.value && !loading.value
+    ? {
+        title: `${app.value.name} — Application PWA | PWAStore`,
+        description: app.value.short_description || app.value.description,
+        name: app.value.name
+      }
+    : {}),
+  noindex:
+    !!error.value ||
+    unavailable.value ||
+    (!!app.value && app.value.status !== 'published')
+}))
 
 const card = computed(() => (app.value ? toCard(app.value) : {}))
 

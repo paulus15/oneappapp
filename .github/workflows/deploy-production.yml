@@ -41,6 +41,7 @@ jobs:
         env:
           PWA_REQUIRE_API_URL: '1'
           VITE_API_URL: https://api.pwastore.online/api
+          PWA_GOOGLE_SITE_VERIFICATION: ${{ vars.PWA_GOOGLE_SITE_VERIFICATION }}
       - name: Verify and identify the compiled release
         run: node scripts/deploy/package.mjs
       - name: Test deployment safety

@@ -7,7 +7,7 @@ export default {
       eyebrow: 'La plateforme universelle',
       line1: 'Une seule installation.',
       line2: 'Toutes les plateformes.',
-      lead: 'Découvrez, testez et utilisez des applications Web modernes.',
+      lead: 'Découvrez PWAStore, le catalogue d’applications web progressives (PWA) pour mobile et ordinateur.',
       explore: 'Explorer les applications',
       becomeDeveloper: 'Devenir développeur',
       phone1: 'Installer partout.',

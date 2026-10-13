@@ -33,6 +33,7 @@
   </q-page>
 </template>
 <script setup>
+import { usePageSeo } from '@/composables/usePageSeo'
 import { ui } from '@/i18n/text'
 
 import { computed, ref, watch } from 'vue'
@@ -85,6 +86,17 @@ const sortOptions = [
   }
 ]
 
+usePageSeo(() => ({
+  ...(!loading.value && title.value
+    ? {
+        title: `${title.value} | PWAStore`,
+        name: title.value,
+        description: description.value
+      }
+    : {}),
+  noindex: !!error.value
+}))
+
 async function load() {
   loading.value = true
   error.value = ''
@@ -109,7 +121,6 @@ async function load() {
       apps.value = list.data
       lastPage.value = list.last_page
     }
-    document.title = `${title.value} · PWA Store`
   } catch (e) {
     error.value =
       e.response?.status === 404

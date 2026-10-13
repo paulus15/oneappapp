@@ -37,6 +37,7 @@
   </q-page>
 </template>
 <script setup>
+import { usePageSeo } from '@/composables/usePageSeo'
 import { ui } from '@/i18n/text'
 
 import { computed, ref, watch } from 'vue'
@@ -52,6 +53,16 @@ const profile = ref(null),
   applications = ref([]),
   loading = ref(true),
   error = ref('')
+usePageSeo(() => ({
+  ...(profile.value && !loading.value
+    ? {
+        title: `${profile.value.public_name} | PWAStore`,
+        name: profile.value.public_name,
+        description: profile.value.description
+      }
+    : {}),
+  noindex: !!error.value
+}))
 // Older profiles may hold a non-http link: never render it as a clickable href.
 const website = computed(() => safeExternalUrl(profile.value?.website))
 const host = url => {
@@ -70,7 +81,6 @@ watch(
       const { data } = await catalogApi.publisher(id)
       profile.value = data.profile
       applications.value = data.applications
-      document.title = `${data.profile.public_name} · PWA Store`
     } catch (e) {
       profile.value = null
       error.value =

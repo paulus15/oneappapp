@@ -44,16 +44,13 @@
 <script setup>
 import { ui, localizedCopy } from '@/i18n/text'
 
-import { computed, watchEffect } from 'vue'
+import { computed } from 'vue'
 import { useRoute } from 'vue-router'
 import AppFooter from '@/components/AppFooter.vue'
 import { pages } from '@/content/pages'
 
 const route = useRoute()
 const page = computed(() => localizedCopy(pages[route.meta.page]))
-watchEffect(() => {
-  if (page.value) document.title = `${page.value.title} · PWA Store`
-})
 </script>
 <style scoped>
 article {

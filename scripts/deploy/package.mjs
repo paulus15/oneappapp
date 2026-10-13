@@ -22,7 +22,14 @@ async function walk(dir = '') {
   }
 }
 await walk()
-for (const file of ['index.html', 'sw.js', 'manifest.json']) {
+for (const file of [
+  'index.html',
+  'spa.html',
+  'sw.js',
+  'manifest.json',
+  'robots.txt',
+  'sitemap.xml'
+]) {
   if (!files[file]) throw new Error(`Missing ${file}`)
 }
 for (const ext of ['js', 'css']) {

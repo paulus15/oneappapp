@@ -2,6 +2,7 @@
 // https://v2.quasar.dev/quasar-cli-vite/quasar-config-file
 
 import { defineConfig } from '#q-app'
+import { seoPlugin } from './scripts/seo/generate.mjs'
 
 // Release builds set PWA_REQUIRE_API_URL=1 so that a missing VITE_API_URL fails the
 // build instead of silently pointing the app at the local https://oneapp.test/api.
@@ -10,6 +11,10 @@ if (process.env.PWA_REQUIRE_API_URL === '1' && !process.env.VITE_API_URL)
   throw new Error(
     'VITE_API_URL is required when PWA_REQUIRE_API_URL=1 (production build).'
   )
+
+const googleSiteVerification = process.env.PWA_GOOGLE_SITE_VERIFICATION || ''
+if (googleSiteVerification && !/^[A-Za-z0-9_-]+$/.test(googleSiteVerification))
+  throw new Error('Invalid Google site verification token')
 
 export default defineConfig((/* ctx */) => {
   return {
@@ -40,11 +45,23 @@ export default defineConfig((/* ctx */) => {
     // https://v2.quasar.dev/quasar-cli-vite/quasar-config-file#build
     // The page CSP only allows calls to this API origin (application icons may come from any HTTPS host).
     htmlVariables: {
+      googleSiteVerification,
       apiOrigin: new URL(process.env.VITE_API_URL || 'https://oneapp.test/api')
         .origin
     },
 
     build: {
+      extendViteConf(config) {
+        config.plugins.push(
+          seoPlugin({
+            apiUrl:
+              process.env.PWA_SEO_CATALOG_URL ||
+              (process.env.PWA_REQUIRE_API_URL === '1'
+                ? process.env.VITE_API_URL
+                : undefined)
+          })
+        )
+      },
       target: {
         // browser: 'baseline-widely-available',
         // node: 'node22'
@@ -155,17 +172,24 @@ export default defineConfig((/* ctx */) => {
         // confirmation in register-sw.js instead, preserving in-progress forms.
         cfg.skipWaiting = false
         cfg.cleanupOutdatedCaches = true
+        cfg.navigateFallback = 'spa.html'
         cfg.globIgnores = [
           ...(cfg.globIgnores || []),
           '**/*-{cyrillic,cyrillic-ext,greek,greek-ext,vietnamese}-*.woff2',
           // Time zone data is only needed for a first-visit country guess.
-          '**/moment-timezone-*.js'
+          '**/moment-timezone-*.js',
+          // Keep catalogue metadata out of offline snapshots; SPA navigation uses spa.html.
+          'apps/**/*.html',
+          'categories/**/*.html',
+          '**/*.xml',
+          '**/*.txt'
         ]
         // Never answer API or Sanctum navigations with the cached index.html.
         cfg.navigateFallbackDenylist = [
           ...(cfg.navigateFallbackDenylist || []),
           /^\/api\//,
-          /^\/sanctum\//
+          /^\/sanctum\//,
+          /^\/(robots\.txt|sitemap\.xml)$/
         ]
       }
       // swFilename: 'sw.js',

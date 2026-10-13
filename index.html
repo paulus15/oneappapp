@@ -1,32 +1,44 @@
 <!doctype html>
 <html lang="fr">
   <head>
-    <title><%= productName %></title>
+    <title>PWAStore — Découvrez les applications web progressives (PWA)</title>
 
     <meta charset="utf-8" />
     <meta name="theme-color" content="#075BFF" />
-    <meta name="application-name" content="PWA Store" />
+    <meta name="application-name" content="PWAStore" />
     <% if (ctx.mode.pwa) { %>
     <link rel="manifest" href="/manifest.json" />
     <% } %>
-    <meta name="apple-mobile-web-app-title" content="PWA Store" />
+    <meta name="apple-mobile-web-app-title" content="PWAStore" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
     <meta property="og:type" content="website" />
-    <meta property="og:site_name" content="PWA Store" />
-    <meta property="og:title" content="PWA Store" />
+    <meta property="og:site_name" content="PWAStore" />
+    <meta property="og:title" content="PWAStore" />
     <meta
       property="og:description"
-      content="Découvrez, testez et utilisez des applications Web modernes."
+      content="Découvrez PWAStore, le catalogue d’applications web progressives pour mobile et ordinateur."
     />
-    <meta property="og:image" content="/brand/pwa-store-wordmark.png" />
-    <meta property="og:image:alt" content="PWA Store" />
+    <meta
+      property="og:image"
+      content="https://pwastore.online/brand/pwa-store-wordmark.png"
+    />
+    <meta property="og:image:alt" content="PWAStore" />
     <link
       rel="apple-touch-icon"
       sizes="180x180"
       href="/icons/apple-icon-180x180.png"
     />
-    <meta name="description" content="<%= productDescription %>" />
+    <meta
+      name="description"
+      content="Découvrez PWAStore, le catalogue d’applications web progressives pour mobile et ordinateur."
+    />
+    <% if (googleSiteVerification) { %>
+    <meta
+      name="google-site-verification"
+      content="<%= googleSiteVerification %>"
+    />
+    <% } %>
     <meta name="format-detection" content="telephone=no" />
     <meta name="msapplication-tap-highlight" content="no" />
     <meta
@@ -42,27 +54,27 @@
       rel="icon"
       type="image/png"
       sizes="128x128"
-      href="icons/favicon-128x128.png"
+      href="/icons/favicon-128x128.png"
     />
     <link
       rel="icon"
       type="image/png"
       sizes="96x96"
-      href="icons/favicon-96x96.png"
+      href="/icons/favicon-96x96.png"
     />
     <link
       rel="icon"
       type="image/png"
       sizes="32x32"
-      href="icons/favicon-32x32.png"
+      href="/icons/favicon-32x32.png"
     />
     <link
       rel="icon"
       type="image/png"
       sizes="16x16"
-      href="icons/favicon-16x16.png"
+      href="/icons/favicon-16x16.png"
     />
-    <link rel="icon" type="image/ico" href="favicon.ico" />
+    <link rel="icon" type="image/ico" href="/favicon.ico" />
   </head>
   <body>
     <!-- quasar:entry-point -->
