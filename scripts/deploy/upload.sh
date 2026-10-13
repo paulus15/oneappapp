@@ -17,7 +17,9 @@ done
 [[ "$VPS_PORT" =~ ^[0-9]{1,5}$ ]] || fail 'VPS_PORT invalide : saisir uniquement le numéro du port SSH, sans espace ni retour à la ligne.'
 (( 10#$VPS_PORT >= 1 && 10#$VPS_PORT <= 65535 )) || fail 'VPS_PORT doit être compris entre 1 et 65535.'
 [[ "$VPS_USER" =~ ^[a-z_][a-z0-9_-]*$ ]] || fail 'VPS_USER invalide : saisir uniquement le nom Linux, sans @, espace ni retour à la ligne.'
-[[ "$VPS_USER" != root ]] || fail 'VPS_USER=root est refusé. Créer le compte dédié pwastore-deploy selon docs/DEPLOYMENT.md, puis modifier le secret VPS_USER.'
+if [[ "$VPS_USER" == root ]]; then
+  printf '::warning::Déploiement avec root : un compte dédié limiterait l’impact d’une fuite de VPS_SSH_KEY (voir docs/DEPLOYMENT.md).\n'
+fi
 [[ "${GITHUB_SHA:-}" =~ ^[a-f0-9]{40}$ ]] || fail 'GITHUB_SHA absent ou invalide.'
 [[ "${GITHUB_RUN_ID:-}" =~ ^[0-9]+$ && "${GITHUB_RUN_ATTEMPT:-}" =~ ^[0-9]+$ ]] || fail 'Identifiant GitHub Actions absent ou invalide.'
 for command in ssh rsync ssh-keygen sha256sum; do

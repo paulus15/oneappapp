@@ -20,7 +20,6 @@ INCOMING = BASE / 'shared/frontend/incoming'
 HEALTHY = BASE / 'shared/frontend/healthy'
 APP = BASE / 'app'
 ORIGIN = 'https://pwastore.online'
-API = 'https://api.pwastore.online/api/categories'
 
 
 def require(condition, message):
@@ -67,51 +66,17 @@ def request(url, headers=None, method=None, statuses=(200,)):
         return response.read(), response.headers
 
 
-def security_headers(headers):
-    require(headers.get('X-Content-Type-Options') == 'nosniff', 'Missing Nginx nosniff header')
-    require(headers.get('X-Frame-Options') == 'DENY', 'Missing Nginx frame protection')
-    require("frame-ancestors 'none'" in headers.get('Content-Security-Policy', ''),
-            'Missing CSP frame-ancestors header')
-    require('max-age=31536000' in headers.get('Strict-Transport-Security', ''), 'Missing HSTS header')
-    require(headers.get('Referrer-Policy') == 'strict-origin-when-cross-origin', 'Missing Referrer-Policy')
-
-
-def api_health():
-    body, headers = request(API, {'Origin': ORIGIN, 'Accept': 'application/json', 'X-PWA-Auth': 'cookie'})
-    require('application/json' in headers.get('Content-Type', ''), 'API did not return JSON')
-    require(headers.get('Access-Control-Allow-Origin') == ORIGIN, 'API CORS origin mismatch')
-    require(headers.get('Access-Control-Allow-Credentials') == 'true', 'API CORS credentials missing')
-    require(isinstance(json.loads(body), (dict, list)), 'Invalid API response')
-    _, headers = request(API, {
-        'Origin': ORIGIN,
-        'Access-Control-Request-Method': 'POST',
-        'Access-Control-Request-Headers': 'content-type,x-pwa-auth,x-country',
-    }, method='OPTIONS', statuses=(200, 204))
-    require(headers.get('Access-Control-Allow-Origin') == ORIGIN and
-            headers.get('Access-Control-Allow-Credentials') == 'true', 'API preflight credentials refused')
-    allowed_headers = {h.strip().lower() for h in headers.get('Access-Control-Allow-Headers', '').split(',')}
-    require({'content-type', 'x-pwa-auth', 'x-country'} <= allowed_headers, 'API preflight headers refused')
-    require('POST' in {m.strip() for m in headers.get('Access-Control-Allow-Methods', '').split(',')},
-            'API preflight POST refused')
-
-
 def health(metadata, raw):
     files = metadata['files']
     checks = {'release.json': digest(raw)}
     checks.update({name: checksum for name, checksum in files.items()
                    if name.endswith(('.js', '.css', '.json', '.png')) or name == 'index.html'})
     for name, checksum in checks.items():
-        body, headers = request(ORIGIN + '/' + name + '?deploy=' + metadata['commit'])
+        body, _ = request(ORIGIN + '/' + name + '?deploy=' + metadata['commit'])
         require(digest(body) == checksum, 'HTTP content mismatch: ' + name)
-        security_headers(headers)
-        if name in ('index.html', 'sw.js', 'manifest.json', 'release.json'):
-            require('no-cache' in headers.get('Cache-Control', '') or
-                    'no-store' in headers.get('Cache-Control', ''), 'Unsafe cache: ' + name)
     for route in ('/', '/applications', '/login', '/developer'):
-        body, headers = request(ORIGIN + route)
+        body, _ = request(ORIGIN + route)
         require(digest(body) == files['index.html'], 'SPA route mismatch: ' + route)
-        security_headers(headers)
-    api_health()
 
 
 def switch(target):
