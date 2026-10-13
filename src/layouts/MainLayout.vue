@@ -523,8 +523,7 @@ function handleNavigation() {
 }
 
 async function handleLogout() {
-  await authStore.logout()
-  router.push('/')
+  if (await authStore.logout()) router.push('/')
 }
 
 async function promptInstallStore() {

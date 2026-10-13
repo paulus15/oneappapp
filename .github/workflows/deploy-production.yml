@@ -31,7 +31,8 @@ jobs:
       - run: npm ci --prefix src-pwa
       - run: npm run lint:check
       - run: npm run test:unit
-      - name: Build PWA for production
+      # npm run build:pwa executes quasar build -m pwa and produces dist/pwa/.
+      - name: Compile the production PWA into dist/pwa
         run: npm run build:pwa
         env:
           PWA_REQUIRE_API_URL: '1'
@@ -40,7 +41,9 @@ jobs:
         run: node scripts/deploy/package.mjs
       - name: Test deployment safety
         run: python3 -m unittest discover -s test/deploy -v
-      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+      # Only the compiled site and its release.json metadata are published.
+      - name: Save only the compiled dist/pwa content
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: frontend-${{ github.sha }}
           path: dist/pwa/
@@ -59,11 +62,15 @@ jobs:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
           persist-credentials: false
-      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+      - name: Download the compiled PWA produced by the build job
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
         with:
           name: frontend-${{ github.sha }}
           path: artifact
-      - name: Transfer, activate, verify and roll back on failure
+      # upload.sh sends artifact/ contents, not the repository.
+      # remote.py activates the release at /var/www/apps/pwastore/app (symlink).
+      # The result is /var/www/apps/pwastore/app/index.html, without dist/pwa nesting.
+      - name: Deploy the compiled PWA to /var/www/apps/pwastore/app
         run: bash scripts/deploy/upload.sh
         env:
           VPS_HOST: ${{ secrets.VPS_HOST }}

@@ -2,13 +2,13 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { createPinia, setActivePinia } from 'pinia'
 
 const post = vi.fn()
-vi.mock('@/boot/axios', () => ({ api: { post, get: vi.fn() } }))
+const get = vi.fn()
+vi.mock('@/boot/axios', () => ({ api: { post, get } }))
+vi.mock('quasar', () => ({ Notify: { create: vi.fn() } }))
 
 const { useAuthStore } = await import('@/stores/auth')
 
 const session = {
-  access_token: 'token-1',
-  token_type: 'Bearer',
   user: {
     id: 1,
     name: 'Awa',
@@ -23,6 +23,7 @@ describe('auth store', () => {
     localStorage.clear()
     sessionStorage.clear()
     post.mockReset()
+    get.mockReset()
     setActivePinia(createPinia())
   })
 
@@ -49,7 +50,9 @@ describe('auth store', () => {
       code: '123456'
     })
     expect(auth.isAuthenticated).toBe(true)
-    expect(localStorage.getItem('auth_token')).toBe('token-1')
+    expect(localStorage.getItem('auth_token')).toBeNull()
+    expect(localStorage.getItem('user')).toBeNull()
+    expect(auth.$state).not.toHaveProperty('token')
     expect(auth.canSubmit).toBe(false)
   })
 
@@ -113,5 +116,116 @@ describe('auth store', () => {
     await auth.verifyOtp('123456')
     expect(auth.isAuthenticated).toBe(false)
     expect(localStorage.getItem('auth_token')).toBeNull()
+  })
+
+  it('removes legacy credentials without trusting a persisted user', () => {
+    for (const storage of [localStorage, sessionStorage]) {
+      storage.setItem('auth_token', 'old-secret')
+      storage.setItem('access_token', 'old-secret')
+      storage.setItem('token', 'old-secret')
+      storage.setItem('auth', JSON.stringify({ token: 'old-secret' }))
+      storage.setItem('user', JSON.stringify(session.user))
+    }
+    const auth = useAuthStore()
+    expect(auth.isAuthenticated).toBe(false)
+    for (const storage of [localStorage, sessionStorage]) {
+      for (const key of ['auth_token', 'access_token', 'token', 'auth', 'user'])
+        expect(storage.getItem(key)).toBeNull()
+    }
+  })
+
+  it('restores the session from the server without a JavaScript token', async () => {
+    get.mockResolvedValue({ data: session.user })
+    const auth = useAuthStore()
+    await Promise.all([auth.fetchUser(), auth.fetchUser()])
+    expect(get).toHaveBeenCalledTimes(1)
+    expect(get).toHaveBeenCalledWith('/auth/me')
+    expect(auth.user).toEqual(session.user)
+    expect(auth.hydrated).toBe(true)
+    expect(auth.isAuthenticated).toBe(true)
+    expect(localStorage.getItem('user')).toBeNull()
+  })
+
+  it('clears an expired session on 401', async () => {
+    const auth = useAuthStore()
+    auth.acceptAuthResult(session)
+    get.mockRejectedValue({ response: { status: 401 } })
+    await auth.fetchUser()
+    expect(auth.user).toBeNull()
+    expect(auth.hydrated).toBe(true)
+  })
+
+  it('preserves an anonymous OTP challenge during startup restoration', async () => {
+    const auth = useAuthStore()
+    auth.setChallenge({ challenge_id: 'c1', purpose: 'login' })
+    get.mockRejectedValue({ response: { status: 401 } })
+    await auth.fetchUser()
+    expect(auth.pendingChallenge.challenge_id).toBe('c1')
+    expect(auth.isAuthenticated).toBe(false)
+  })
+
+  it('does not persist an unexpected access token in the OTP payload', () => {
+    const auth = useAuthStore()
+    auth.setChallenge({
+      requires_otp: true,
+      challenge_id: 'c1',
+      access_token: 'secret'
+    })
+    expect(JSON.stringify(auth.$state)).not.toContain('secret')
+    expect(sessionStorage.getItem('otp_challenge')).not.toContain('secret')
+  })
+
+  it('keeps the user until logout completes, then clears the session', async () => {
+    let finish
+    post.mockImplementation(
+      () =>
+        new Promise(resolve => {
+          finish = resolve
+        })
+    )
+    const auth = useAuthStore()
+    auth.acceptAuthResult(session)
+    const logout = auth.logout()
+    expect(auth.isAuthenticated).toBe(true)
+    expect(post).toHaveBeenCalledWith('/auth/logout')
+    finish({ data: {} })
+    expect(await logout).toBe(true)
+    expect(auth.isAuthenticated).toBe(false)
+  })
+
+  it('does not claim logout succeeded when the cookie could not be revoked', async () => {
+    const auth = useAuthStore()
+    auth.acceptAuthResult(session)
+    post.mockRejectedValue(new Error('offline'))
+    expect(await auth.logout()).toBe(false)
+    expect(auth.isAuthenticated).toBe(true)
+  })
+
+  it('does not restore an in-flight session after logout', async () => {
+    let finish
+    get.mockImplementation(
+      () =>
+        new Promise(resolve => {
+          finish = resolve
+        })
+    )
+    const auth = useAuthStore()
+    const pending = auth.fetchUser()
+    post.mockResolvedValue({ data: {} })
+    await auth.logout()
+    finish({ data: session.user })
+    await pending
+    expect(auth.isAuthenticated).toBe(false)
+  })
+
+  it('allows retrying hydration after a network failure', async () => {
+    const auth = useAuthStore()
+    get
+      .mockRejectedValueOnce(new Error('offline'))
+      .mockResolvedValueOnce({ data: session.user })
+    await expect(auth.fetchUser()).rejects.toThrow('offline')
+    expect(auth.hydrated).toBe(false)
+    await auth.fetchUser()
+    expect(auth.isAuthenticated).toBe(true)
   })
 })

@@ -230,8 +230,7 @@ const resourceNavigation = computed(() => [
 ])
 
 async function handleLogout() {
-  await authStore.logout()
-  router.push('/')
+  if (await authStore.logout()) router.push('/')
 }
 </script>
 

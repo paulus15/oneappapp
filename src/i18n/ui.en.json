@@ -1076,5 +1076,6 @@
   "Onglet Contenu : accès pour la vérification (identifiants de test chiffrés, visibles seulement par l’équipe de vérification), annonces et questionnaire de classification du contenu.": "Content tab: access for the review (encrypted test credentials, visible only to the review team), ads and the content rating questionnaire.",
   "Activations": "Activations",
   "{n} activations": "{n} activations",
-  "Déconnecté sur cet appareil. La session n’a pas pu être fermée sur le serveur : fermez-la depuis « Sécurité du compte » une fois en ligne.": "Signed out on this device. The session could not be closed on the server: close it from “Account security” once you are online."
+  "Déconnecté sur cet appareil. La session n’a pas pu être fermée sur le serveur : fermez-la depuis « Sécurité du compte » une fois en ligne.": "Signed out on this device. The session could not be closed on the server: close it from “Account security” once you are online.",
+  "La déconnexion a échoué. Votre session peut encore être active. Réessayez une fois la connexion rétablie.": "Sign-out failed. Your session may still be active. Try again when the connection is restored."
 }

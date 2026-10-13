@@ -9,20 +9,40 @@ import { unauthorizedRedirect } from '@/router/guards'
 // Create an axios instance
 const api = axios.create({
   baseURL: API_BASE_URL,
+  withCredentials: true,
   headers: {
+    'X-PWA-Auth': 'cookie',
     'Content-Type': 'application/json',
     Accept: 'application/json'
   }
 })
 
+// This credentialed client is exclusively for our HTTPS API, including blobs.
+api.interceptors.request.use(config => {
+  const base = new URL(API_BASE_URL)
+  const target = new URL(api.getUri(config), base)
+  const prefix = base.pathname.replace(/\/$/, '')
+  if (
+    base.protocol !== 'https:' ||
+    target.origin !== base.origin ||
+    !(target.pathname === prefix || target.pathname.startsWith(`${prefix}/`)) ||
+    target.username ||
+    target.password
+  )
+    throw new Error(
+      'The cookie API client only accepts requests to the configured HTTPS API'
+    )
+  config.withCredentials = true
+  config.headers.set('X-PWA-Auth', 'cookie')
+  config.headers.delete('Authorization')
+  delete config.auth
+  return config
+})
+
 export default boot(({ app, router }) => {
-  // Set up request interceptor to inject Sanctum auth token if it exists in local storage
   api.interceptors.request.use(
     config => {
-      const token = localStorage.getItem('auth_token')
-      if (token) {
-        config.headers.Authorization = `Bearer ${token}`
-      } else if (visitorCountry()) {
+      if (!useAuthStore().isAuthenticated && visitorCountry()) {
         // Visitors browse the catalogue of the country they chose.
         config.headers['X-Country'] = visitorCountry()
       }
@@ -47,7 +67,8 @@ export default boot(({ app, router }) => {
       if (error.response && error.response.status === 401) {
         // An expired token ends the session. A 401 on an anonymous request (wrong
         // password, OTP step) must not wipe the pending OTP challenge.
-        if (error.config?.headers?.Authorization) useAuthStore().clearSession()
+        const auth = useAuthStore()
+        auth.clearSession({ keepChallenge: !auth.isAuthenticated })
         // Only pages that require a session redirect; public pages stay put.
         const target = unauthorizedRedirect(router.currentRoute.value)
         if (target) router.push(target)
@@ -58,7 +79,7 @@ export default boot(({ app, router }) => {
 
   // A signed-in user's language follows them across devices (best effort).
   onLocaleChosen(locale => {
-    if (localStorage.getItem('auth_token'))
+    if (useAuthStore().isAuthenticated)
       api.put('/account/locale', { locale }).catch(() => {})
   })
 

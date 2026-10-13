@@ -49,7 +49,7 @@ export default defineRouter((/* { store, ssrContext } */) => {
   })
   Router.beforeEach(async to => {
     const auth = useAuthStore()
-    if (auth.token && !auth.hydrated) {
+    if (!auth.hydrated) {
       try {
         await auth.fetchUser()
       } catch {

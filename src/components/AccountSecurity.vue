@@ -217,8 +217,7 @@ function changePassword() {
 function revoke(session) {
   return run('session', async () => {
     if (session.current) {
-      await auth.logout()
-      router.replace('/login')
+      if (await auth.logout()) router.replace('/login')
       return
     }
     await accountApi.revokeSession(session.id)
