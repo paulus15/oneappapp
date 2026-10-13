@@ -123,6 +123,11 @@
             </div>
           </q-form>
         </div>
+        <AdminPublisherAccounts
+          v-if="form.id"
+          :key="form.id"
+          :publisher-id="form.id"
+        />
         <div v-if="form.id" class="workspace-card q-mt-md">
           <h2>{{ ui('Applications rattachées') }}</h2>
           <q-select
@@ -198,6 +203,7 @@
 import { computed, onMounted, reactive, ref } from 'vue'
 import { useQuasar } from 'quasar'
 import AdminNav from '@/components/AdminNav.vue'
+import AdminPublisherAccounts from '@/components/AdminPublisherAccounts.vue'
 import { adminApi } from '@/services/admin'
 import { apiMessage } from '@/services/account'
 import { ui } from '@/i18n/text'

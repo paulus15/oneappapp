@@ -1227,5 +1227,12 @@
   "Entreprise": "Business",
   "Éditeur enregistré.": "Publisher saved.",
   "Rattachement mis à jour.": "App association updated.",
-  "Éditeur ·": "Publisher ·"
+  "Éditeur ·": "Publisher ·",
+  "Comptes liés": "Linked accounts",
+  "Liez des comptes simples ou développeurs à cette entité. Leurs rôles et leurs droits restent inchangés.": "Link standard or developer accounts to this entity. Their roles and permissions stay unchanged.",
+  "Rechercher un compte par nom ou e-mail": "Search accounts by name or email",
+  "Aucun compte trouvé.": "No accounts found.",
+  "Lier le compte": "Link account",
+  "Aucun compte lié.": "No linked accounts.",
+  "Compte simple": "Standard account"
 }

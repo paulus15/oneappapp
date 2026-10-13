@@ -5,6 +5,12 @@ export const adminApi = {
   publishers: params => api.get('/admin/publishers', { params }),
   createPublisher: data => api.post('/admin/publishers', data),
   updatePublisher: (id, data) => api.put(`/admin/publishers/${id}`, data),
+  publisherAccounts: (id, params) =>
+    api.get(`/admin/publishers/${id}/accounts`, { params }),
+  linkPublisherAccount: (id, userId) =>
+    api.put(`/admin/publishers/${id}/accounts/${userId}`),
+  unlinkPublisherAccount: (id, userId) =>
+    api.delete(`/admin/publishers/${id}/accounts/${userId}`),
   publisherApplications: params =>
     api.get('/admin/publisher-applications', { params }),
   assignPublisher: (id, publisher_id) =>

@@ -241,3 +241,17 @@ Un éditeur peut être une entreprise (`organization`) ou un individuel (`indivi
 La migration `2026_10_13_180000_create_publishers` crée la table `publishers` et la relation facultative. Elle doit précéder le déploiement du modèle `Application` qui charge l’éditeur. Le catalogue et la fiche application affichent l’entité lorsqu’elle est renseignée ; sinon ils utilisent le profil développeur existant. Le rattachement ne publie pas une application en brouillon et n’attribue pas un badge d’identité vérifiée à l’entité. Les anciennes adresses `/publishers/{profile}` restent celles des profils développeurs ; les entités administrées ont leurs propres adresses `/entities/{publisher}`.
 
 Validation : `vendor/bin/phpunit tests/Feature/PublisherTest.php tests/Feature/CatalogHomeTest.php tests/Feature/PublicVisibilityAndAbuseTest.php` sur SQLite en mémoire ; `test/unit/admin-publishers.spec.js` pour les formulaires et les cartes.
+
+#### Comptes liés aux entités
+
+Dans la section « Comptes liés », l’admin disposant de `catalog.manage` recherche les comptes simples (`user`) ou développeurs (`developer`) par nom ou e-mail. Une entité peut avoir plusieurs comptes et un compte peut être lié à plusieurs entités. Ce rattachement administratif ne modifie ni le rôle du compte, ni ses permissions, ni la propriété des applications. Les comptes liés et leurs e-mails ne sont pas exposés sur la fiche publique.
+
+| Méthode | Route                                           | Fonction                                                                                                                |
+| ------- | ----------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
+| GET     | `/admin/publishers/{publisher}/accounts`        | Liste paginée des comptes liés avec `linked=1`, ou des comptes disponibles avec `linked=0` ; filtres `search` et `page` |
+| PUT     | `/admin/publishers/{publisher}/accounts/{user}` | Lier un compte existant, sans doublon                                                                                   |
+| DELETE  | `/admin/publishers/{publisher}/accounts/{user}` | Détacher uniquement ce compte de cette entité                                                                           |
+
+La migration `2026_10_13_230000_create_publisher_user_table` crée la relation avec une contrainte d’unicité et un nettoyage automatique en cas de suppression du compte ou de l’entité. Les changements sont journalisés (`publisher.account_linked`, `publisher.account_unlinked`). Les appels répétés sans changement restent sans effet et ne dupliquent pas le journal.
+
+Validation : `tests/Feature/PublisherAccountsTest.php` côté backend et `test/unit/admin-publisher-accounts.spec.js` côté frontend.
