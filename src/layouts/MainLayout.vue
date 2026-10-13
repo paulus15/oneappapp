@@ -394,7 +394,7 @@ import { useWorkspaceAccess } from '@/composables/useWorkspaceAccess'
 const { isMobile } = useWorkspaceAccess()
 import BrandLogo from '@/components/BrandLogo.vue'
 import { useTheme } from '@/composables/useTheme'
-import { onMounted, ref, watch, computed } from 'vue'
+import { onBeforeUnmount, onMounted, ref, watch, computed } from 'vue'
 import { useQuasar } from 'quasar'
 import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
@@ -442,29 +442,40 @@ onMounted(() => {
   search.value = String(route.query.search || '')
 
   // Load search history
-  const history = localStorage.getItem('oneapp_search_history')
   try {
+    const history = localStorage.getItem('oneapp_search_history')
     if (history) searchHistory.value = JSON.parse(history)
   } catch {
-    localStorage.removeItem('oneapp_search_history')
+    try {
+      localStorage.removeItem('oneapp_search_history')
+    } catch {
+      // Storage unavailable: the history simply starts empty.
+    }
   }
 
-  // Listen to PWA installation events
-  window.addEventListener('beforeinstallprompt', e => {
-    e.preventDefault()
-    deferredInstallPrompt.value = e
-  })
-
-  window.addEventListener('appinstalled', () => {
-    deferredInstallPrompt.value = null
-    $q.notify({
-      type: 'positive',
-      get message() {
-        return ui('PWA Store a été installé avec succès sur votre appareil !')
-      }
-    })
-  })
+  // Listen to PWA installation events (removed on unmount: the layout is mounted again
+  // after visiting the sign-in or developer layouts, and must not stack listeners).
+  window.addEventListener('beforeinstallprompt', onInstallPrompt)
+  window.addEventListener('appinstalled', onAppInstalled)
 })
+onBeforeUnmount(() => {
+  window.removeEventListener('beforeinstallprompt', onInstallPrompt)
+  window.removeEventListener('appinstalled', onAppInstalled)
+})
+
+function onInstallPrompt(e) {
+  e.preventDefault()
+  deferredInstallPrompt.value = e
+}
+function onAppInstalled() {
+  deferredInstallPrompt.value = null
+  $q.notify({
+    type: 'positive',
+    get message() {
+      return ui('PWA Store a été installé avec succès sur votre appareil !')
+    }
+  })
+}
 
 // Watch search query for autocomplete suggestions
 watch(search, async newVal => {

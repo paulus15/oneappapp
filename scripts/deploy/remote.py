@@ -113,6 +113,23 @@ def activate(target, metadata, raw):
     print('SUCCESS: active release ' + target.name, flush=True)
 
 
+def discard_failed(target):
+    """A release that never became healthy and is not active is removed (it would fill the disk)."""
+    if target.is_dir() and not target.is_symlink() and APP.resolve() != target.resolve() \
+            and not (HEALTHY / target.name).exists():
+        shutil.rmtree(target)
+        print('CLEANUP: removed failed release ' + target.name, flush=True)
+
+
+def purge_stale_incoming(max_age=86400):
+    """Uploads interrupted before deploy (rsync failure, cancelled run) are removed after a day."""
+    limit = time.time() - max_age
+    for folder in INCOMING.iterdir():
+        if re.fullmatch(r'[a-f0-9]{40}-[0-9]+-[0-9]+', folder.name) and folder.is_dir() \
+                and not folder.is_symlink() and folder.stat().st_mtime < limit:
+            shutil.rmtree(folder)
+
+
 def prune():
     active = APP.resolve(strict=True)
     markers = sorted(HEALTHY.iterdir(), key=lambda p: p.stat().st_mtime, reverse=True)
@@ -188,6 +205,7 @@ def main():
         fcntl.flock(lock, fcntl.LOCK_EX)
         if mode == 'prepare':
             require(not target.exists(), 'Release already exists')
+            purge_stale_incoming()
             (INCOMING / identifier).mkdir(mode=0o755)
             return
         for sig in (signal.SIGTERM, signal.SIGHUP, signal.SIGINT):
@@ -198,7 +216,11 @@ def main():
             metadata, raw = verify(stage, sys.argv[3], sys.argv[4])
             require(not target.exists(), 'Release already exists')
             stage.rename(target)
-            activate(target, metadata, raw)
+            try:
+                activate(target, metadata, raw)
+            except BaseException:
+                discard_failed(target)
+                raise
         elif mode == 'rollback':
             require((HEALTHY / identifier).is_file() and not target.is_symlink(), 'Not a known healthy release')
             metadata, raw = verify(target)

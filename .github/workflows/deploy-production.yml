@@ -31,6 +31,8 @@ jobs:
       # version (npm install --package-lock-only) when npm ci reports a mismatch.
       - run: npm ci
       - run: npm ci --prefix src-pwa
+      # A known vulnerable runtime dependency stops the release before it is built.
+      - run: npm audit --omit=dev --audit-level=high
       - run: npm run lint:check
       - run: npm run test:unit
       # npm run build:pwa executes quasar build -m pwa and produces dist/pwa/.
@@ -80,6 +82,11 @@ jobs:
           VPS_USER: ${{ secrets.VPS_USER }}
           VPS_SSH_KEY: ${{ secrets.VPS_SSH_KEY }}
           VPS_SSH_KNOWN_HOSTS: ${{ secrets.VPS_SSH_KNOWN_HOSTS }}
+      # Nginx security headers and API CORS are checked after every release. A failure is
+      # reported on the run without failing it or rolling back: the site was already verified.
+      - name: Check security headers and API CORS
+        continue-on-error: true
+        run: python3 scripts/deploy/check_runtime.py
       - name: Report deployment failure
         if: failure()
         run: echo 'Échec du déploiement. Consulter les logs SSH pour le résultat du rollback ; vérifier le lien app avant toute relance.' >> "$GITHUB_STEP_SUMMARY"

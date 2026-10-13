@@ -1,5 +1,6 @@
 import importlib.util
 import json
+import os
 from pathlib import Path
 import tempfile
 import unittest
@@ -117,6 +118,34 @@ class DeploymentTests(unittest.TestCase):
         with patch.object(remote, 'request', return_value=(b'wrong page', {})):
             with self.assertRaisesRegex(RuntimeError, 'content mismatch'):
                 remote.health(*remote.verify(self.old))
+
+
+    def test_failed_release_is_removed_but_active_and_healthy_ones_stay(self):
+        failed = self.release(2)
+        remote.discard_failed(failed)
+        self.assertFalse(failed.exists())
+        remote.discard_failed(self.old)
+        self.assertTrue(self.old.exists(), 'the active release is never removed')
+        healthy = self.release(3)
+        (remote.HEALTHY / healthy.name).touch()
+        remote.discard_failed(healthy)
+        self.assertTrue(healthy.exists())
+
+    def test_stale_uploads_are_purged_after_a_day(self):
+        incoming = remote.BASE / 'incoming'
+        incoming.mkdir()
+        with patch.object(remote, 'INCOMING', incoming):
+            old = incoming / ('b' * 40 + '-1-1')
+            fresh = incoming / ('c' * 40 + '-1-1')
+            other = incoming / 'keep-me'
+            for folder in (old, fresh, other):
+                folder.mkdir()
+            os.utime(old, (0, 0))
+            os.utime(other, (0, 0))
+            remote.purge_stale_incoming()
+        self.assertFalse(old.exists())
+        self.assertTrue(fresh.exists())
+        self.assertTrue(other.exists(), 'only release-shaped folders are removed')
 
 
 if __name__ == '__main__':

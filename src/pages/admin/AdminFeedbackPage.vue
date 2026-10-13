@@ -50,6 +50,7 @@
         flat
         bordered
         class="workspace-card cursor-pointer"
+        role="button"
         tabindex="0"
         @click="openDetail(item.id)"
         @keyup.enter="openDetail(item.id)"
@@ -206,11 +207,15 @@ async function load() {
   }
 }
 
+// Two quick clicks: only the last opened item may fill the dialog (no reply to the wrong author).
+let openedId = null
 async function openDetail(id) {
+  openedId = id
   current.value = null
   dialog.value = true
   try {
     const { data } = await suggestionsApi.show(id)
+    if (openedId !== id) return
     current.value = data.data
     form.status = data.data.status
     form.reply = data.data.developer_reply || ''
@@ -218,6 +223,7 @@ async function openDetail(id) {
     const listed = items.value.find(item => item.id === id)
     if (listed && listed.status !== data.data.status) await load()
   } catch (e) {
+    if (openedId !== id) return
     dialog.value = false
     error.value = apiMessage(e)
   }

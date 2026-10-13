@@ -231,25 +231,8 @@
               <div v-for="row in info" :key="row.key" class="info-row">
                 <dt><q-icon :name="row.icon" />{{ row.label }}</dt>
                 <dd>
-                  <q-btn
-                    v-if="row.key === 'website'"
-                    flat
-                    dense
-                    no-caps
-                    color="primary"
-                    :label="row.value"
-                    :aria-label="
-                      t(
-                        authStore.isAuthenticated
-                          ? 'store.details.activate'
-                          : 'store.details.loginToActivate'
-                      )
-                    "
-                    :disable="extracting"
-                    @click="launchApp"
-                  />
                   <a
-                    v-else-if="row.href"
+                    v-if="row.href"
                     :href="row.href"
                     :target="row.external ? '_blank' : undefined"
                     :rel="row.external ? 'noopener noreferrer' : undefined"
@@ -521,12 +504,8 @@ const isInstalled = computed(() => {
 const card = computed(() => (app.value ? toCard(app.value) : {}))
 
 function extractPermissions(appData, versionData) {
-  const p =
-    appData?.permissions ??
-    appData?.pending_changes?.permissions ??
-    appData?.detected_permissions ??
-    versionData?.permissions_required ??
-    []
+  // Approved declaration only: pending changes and the code analysis are not public.
+  const p = appData?.permissions ?? versionData?.permissions_required ?? []
   if (Array.isArray(p)) return p
   if (typeof p === 'string') {
     try {
@@ -659,7 +638,6 @@ const info = computed(() => {
   const email = safeEmail(a.contact_email)
   add('contact', 'mail', email, email ? `mailto:${email}` : '')
   for (const [key, icon, field] of [
-    ['website', 'language', 'official_site_url'],
     ['support', 'support_agent', 'support_url'],
     ['privacyPolicy', 'policy', 'privacy_policy_url'],
     ['terms', 'gavel', 'terms_url']
@@ -674,10 +652,13 @@ async function fetchAppDetails() {
   loading.value = true
   error.value = ''
   unavailable.value = false
+  // The page is reused when moving to a similar app: never carry the previous one's state.
+  localInstalled.value = false
   try {
     const device = deviceIdentity()
     const response = await api.get('/apps/' + route.params.id, {
-      params: device ? { device_uuid: device } : {}
+      // In a header, not the URL: addresses end up in server logs.
+      headers: device ? { 'X-Device-Id': device } : {}
     })
     app.value = response.data
     if (app.value?.is_installed) {
@@ -889,12 +870,17 @@ async function share() {
   }
 }
 
+// Coming back to the tab after installing: at most one check every 30 seconds.
+let lastFocusCheck = 0
 async function checkInstallOnFocus() {
-  if (!app.value?.id) return
+  if (!app.value?.id || isInstalled.value) return
+  if (Date.now() - lastFocusCheck < 30000) return
+  lastFocusCheck = Date.now()
   try {
     const device = deviceIdentity()
     const { data } = await api.get('/apps/' + app.value.id, {
-      params: device ? { device_uuid: device } : {}
+      // In a header, not the URL: addresses end up in server logs.
+      headers: device ? { 'X-Device-Id': device } : {}
     })
     if (data.is_installed) {
       app.value.is_installed = true

@@ -332,7 +332,18 @@ async function view(doc) {
     if (activeBlobUrl.value) {
       URL.revokeObjectURL(activeBlobUrl.value)
     }
-    activeBlobUrl.value = URL.createObjectURL(data)
+    // The API sends documents as application/octet-stream: the preview needs the real type,
+    // taken from the detected content (never from the name alone).
+    const previewType =
+      {
+        pdf: 'application/pdf',
+        image: data.type.startsWith('image/') ? data.type : doc.mime,
+        audio: doc.mime,
+        video: doc.mime
+      }[kind] || ''
+    activeBlobUrl.value = URL.createObjectURL(
+      previewType ? new Blob([data], { type: previewType }) : data
+    )
     activeDoc.value = doc
     activeType.value = kind
     activeMime.value = doc.mime || data.type || 'application/octet-stream'

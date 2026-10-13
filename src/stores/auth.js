@@ -6,12 +6,37 @@ import { setLocale } from '@/i18n'
 import { sessionHint, setSessionHint } from '@/utils/sessionHint'
 const hydrations = new WeakMap()
 
-function clearLegacyAuthStorage() {
-  for (const storage of [localStorage, sessionStorage]) {
-    for (const key of ['auth_token', 'access_token', 'token', 'user', 'auth']) {
-      storage.removeItem(key)
-    }
+// Blocked or unavailable storage (private mode, policies) must never break sign-in or sign-out.
+function quietly(action) {
+  try {
+    action()
+  } catch {
+    // Nothing is kept without storage; the session itself lives in the HttpOnly cookie.
   }
+}
+
+function clearLegacyAuthStorage() {
+  quietly(() => {
+    for (const storage of [localStorage, sessionStorage]) {
+      for (const key of [
+        'auth_token',
+        'access_token',
+        'token',
+        'user',
+        'auth'
+      ]) {
+        storage.removeItem(key)
+      }
+    }
+  })
+}
+
+function storeChallenge(challenge) {
+  quietly(() => {
+    if (challenge)
+      sessionStorage.setItem('otp_challenge', JSON.stringify(challenge))
+    else sessionStorage.removeItem('otp_challenge')
+  })
 }
 
 function safeChallenge(data) {
@@ -40,9 +65,7 @@ function initialState() {
   } catch {
     // Ignore malformed legacy data.
   }
-  if (pendingChallenge)
-    sessionStorage.setItem('otp_challenge', JSON.stringify(pendingChallenge))
-  else sessionStorage.removeItem('otp_challenge')
+  storeChallenge(pendingChallenge)
   return {
     user: null,
     loading: false,
@@ -66,12 +89,7 @@ export const useAuthStore = defineStore('auth', {
   actions: {
     setChallenge(data) {
       this.pendingChallenge = safeChallenge(data)
-      if (this.pendingChallenge)
-        sessionStorage.setItem(
-          'otp_challenge',
-          JSON.stringify(this.pendingChallenge)
-        )
-      else sessionStorage.removeItem('otp_challenge')
+      storeChallenge(this.pendingChallenge)
     },
     acceptAuthResult(data) {
       if (data.deactivated) {
@@ -133,8 +151,14 @@ export const useAuthStore = defineStore('auth', {
       this.hydrated = true
       setSessionHint(false)
       clearLegacyAuthStorage()
-      // Searches typed while signed in stay private to that session.
-      localStorage.removeItem('oneapp_search_history')
+      // Searches typed while signed in, and apps marked as installed on this device,
+      // stay private to that session (a shared device must not show them to the next person).
+      quietly(() => {
+        localStorage.removeItem('oneapp_search_history')
+        Object.keys(localStorage)
+          .filter(key => key.startsWith('pwa-installed-'))
+          .forEach(key => localStorage.removeItem(key))
+      })
       if (!keepChallenge) this.setChallenge(null)
     },
     async authenticate(path, data) {
