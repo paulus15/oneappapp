@@ -1,0 +1,98 @@
+diff --git a/app/Mail/AuthenticationCode.php b/app/Mail/AuthenticationCode.php
+--- a/app/Mail/AuthenticationCode.php
++++ b/app/Mail/AuthenticationCode.php
+@@ -23,6 +23,6 @@
+         });
+         $lang = e(str_replace('_', '-', app()->getLocale()));
+ 
+-        return $this->subject($label.' — PWA Store')->html('<div lang="'.$lang.'" style="font-family:system-ui,sans-serif;max-width:520px;margin:auto;padding:24px;color:#08132d"><h1 style="font-size:24px">'.e($label).'</h1><p>'.e(__('Votre code de confirmation PWA Store :')).'</p><p style="font-size:32px;font-weight:bold;letter-spacing:8px">'.e($this->code).'</p><p>'.e(__('Ce code expire dans 10 minutes. Ne le partagez avec personne.')).'</p><p>'.e(__('Si vous n’êtes pas à l’origine de cette demande, ignorez ce message.')).'</p></div>');
++        return $this->subject($label.' — PWA Store')->html('<div lang="'.$lang.'" style="font-family:system-ui,sans-serif;max-width:520px;margin:auto;padding:24px;color:#08132d">'.view('mail.brand')->render().'<h1 style="font-size:24px">'.e($label).'</h1><p>'.e(__('Votre code de confirmation PWA Store :')).'</p><p style="font-size:32px;font-weight:bold;letter-spacing:8px">'.e($this->code).'</p><p>'.e(__('Ce code expire dans 10 minutes. Ne le partagez avec personne.')).'</p><p>'.e(__('Si vous n’êtes pas à l’origine de cette demande, ignorez ce message.')).'</p></div>');
+     }
+ }
+diff --git a/app/Mail/ContactMessage.php b/app/Mail/ContactMessage.php
+--- a/app/Mail/ContactMessage.php
++++ b/app/Mail/ContactMessage.php
+@@ -15,6 +15,6 @@
+ 
+         return $this->subject(__('[Contact PWA Store] :subject', ['subject' => $this->data['subject']]))
+             ->replyTo($this->data['email'], $this->data['name'])
+-            ->html('<div lang="'.$lang.'" style="font-family:system-ui,sans-serif"><p><strong>'.e($this->data['name']).'</strong> &lt;'.e($this->data['email']).'&gt;</p><p><strong>'.e(__('Sujet :')).'</strong> '.e($this->data['subject']).'</p><p style="white-space:pre-wrap">'.e($this->data['message']).'</p></div>');
++            ->html('<div lang="'.$lang.'" style="font-family:system-ui,sans-serif">'.view('mail.brand')->render().'<p><strong>'.e($this->data['name']).'</strong> &lt;'.e($this->data['email']).'&gt;</p><p><strong>'.e(__('Sujet :')).'</strong> '.e($this->data['subject']).'</p><p style="white-space:pre-wrap">'.e($this->data['message']).'</p></div>');
+     }
+ }
+diff --git a/resources/views/mail/brand.blade.php b/resources/views/mail/brand.blade.php
+new file mode 100644
+--- /dev/null
++++ b/resources/views/mail/brand.blade.php
+@@ -0,0 +1,3 @@
++<a href="{{ rtrim(config('pwa_store.frontend_url'), '/') }}" style="display: inline-block; margin-bottom: 16px; text-decoration: none;">
++    <img src="{{ rtrim(config('pwa_store.frontend_url'), '/') }}/brand/pwa-store-icon.png" width="64" height="64" alt="PWA Store" style="display: block; width: 64px; height: 64px; border: 0;">
++</a>
+diff --git a/resources/views/vendor/mail/html/header.blade.php b/resources/views/vendor/mail/html/header.blade.php
+new file mode 100644
+--- /dev/null
++++ b/resources/views/vendor/mail/html/header.blade.php
+@@ -0,0 +1,6 @@
++@props(['url'])
++<tr>
++<td class="header">
++@include('mail.brand')
++</td>
++</tr>
+diff --git a/tests/Feature/MailBrandingTest.php b/tests/Feature/MailBrandingTest.php
+new file mode 100644
+--- /dev/null
++++ b/tests/Feature/MailBrandingTest.php
+@@ -0,0 +1,52 @@
++<?php
++
++namespace Tests\Feature;
++
++use App\Mail\AuthenticationCode;
++use App\Mail\ContactMessage;
++use App\Notifications\UserNotice;
++use Illuminate\Mail\Markdown;
++use Tests\TestCase;
++
++class MailBrandingTest extends TestCase
++{
++    protected function setUp(): void
++    {
++        parent::setUp();
++        config(['pwa_store.frontend_url' => 'https://pwastore.online/']);
++    }
++
++    private function assertBrand(string $html): void
++    {
++        $this->assertStringContainsString('src="https://pwastore.online/brand/pwa-store-icon.png"', $html);
++        $this->assertStringContainsString('alt="PWA Store"', $html);
++        $this->assertStringContainsString('href="https://pwastore.online"', $html);
++        $this->assertStringNotContainsString('laravel.com/img', $html);
++    }
++
++    public function test_authentication_email_keeps_its_code_and_adds_the_store_icon(): void
++    {
++        $html = (new AuthenticationCode('123456', 'login'))->render();
++        $this->assertBrand($html);
++        $this->assertStringContainsString('123456', $html);
++    }
++
++    public function test_contact_email_keeps_escaping_user_content(): void
++    {
++        $html = (new ContactMessage(['name' => '<script>name</script>', 'email' => 'sender@example.com',
++            'subject' => 'Support', 'message' => '<img src="untrusted">']))->render();
++        $this->assertBrand($html);
++        $this->assertStringContainsString('&lt;script&gt;name&lt;/script&gt;', $html);
++        $this->assertStringNotContainsString('<img src="untrusted">', $html);
++    }
++
++    public function test_notifications_use_the_shared_store_icon(): void
++    {
++        $notice = new UserNotice('account.welcome', 'Bienvenue', 'Votre compte est prêt.', '/account');
++        $mail = $notice->toMail((object) ['name' => 'Alice']);
++        $html = (string) app(Markdown::class)->render($mail->markdown, $mail->data());
++        $this->assertBrand($html);
++        $this->assertStringContainsString('https://pwastore.online/account', $html);
++        $this->assertStringContainsString('Alice', $html);
++    }
++}

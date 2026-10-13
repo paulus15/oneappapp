@@ -1,0 +1,627 @@
+diff --git a/app/Http/Controllers/Api/InstallSignalController.php b/app/Http/Controllers/Api/InstallSignalController.php
+--- a/app/Http/Controllers/Api/InstallSignalController.php
++++ b/app/Http/Controllers/Api/InstallSignalController.php
+@@ -11,6 +11,7 @@
+ use Illuminate\Http\Response;
+ use Illuminate\Support\Facades\Cache;
+ use Illuminate\Support\Facades\DB;
++use Illuminate\Support\Facades\Log;
+ use Illuminate\Support\Str;
+ 
+ /**
+@@ -25,13 +26,11 @@
+ 
+     private const DAILY = 5000;
+ 
+-    private const PER_ADDRESS = 200;
+-
+     /** The one-line script developers paste into their PWA. */
+     public function script(): Response
+     {
+         $js = <<<'JS'
+-(function(){
++(function () {
+   var s = document.currentScript; if (!s) return;
+   var key = s.getAttribute('data-app'); if (!key) return;
+   var endpoint = s.src.replace(/sdk\.js(\?.*)?$/, 'sdk/events');
+@@ -45,46 +44,54 @@
+       return id;
+     } catch (e) { return null; }
+   }
+-  function send(event, ref) {
+-    var id = device(); if (!id) return;
+-    try {
+-      fetch(endpoint, { method: 'POST', mode: 'no-cors', keepalive: true, credentials: 'omit',
+-        headers: { 'Content-Type': 'text/plain' }, body: JSON.stringify({ app: key, device: id, event: event, ref: ref }) });
+-    } catch (e) {}
+-  }
+-  function fromStore() {
+-    try { return localStorage.getItem('pwastore-from-store') === '1'; } catch (e) { return false; }
+-  }
+-  // Opened from PWA Store: the one-time reference leaves the address bar at once.
++  // Mark only this app: multiple apps can share an origin. The server validates attribution.
++  var attributionKey = 'pwastore-attribution:' + key;
++  var launchKey = 'pwastore-launch:' + key;
++  var ref = null, attributed = false, queue = Promise.resolve();
++  try { attributed = localStorage.getItem(attributionKey) === '1'; } catch (e) {}
+   try {
+-    var url = new URL(location.href), ref = url.searchParams.get('pwastore_ref');
+-    if (ref) {
+-      localStorage.setItem('pwastore-from-store', '1');
++    var url = new URL(location.href), candidate = url.searchParams.get('pwastore_ref');
++    if (candidate) {
++      if (/^[A-Za-z0-9]{43}$/.test(candidate)) {
++        ref = candidate;
++        attributed = true;
++        try { localStorage.setItem(attributionKey, '1'); } catch (e) {}
++      }
+       url.searchParams.delete('pwastore_ref');
+       history.replaceState(history.state, '', url.pathname + url.search + url.hash);
+-      send('open', ref);
+     }
+   } catch (e) {}
+-  window.addEventListener('appinstalled', function () {
+-    if (!fromStore()) return;
+-    send('installed');
+-  });
++  function send(event) {
++    if (!attributed) return Promise.resolve(false);
++    var id = device(); if (!id) return Promise.resolve(false);
++    // Register the Store click before sending an immediate standalone launch/install.
++    // Include the reference again so a failed initial request can be recovered.
++    queue = queue.then(function () {
++      return fetch(endpoint, { method: 'POST', mode: 'no-cors', keepalive: true, credentials: 'omit',
++        headers: { 'Content-Type': 'text/plain' }, body: JSON.stringify({ app: key, device: id, event: event, ref: ref }) });
++    }).then(function () { return true; }, function () { return false; });
++    return queue;
++  }
++  if (ref) send('open');
++  window.addEventListener('appinstalled', function () { send('installed'); });
+   var standalone = (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) || navigator.standalone === true;
+-  if (standalone && fromStore()) {
+-    try { if (sessionStorage.getItem('pwastore-launch')) return; sessionStorage.setItem('pwastore-launch', '1'); } catch (e) {}
+-    send('launch');
++  if (attributed && standalone) {
++    try { if (sessionStorage.getItem(launchKey)) return; } catch (e) {}
++    send('launch').then(function (sent) {
++      if (sent) { try { sessionStorage.setItem(launchKey, '1'); } catch (e) {} }
++    });
+   }
+ })();
+ JS;
+ 
+-        return response($js, 200, ['Content-Type' => 'application/javascript; charset=utf-8', 'Cache-Control' => 'public, max-age=86400', 'X-Content-Type-Options' => 'nosniff']);
++        return response($js, 200, ['Content-Type' => 'application/javascript; charset=utf-8', 'Cache-Control' => 'public, max-age=300', 'X-Content-Type-Options' => 'nosniff']);
+     }
+ 
+     /**
+      * Receive a signal from the SDK script.
+      *
+-     * Validation and rate-limiting run synchronously (fast: Redis + one DB read).
+-     * The actual DB insert/update is dispatched as a queued job so the response
++     * Validation, attribution and rate-limiting run synchronously.
++     * Counter updates and library synchronization are dispatched as a queued job so the response
+      * is returned immediately – the SDK's fetch is fire-and-forget anyway.
+      */
+     public function event(Request $r, LaunchReference $references)
+@@ -105,45 +112,53 @@
+ 
+         $hash = hash_hmac('sha256', $app->id.'|'.$data['device'], (string) config('pwa_store.hash_key'));
+ 
+-        // ── Rate-limiting (Redis: < 1 ms per call) ──────────────────────────────
+-        $isNew = ! DB::table('app_install_signals')
+-            ->where('application_id', $app->id)
+-            ->where('device_hash', $hash)
+-            ->exists();
+-
+-        if ($isNew) {
++        // Serialize events for this app/device, including old SDKs that send concurrently.
++        $accepted = Cache::lock('install-device:'.$app->id.':'.$hash, 10)->block(5, function () use ($references, $data, $app, $hash) {
++            $known = DB::table('app_install_signals')->where('application_id', $app->id)->where('device_hash', $hash)->first();
++            $attributed = $known && $known->store_referred_at !== null;
+             $recognized = isset($data['ref']) && $references->peek($data['ref'], $app) !== null;
+-
+-            if (! $recognized && ! $this->acceptAddress($r, $app)) {
+-                return response()->noContent(429);
+-            }
+-
+-            $burst = 'install-burst:'.$app->id.':'.now()->format('YmdHi');
+-            $day = 'install-day:'.$app->id.':'.now()->format('Ymd');
+-            Cache::add($burst, 0, 120);
+-            Cache::add($day, 0, 90000);
+-
+-            if (Cache::increment($burst) > self::BURST || Cache::increment($day) > self::DAILY) {
+-                return response()->noContent(429);
+-            }
+-
+-            // Peek-only: the reference is redeemed inside the Job after the row is created,
+-            // so a rate-rejected signal does not consume the user's one-time link.
+-            $userId = null;
+-        } else {
+-            // Known device: no quota check needed, just update.
+-            $recognized = false;
+-            $userId = null;
++            // Neither a referrer header, a client flag, nor an old anonymous row is proof of a Store click.
++            // Ignore without recording anything, including last_seen_at.
++            if ((! $attributed || $data['event'] === 'open') && ! $recognized) {
++                return false;
++            }
++            if (! $attributed) {
++                $burst = 'install-burst:'.$app->id.':'.now()->format('YmdHi');
++                Cache::add($burst, 0, 120);
++                $day = 'install-day:'.$app->id.':'.now()->format('Ymd');
++                Cache::add($day, 0, 90000);
++                if (Cache::increment($burst) > self::BURST || Cache::increment($day) > self::DAILY) {
++                    Log::warning('Install signals burst ignored', ['application_id' => $app->id]);
++
++                    abort(429);
++                }
++            }
++            // Redeem only after limits. Another device may have redeemed the reference meanwhile.
++            $userId = $recognized ? $references->redeem($data['ref'], $app) : null;
++            if ((! $attributed || $data['event'] === 'open') && $userId === null) {
++                return false;
++            }
++            if (! $attributed) {
++                // Start at the validated click. Never import pre-attribution legacy counts.
++                DB::table('app_install_signals')->updateOrInsert(
++                    ['application_id' => $app->id, 'device_hash' => $hash],
++                    ['user_id' => $userId, 'store_referred_at' => now(),
++                        'installed_at' => null,
++                        'launches' => 0,
++                        'first_seen_at' => now(), 'last_seen_at' => now()]
++                );
++            } elseif ($userId !== null) {
++                DB::table('app_install_signals')->where('id', $known->id)->update(['user_id' => $userId]);
++            }
++
++            return true;
++        });
++        if ($accepted) {
++            // Attribution is established before the response, so a following launch cannot overtake it.
++            // The job still owns counters and library synchronization.
++            ProcessInstallSignal::dispatch($app->id, $hash, $data['event'], null, null);
++            Cache::forget("install-signals:attributed:{$app->id}");
+         }
+-
+-        // ── Dispatch async DB work ───────────────────────────────────────────────
+-        ProcessInstallSignal::dispatch(
+-            $app->id,
+-            $hash,
+-            $data['event'],
+-            $data['ref'] ?? null,
+-            $userId,
+-        );
+ 
+         return response()->noContent();
+     }
+@@ -158,10 +173,10 @@
+         $this->ensureKey($application);
+ 
+         $src = config('pwa_store.public_api_url').'/sdk.js';
+-        $key = "install-signals:{$application->id}";
++        $key = "install-signals:attributed:{$application->id}";
+ 
+         $stats = Cache::remember($key, 300, function () use ($application) {
+-            $signals = DB::table('app_install_signals')->where('application_id', $application->id);
++            $signals = DB::table('app_install_signals')->where('application_id', $application->id)->whereNotNull('store_referred_at');
+ 
+             return [
+                 'confirmed_installs' => (clone $signals)->whereNotNull('installed_at')->count(),
+@@ -188,17 +203,9 @@
+         $application->forceFill(['sdk_check' => $checker->run($application)])->save();
+ 
+         // Always return fresh data after a manual check.
+-        Cache::forget("install-signals:{$application->id}");
++        Cache::forget("install-signals:attributed:{$application->id}");
+ 
+         return $this->show($r, $application);
+-    }
+-
+-    private function acceptAddress(Request $request, Application $app): bool
+-    {
+-        $address = 'install-ip:'.$app->id.':'.hash_hmac('sha256', (string) $request->ip(), (string) config('pwa_store.hash_key')).':'.now()->format('Ymd');
+-        Cache::add($address, 0, 90000);
+-
+-        return Cache::increment($address) <= self::PER_ADDRESS;
+     }
+ 
+     private function ensureKey(Application $application): void
+diff --git a/app/Jobs/ProcessInstallSignal.php b/app/Jobs/ProcessInstallSignal.php
+--- a/app/Jobs/ProcessInstallSignal.php
++++ b/app/Jobs/ProcessInstallSignal.php
+@@ -17,9 +17,8 @@
+ /**
+  * Persists one install / launch / open signal sent by the developer's SDK script.
+  *
+- * The controller validates the request synchronously (format, origin, rate-limit)
+- * and returns 204 immediately. All DB work is deferred here so the SDK's
+- * fire-and-forget fetch (keepalive: true) is never blocked by slow writes.
++ * The controller validates and establishes Store attribution synchronously.
++ * Counter updates and library synchronization run here.
+  */
+ class ProcessInstallSignal implements ShouldQueue
+ {
+@@ -41,7 +40,7 @@
+ 
+     public function handle(LaunchReference $references): void
+     {
+-        $app = Application::find($this->appId);
++        $app = Application::publiclyVisible()->find($this->appId);
+         if (! $app) {
+             return;
+         }
+@@ -49,39 +48,31 @@
+         $installed = $this->event !== 'open';
+         $isLaunch = $this->event === 'launch';
+ 
+-        $known = DB::table('app_install_signals')
+-            ->where('application_id', $this->appId)
+-            ->where('device_hash', $this->deviceHash)
+-            ->first();
+-
+-        if (! $known) {
+-            // The one-time ref may still be valid if the controller only peeked.
+-            $userId = $this->ref ? $references->redeem($this->ref, $app) : $this->userId;
+-
+-            DB::table('app_install_signals')->insertOrIgnore([
+-                'application_id' => $this->appId,
+-                'device_hash' => $this->deviceHash,
+-                'user_id' => $userId,
+-                'installed_at' => $installed ? now() : null,
+-                'launches' => $isLaunch ? 1 : 0,
+-                'first_seen_at' => now(),
++        // The HTTP controller validates and redeems the reference before queuing work.
++        // A stale/anonymous queued job must not create or attribute a device.
++        $known = Cache::lock('install-device:'.$this->appId.':'.$this->deviceHash, 10)->block(5, function () use ($installed, $isLaunch) {
++            $known = DB::table('app_install_signals')
++                ->where('application_id', $this->appId)
++                ->where('device_hash', $this->deviceHash)
++                ->whereNotNull('store_referred_at')
++                ->first();
++            if (! $known) {
++                return null;
++            }
++            DB::table('app_install_signals')->where('id', $known->id)->update([
++                'installed_at' => $known->installed_at ?? ($installed ? now() : null),
++                'launches' => DB::raw('launches + '.($isLaunch ? 1 : 0)),
+                 'last_seen_at' => now(),
+             ]);
+-        } else {
+-            $userId = $this->ref ? $references->redeem($this->ref, $app) : $this->userId;
+ 
+-            DB::table('app_install_signals')
+-                ->where('id', $known->id)
+-                ->update([
+-                    'installed_at' => $known->installed_at ?? ($installed ? now() : null),
+-                    'user_id' => $userId ?? $known->user_id,
+-                    'launches' => DB::raw('launches + '.($isLaunch ? 1 : 0)),
+-                    'last_seen_at' => now(),
+-                ]);
++            return $known;
++        });
++        if (! $known) {
++            return;
+         }
+ 
+         // Sync with installations table so the user library and store details page reflect the installation.
+-        $resolvedUserId = $userId ?? ($known->user_id ?? null);
++        $resolvedUserId = $known->user_id;
+         if ($installed && $resolvedUserId) {
+             try {
+                 $installation = Installation::where('user_id', $resolvedUserId)
+@@ -111,7 +102,7 @@
+         }
+ 
+         // Bust the developer stats cache so the dashboard reflects the signal soon.
+-        Cache::forget("install-signals:{$this->appId}");
++        Cache::forget("install-signals:attributed:{$this->appId}");
+     }
+ 
+     public function failed(\Throwable $e): void
+diff --git a/tests/Feature/InstallSignalTest.php b/tests/Feature/InstallSignalTest.php
+--- a/tests/Feature/InstallSignalTest.php
++++ b/tests/Feature/InstallSignalTest.php
+@@ -2,11 +2,15 @@
+ 
+ namespace Tests\Feature;
+ 
++use App\Jobs\ProcessInstallSignal;
+ use App\Models\Application;
+ use App\Models\User;
+ use App\Services\ExternalPwaChecker;
++use App\Services\LaunchReference;
+ use Illuminate\Foundation\Testing\RefreshDatabase;
+ use Illuminate\Routing\Middleware\ThrottleRequests;
++use Illuminate\Support\Facades\DB;
++use Illuminate\Support\Facades\Queue;
+ use Laravel\Sanctum\Sanctum;
+ use Tests\TestCase;
+ 
+@@ -56,9 +60,9 @@
+ 
+         $this->signal($key, 'device-dddddddd', 'open', ref: $ref)->assertNoContent();
+         $this->assertDatabaseHas('app_install_signals', ['application_id' => $this->listing->id, 'user_id' => $user->id, 'installed_at' => null]);
+-        // Used once only: a replay from another device names nobody.
++        // Used once only: a replay cannot record another device.
+         $this->signal($key, 'device-eeeeeeee', 'open', ref: $ref)->assertNoContent();
+-        $this->assertDatabaseCount('app_install_signals', 2);
++        $this->assertDatabaseCount('app_install_signals', 1);
+         $this->assertSame(1, \DB::table('app_install_signals')->whereNotNull('user_id')->count());
+         $this->signal($key, 'device-ffffffff', 'open', ref: 'not-a-reference')->assertUnprocessable();
+ 
+@@ -77,7 +81,7 @@
+         Sanctum::actingAs(User::factory()->create());
+         $url = $this->postJson("/api/apps/{$other->id}/activate")->assertOk()->json('url');
+         $this->signal($key, 'device-gggggggg', 'open', ref: substr($url, strrpos($url, '=') + 1))->assertNoContent();
+-        $this->assertDatabaseHas('app_install_signals', ['application_id' => $this->listing->id, 'user_id' => null]);
++        $this->assertDatabaseCount('app_install_signals', 0);
+     }
+ 
+     public function test_the_developer_gets_a_line_to_paste_and_the_script_is_public(): void
+@@ -94,12 +98,13 @@
+     public function test_installs_count_once_per_device_and_launches_add_up(): void
+     {
+         $key = $this->key();
++        $this->signal($key, 'device-aaaaaaaa', 'open', ref: $this->reference())->assertNoContent();
+         $this->signal($key, 'device-aaaaaaaa', 'installed')->assertNoContent();
+         $this->signal($key, 'device-aaaaaaaa', 'installed')->assertNoContent();
+         $this->signal($key, 'device-aaaaaaaa', 'launch')->assertNoContent();
+         $this->signal($key, 'device-aaaaaaaa', 'launch', 'https://santeplus.example')->assertNoContent();
+-        // A launch from the home screen proves an install even if "installed" was missed.
+-        $this->signal($key, 'device-bbbbbbbb', 'launch')->assertNoContent();
++        // An attributed standalone launch also supplies an installation signal.
++        $this->signal($key, 'device-bbbbbbbb', 'launch', ref: $this->reference())->assertNoContent();
+         Sanctum::actingAs($this->dev);
+         $this->getJson("/api/apps/{$this->listing->id}/install-signals")->assertJsonPath('confirmed_installs', 2)->assertJsonPath('launches', 3);
+         $this->assertDatabaseMissing('app_install_signals', ['device_hash' => 'device-aaaaaaaa']);
+@@ -123,24 +128,99 @@
+         $key = $this->key();
+         $this->withoutMiddleware(ThrottleRequests::class);
+         for ($i = 0; $i < 121; $i++) {
+-            $last = $this->withServerVariables(['REMOTE_ADDR' => '10.9.'.intdiv($i, 20).'.'.($i % 20)])->signal($key, sprintf('device-%08d', $i), 'installed');
++            $last = $this->withServerVariables(['REMOTE_ADDR' => '10.9.'.intdiv($i, 20).'.'.($i % 20)])->signal($key, sprintf('device-%08d', $i), 'installed', ref: $this->reference());
+         }
+         $last->assertStatus(429);
+         $this->assertDatabaseCount('app_install_signals', 120);
+     }
+ 
+-    public function test_one_address_cannot_use_up_the_daily_allowance(): void
++    private function reference(): string
++    {
++        return app(LaunchReference::class)->issue($this->listing, $this->dev);
++    }
++
++    public function test_direct_visitors_and_invalid_or_expired_references_record_nothing(): void
++    {
++        $key = $this->key();
++        foreach (['open', 'installed', 'launch'] as $event) {
++            $this->signal($key, 'device-direct00', $event)->assertNoContent();
++            $this->signal($key, 'device-forged00', $event, ref: str_repeat('x', 43))->assertNoContent();
++        }
++        $ref = $this->reference();
++        $this->travel(11)->minutes();
++        $this->signal($key, 'device-expired0', 'launch', ref: $ref)->assertNoContent();
++        $this->assertDatabaseCount('app_install_signals', 0);
++        $this->getJson("/api/apps/{$this->listing->id}/install-signals")
++            ->assertJsonPath('confirmed_installs', 0)->assertJsonPath('launches', 0)->assertJsonPath('last_signal_at', null);
++    }
++
++    public function test_legacy_measurements_are_excluded_and_reset_only_after_a_valid_click(): void
++    {
++        $key = $this->key();
++        $hash = hash_hmac('sha256', $this->listing->id.'|device-legacy00', config('pwa_store.hash_key'));
++        DB::table('app_install_signals')->insert([
++            'application_id' => $this->listing->id, 'device_hash' => $hash,
++            'user_id' => $this->dev->id, 'installed_at' => now()->subDay(), 'launches' => 42,
++            'first_seen_at' => now()->subDay(), 'last_seen_at' => now()->subDay(),
++        ]);
++        $this->signal($key, 'device-legacy00', 'launch')->assertNoContent();
++        $this->getJson("/api/apps/{$this->listing->id}/install-signals")
++            ->assertJsonPath('confirmed_installs', 0)->assertJsonPath('launches', 0)->assertJsonPath('recognized_accounts', 0);
++        $this->assertSame(42, DB::table('app_install_signals')->value('launches'));
++        $this->signal($key, 'device-legacy00', 'open', ref: $this->reference())->assertNoContent();
++        $this->getJson("/api/apps/{$this->listing->id}/install-signals")
++            ->assertJsonPath('confirmed_installs', 0)->assertJsonPath('launches', 0)->assertJsonPath('recognized_accounts', 1);
++        $this->signal($key, 'device-legacy00', 'launch')->assertNoContent();
++        $this->getJson("/api/apps/{$this->listing->id}/install-signals")
++            ->assertJsonPath('confirmed_installs', 1)->assertJsonPath('launches', 1);
++    }
++
++    public function test_reopening_from_store_preserves_attributed_counts_and_replays_do_not_touch_them(): void
++    {
++        $key = $this->key();
++        $ref = $this->reference();
++        $this->signal($key, 'device-return00', 'launch', ref: $ref)->assertNoContent();
++        $seen = DB::table('app_install_signals')->value('last_seen_at');
++        $this->travel(1)->minutes();
++        $this->signal($key, 'device-return00', 'open', ref: $ref)->assertNoContent();
++        $this->assertSame($seen, DB::table('app_install_signals')->value('last_seen_at'));
++        $this->signal($key, 'device-return00', 'open', ref: $this->reference())->assertNoContent();
++        $this->getJson("/api/apps/{$this->listing->id}/install-signals")
++            ->assertJsonPath('confirmed_installs', 1)->assertJsonPath('launches', 1);
++    }
++
++    public function test_direct_traffic_does_not_consume_the_attributed_device_quota(): void
+     {
+         $key = $this->key();
+         $this->withoutMiddleware(ThrottleRequests::class);
+-        for ($i = 0; $i < 201; $i++) {
+-            $this->travel(2)->seconds();
+-            $last = $this->withServerVariables(['REMOTE_ADDR' => '10.8.8.8'])->signal($key, sprintf('device-%08d', $i), 'installed');
+-        }
+-        $last->assertStatus(429);
+-        // Another household still gets through.
+-        $this->withServerVariables(['REMOTE_ADDR' => '10.7.7.7'])->signal($key, 'device-zzzzzzzz', 'installed')->assertNoContent();
+-        $this->assertDatabaseCount('app_install_signals', 201);
++        for ($i = 0; $i < 130; $i++) {
++            $this->signal($key, sprintf('device-%08d', $i), 'launch')->assertNoContent();
++        }
++        $this->signal($key, 'device-valid000', 'launch', ref: $this->reference())->assertNoContent();
++        $this->assertDatabaseCount('app_install_signals', 1);
++    }
++
++    public function test_queued_signals_can_finish_out_of_order_without_losing_attribution(): void
++    {
++        Queue::fake();
++        $key = $this->key();
++        $this->signal($key, 'device-queued00', 'open', ref: $this->reference())->assertNoContent();
++        $this->signal($key, 'device-queued00', 'launch')->assertNoContent();
++        $jobs = Queue::pushed(ProcessInstallSignal::class);
++        $this->assertCount(2, $jobs);
++        foreach ($jobs->reverse() as $entry) {
++            $entry->handle(app(LaunchReference::class));
++        }
++        $this->getJson("/api/apps/{$this->listing->id}/install-signals")
++            ->assertJsonPath('confirmed_installs', 1)->assertJsonPath('launches', 1);
++    }
++
++    public function test_an_unattributed_queued_job_cannot_create_a_signal(): void
++    {
++        $this->key();
++        (new ProcessInstallSignal($this->listing->id, str_repeat('a', 64), 'launch', null, null))
++            ->handle(app(LaunchReference::class));
++        $this->assertDatabaseCount('app_install_signals', 0);
+     }
+ 
+     public function test_zip_uploads_are_off_unless_enabled(): void
+diff --git a/tests/Feature/BackendHardeningTest.php b/tests/Feature/BackendHardeningTest.php
+--- a/tests/Feature/BackendHardeningTest.php
++++ b/tests/Feature/BackendHardeningTest.php
+@@ -188,7 +188,7 @@
+         }
+     }
+ 
+-    public function test_valid_references_bypass_ip_quota_but_replays_and_wrong_apps_do_not(): void
++    public function test_only_valid_references_can_register_a_device(): void
+     {
+         $this->withoutMiddleware(ThrottleRequests::class);
+         $app = Application::factory()->create(['developer_id' => User::factory()->verifiedDeveloper()->create()->id, 'status' => 'published', 'is_active' => true,
+@@ -201,10 +201,10 @@
+         $send = fn ($device, $ref) => $this->withHeader('Origin', 'https://app.example.com')->postJson('/api/sdk/events', ['app' => $app->sdk_key, 'device' => $device, 'event' => 'open', 'ref' => $ref]);
+         $send('device-00000001', $ref)->assertNoContent();
+         $this->assertSame(200, Cache::get($address));
+-        $send('device-00000002', $ref)->assertStatus(429);
+-        $send('device-00000003', str_repeat('x', 43))->assertStatus(429);
++        $send('device-00000002', $ref)->assertNoContent();
++        $send('device-00000003', str_repeat('x', 43))->assertNoContent();
+         $other = Application::factory()->create(['developer_id' => $app->developer_id]);
+-        $send('device-00000004', $refs->issue($other, $user))->assertStatus(429);
++        $send('device-00000004', $refs->issue($other, $user))->assertNoContent();
+         $this->assertDatabaseCount('app_install_signals', 1);
+         $this->assertDatabaseHas('app_install_signals', ['user_id' => $user->id]);
+     }
+diff --git a/database/migrations/2026_10_13_120000_attribute_install_signals_to_store.php b/database/migrations/2026_10_13_120000_attribute_install_signals_to_store.php
+new file mode 100644
+--- /dev/null
++++ b/database/migrations/2026_10_13_120000_attribute_install_signals_to_store.php
+@@ -0,0 +1,25 @@
++<?php
++
++use Illuminate\Database\Migrations\Migration;
++use Illuminate\Database\Schema\Blueprint;
++use Illuminate\Support\Facades\Schema;
++
++return new class extends Migration
++{
++    public function up(): void
++    {
++        Schema::table('app_install_signals', function (Blueprint $table) {
++            $table->timestamp('store_referred_at')->nullable();
++            $table->index(['application_id', 'store_referred_at']);
++        });
++        // No backfill: historical counts may predate their account's first Store click.
++    }
++
++    public function down(): void
++    {
++        Schema::table('app_install_signals', function (Blueprint $table) {
++            $table->dropIndex(['application_id', 'store_referred_at']);
++            $table->dropColumn('store_referred_at');
++        });
++    }
++};
+diff --git a/tests/sdk-attribution.test.mjs b/tests/sdk-attribution.test.mjs
+new file mode 100644
+--- /dev/null
++++ b/tests/sdk-attribution.test.mjs
+@@ -0,0 +1,79 @@
++import { readFileSync } from 'node:fs'
++import vm from 'node:vm'
++import assert from 'node:assert/strict'
++import { test } from 'node:test'
++
++const controller = readFileSync(new URL('../app/Http/Controllers/Api/InstallSignalController.php', import.meta.url), 'utf8')
++const script = controller.split("<<<'JS'\n")[1].split('\nJS;')[0]
++const reference = 'a'.repeat(43)
++const storage = () => {
++  const data = new Map()
++  return { getItem: key => data.get(key) ?? null, setItem: (key, value) => data.set(key, value) }
++}
++function browser({ ref, standalone = false, local = storage(), session = storage(), key = 'app-one', fetchImpl } = {}) {
++  const calls = [], listeners = {}, replacements = []
++  const context = vm.createContext({
++    document: { currentScript: { getAttribute: () => key, src: 'https://api.pwastore.online/api/sdk.js' } },
++    localStorage: local, sessionStorage: session,
++    location: { href: 'https://app.example/start?keep=1' + (ref ? '&pwastore_ref=' + ref : '') + '#section' },
++    history: { state: { keep: true }, replaceState: (...args) => replacements.push(args) },
++    URL, navigator: {},
++    window: { crypto: { randomUUID: () => 'device-12345678' }, matchMedia: () => ({ matches: standalone }), addEventListener: (name, fn) => { listeners[name] = fn } },
++    crypto: { randomUUID: () => 'device-12345678' },
++    fetch: (...args) => { calls.push(JSON.parse(args[1].body)); return fetchImpl ? fetchImpl(...args) : Promise.resolve({ type: 'opaque' }) }
++  })
++  vm.runInContext(script, context)
++  return { calls, local, session, replacements, install: () => listeners.appinstalled?.() }
++}
++const flush = () => new Promise(resolve => setImmediate(resolve))
++
++test('direct browser and standalone visitors send nothing, even when installing', async () => {
++  for (const standalone of [false, true]) {
++    const b = browser({ standalone }); b.install(); await flush()
++    assert.equal(b.calls.length, 0)
++    assert.equal(b.local.getItem('pwastore-device'), null)
++  }
++})
++test('a Store click precedes immediate launch and installation signals', async () => {
++  let release
++  const pending = new Promise(resolve => { release = resolve })
++  const b = browser({ ref: reference, standalone: true, fetchImpl: () => pending })
++  b.install(); await flush()
++  assert.deepEqual(b.calls.map(c => c.event), ['open'])
++  release({ type: 'opaque' }); await flush()
++  assert.deepEqual(b.calls.map(c => c.event), ['open', 'launch', 'installed'])
++  assert.ok(b.calls.every(c => c.ref === reference))
++  assert.equal(b.replacements[0][2], '/start?keep=1#section')
++})
++test('attribution survives later launches and launch counts once per session', async () => {
++  const first = browser({ ref: reference }); await flush()
++  const second = browser({ local: first.local, standalone: true }); await flush()
++  assert.deepEqual(second.calls.map(c => c.event), ['launch'])
++  const reload = browser({ local: first.local, session: second.session, standalone: true }); await flush()
++  assert.equal(reload.calls.length, 0)
++  const next = browser({ local: first.local, standalone: true }); await flush()
++  assert.equal(next.calls.length, 1)
++})
++test('attribution and session markers cannot leak between apps sharing an origin', async () => {
++  const first = browser({ ref: reference, standalone: true }); await flush()
++  const other = browser({ local: first.local, session: first.session, key: 'app-two', standalone: true }); await flush()
++  assert.equal(other.calls.length, 0)
++  const click = browser({ local: first.local, session: first.session, key: 'app-two', standalone: true, ref: reference }); await flush()
++  assert.deepEqual(click.calls.map(c => c.event), ['open', 'launch'])
++})
++test('malformed references do not enable measurement', async () => {
++  const b = browser({ ref: 'forged', standalone: true }); b.install(); await flush()
++  assert.equal(b.calls.length, 0)
++})
++test('blocked storage does not break the host application', async () => {
++  const blocked = { getItem() { throw new Error('blocked') }, setItem() { throw new Error('blocked') } }
++  const b = browser({ ref: reference, standalone: true, local: blocked, session: blocked }); b.install(); await flush()
++  assert.equal(b.calls.length, 0)
++})
++test('network failure is caught and subsequent signals can redeem the reference', async () => {
++  let count = 0
++  const b = browser({ ref: reference, standalone: true, fetchImpl: () => ++count === 1 ? Promise.reject(new Error('offline')) : Promise.resolve({ type: 'opaque' }) })
++  await flush()
++  assert.deepEqual(b.calls.map(c => c.event), ['open', 'launch'])
++  assert.equal(b.calls[1].ref, reference)
++})
