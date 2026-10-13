@@ -213,6 +213,8 @@ export default {
       install: 'Installation',
       version: 'Version {version}',
       declareInstalled: 'Déclarer cette PWA installée',
+      installedOnDevice: 'Installée sur cet appareil',
+      openInstalledApp: 'Ouvrir l’application',
       installNote:
         'Installation proposée par votre navigateur, selon sa compatibilité.',
       pwaInfo:
@@ -221,6 +223,8 @@ export default {
       sandboxIntro:
         'Cette application s’exécute dans une sandbox sécurisée et déclare les accès suivants.',
       permissions: 'Permissions requises',
+      permissionsCount:
+        '{n} autorisation requise | {n} autorisation requise | {n} autorisations requises',
       noPermissions: 'Aucune permission spéciale requise.',
       domains: 'Domaines externes détectés',
       noDomains: 'Aucun domaine externe signalé par l’analyse statique.',

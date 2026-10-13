@@ -112,6 +112,19 @@
             <span v-if="app.contains_ads" class="ads-pill">{{
               t('content.ads.badge')
             }}</span>
+            <span
+              v-if="declaredPermissions.length"
+              class="details-chip security-chip"
+            >
+              <q-icon name="shield" class="q-mr-xs" />
+              {{
+                t(
+                  'store.details.permissionsCount',
+                  { n: declaredPermissions.length },
+                  declaredPermissions.length
+                )
+              }}
+            </span>
             <span v-if="card.rating" class="details-rating"
               ><q-icon name="star" />{{ card.rating }}
               <small>{{
@@ -249,6 +262,45 @@
             </dl>
           </section>
 
+          <section
+            class="detail-card glass-panel"
+            aria-labelledby="permissions-card-title"
+          >
+            <h2 id="permissions-card-title" class="section-title">
+              <q-icon name="shield" color="primary" />
+              {{ t('store.details.permissions') }}
+            </h2>
+            <p class="muted-text">{{ t('store.details.sandboxIntro') }}</p>
+            <div v-if="declaredPermissions.length" class="chips q-mt-sm">
+              <q-chip
+                v-for="perm in declaredPermissions"
+                :key="perm.key"
+                dense
+                :icon="perm.icon"
+                class="soft-chip"
+                >{{ perm.label }}</q-chip
+              >
+            </div>
+            <p v-else class="muted-text q-mt-sm">{{
+              t('store.details.noPermissions')
+            }}</p>
+            <template v-if="domains.length">
+              <h3 class="mini-title q-mt-md">{{
+                t('store.details.domains')
+              }}</h3>
+              <div class="chips">
+                <q-chip
+                  v-for="domain in domains"
+                  :key="domain"
+                  dense
+                  icon="language"
+                  class="soft-chip"
+                  >{{ domain }}</q-chip
+                >
+              </div>
+            </template>
+          </section>
+
           <section class="detail-card glass-panel">
             <AppReviews :app="app" @changed="refreshRating" />
           </section>
@@ -270,24 +322,32 @@
                 version: latestVersion.version_number
               })
             }}</p>
+            <div v-if="isInstalled" class="installed-badge q-mb-sm">
+              <q-icon name="check_circle" color="positive" size="18px" />
+              <span>{{ t('store.details.installedOnDevice') }}</span>
+            </div>
             <q-btn
               v-if="app.status === 'published'"
               unelevated
               no-caps
-              icon="add_to_home_screen"
+              :icon="isInstalled ? 'open_in_new' : 'add_to_home_screen'"
               :label="
-                t(
-                  authStore.isAuthenticated
-                    ? 'store.details.activate'
-                    : 'store.details.loginToActivate'
-                )
+                isInstalled
+                  ? t('store.details.openInstalledApp')
+                  : t(
+                      authStore.isAuthenticated
+                        ? 'store.details.activate'
+                        : 'store.details.loginToActivate'
+                    )
               "
               class="full-width install-pwa-btn"
+              :class="{ 'installed-active-btn': isInstalled }"
               :loading="extracting"
               @click="launchApp"
             />
             <q-btn
               v-if="
+                !isInstalled &&
                 app.status === 'published' &&
                 (app.source_type === 'url' ||
                   latestVersion?.status === 'active')
@@ -401,7 +461,7 @@
 </template>
 
 <script setup>
-import { computed, onMounted, ref, watch } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useQuasar } from 'quasar'
 import { useI18n } from 'vue-i18n'
@@ -446,16 +506,44 @@ const extracting = ref(false)
 const similar = ref([])
 const favorited = ref(false),
   popping = ref(false)
+const localInstalled = ref(false)
+
+const isInstalled = computed(() => {
+  if (app.value?.is_installed) return true
+  if (localInstalled.value) return true
+  try {
+    return localStorage.getItem(`pwa-installed-${route.params.id}`) === '1'
+  } catch {
+    return false
+  }
+})
 
 const card = computed(() => (app.value ? toCard(app.value) : {}))
 
+function extractPermissions(appData, versionData) {
+  const p =
+    appData?.permissions ??
+    appData?.pending_changes?.permissions ??
+    appData?.detected_permissions ??
+    versionData?.permissions_required ??
+    []
+  if (Array.isArray(p)) return p
+  if (typeof p === 'string') {
+    try {
+      const parsed = JSON.parse(p)
+      if (Array.isArray(parsed)) return parsed
+    } catch {}
+    return p
+      .split(',')
+      .map(s => s.trim())
+      .filter(Boolean)
+  }
+  return []
+}
+
 // Declared on the listing; builds published before that kept them on the version.
 const declaredPermissions = computed(() =>
-  (
-    app.value?.permissions ??
-    latestVersion.value?.permissions_required ??
-    []
-  ).map(permissionInfo)
+  extractPermissions(app.value, latestVersion.value).map(permissionInfo)
 )
 const latestVersion = computed(() => {
   if (!app.value?.versions || app.value.versions.length === 0) return null
@@ -587,8 +675,17 @@ async function fetchAppDetails() {
   error.value = ''
   unavailable.value = false
   try {
-    const response = await api.get('/apps/' + route.params.id)
+    const device = deviceIdentity()
+    const response = await api.get('/apps/' + route.params.id, {
+      params: device ? { device_uuid: device } : {}
+    })
     app.value = response.data
+    if (app.value?.is_installed) {
+      localInstalled.value = true
+      try {
+        localStorage.setItem(`pwa-installed-${app.value.id}`, '1')
+      } catch {}
+    }
     similar.value = []
     if (app.value.status === 'published') {
       communityApi.recordView(app.value.id).catch(() => {})
@@ -651,6 +748,11 @@ function confirmInstallation() {
         metadata: { source: 'user_confirmation' }
       })
       $q.notify({ type: 'positive', message: t('store.details.installSaved') })
+      localInstalled.value = true
+      try {
+        localStorage.setItem(`pwa-installed-${app.value.id}`, '1')
+      } catch {}
+      if (app.value) app.value.is_installed = true
     } catch (e) {
       $q.notify({
         type: 'negative',
@@ -787,7 +889,30 @@ async function share() {
   }
 }
 
-onMounted(fetchAppDetails)
+async function checkInstallOnFocus() {
+  if (!app.value?.id) return
+  try {
+    const device = deviceIdentity()
+    const { data } = await api.get('/apps/' + app.value.id, {
+      params: device ? { device_uuid: device } : {}
+    })
+    if (data.is_installed) {
+      app.value.is_installed = true
+      localInstalled.value = true
+      try {
+        localStorage.setItem(`pwa-installed-${app.value.id}`, '1')
+      } catch {}
+    }
+  } catch {}
+}
+
+onMounted(() => {
+  fetchAppDetails()
+  window.addEventListener('focus', checkInstallOnFocus)
+})
+onBeforeUnmount(() => {
+  window.removeEventListener('focus', checkInstallOnFocus)
+})
 watch(
   () => route.params.id,
   (id, previous) => {
@@ -1057,6 +1182,22 @@ a.details-chip:hover {
   margin: 6px 0 0;
   color: var(--muted);
   font-size: 12px;
+}
+.installed-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: 20px;
+  background: rgba(46, 125, 50, 0.12);
+  color: #2e7d32;
+  font-size: 13px;
+  font-weight: 600;
+  width: fit-content;
+}
+.installed-active-btn {
+  background: var(--primary) !important;
+  color: white !important;
 }
 .pwa-install-info {
   display: flex;

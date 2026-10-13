@@ -226,7 +226,7 @@
   </div>
 </template>
 <script setup>
-import { computed, onMounted, reactive, ref } from 'vue'
+import { computed, onMounted, reactive, ref, watch } from 'vue'
 import { useQuasar } from 'quasar'
 import { useI18n } from 'vue-i18n'
 import { ui } from '@/i18n/text'
@@ -262,12 +262,46 @@ const access = reactive({
   other: ''
 })
 const showPassword = ref(false)
+
+function toBoolean(val) {
+  if (val === true || val === 1 || val === '1' || val === 'true') return true
+  if (val === false || val === 0 || val === '0' || val === 'false') return false
+  return null
+}
+
+function initAnswers(source) {
+  const result = { ...source }
+  for (const key of [...INTERACTIVE, 'packaged']) {
+    if (key in result) {
+      const b = toBoolean(result[key])
+      if (b !== null) result[key] = b
+    }
+  }
+  return result
+}
+
 const ads = ref(props.listing.contains_ads ?? null)
-const answers = reactive({ ...props.listing.content_rating?.answers })
+const answers = reactive(initAnswers(props.listing.content_rating?.answers))
 // null = not answered yet; [] = "no permission", which is a valid answer.
 const permissions = ref([...(props.listing.permissions || [])])
 const noPermission = ref(
   Array.isArray(props.listing.permissions) && !props.listing.permissions.length
+)
+
+watch(
+  () => props.listing,
+  newListing => {
+    if (!newListing) return
+    ads.value = newListing.contains_ads ?? null
+    permissions.value = [...(newListing.permissions || [])]
+    noPermission.value =
+      Array.isArray(newListing.permissions) && !newListing.permissions.length
+    const updated = initAnswers(newListing.content_rating?.answers)
+    for (const [k, v] of Object.entries(updated)) {
+      answers[k] = v
+    }
+  },
+  { deep: true }
 )
 const permissionOptions = computed(() => APP_PERMISSIONS.map(permissionInfo))
 // Detected in the code but not ticked here (compared with the unsaved choice).

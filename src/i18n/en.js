@@ -209,6 +209,8 @@ export default {
       install: 'Installation',
       version: 'Version {version}',
       declareInstalled: 'I installed this PWA',
+      installedOnDevice: 'Installed on this device',
+      openInstalledApp: 'Open app',
       installNote:
         'Installation is offered by your browser, when it supports it.',
       pwaInfo:
@@ -217,6 +219,8 @@ export default {
       sandboxIntro:
         'This app runs in a secure sandbox and declares the following access.',
       permissions: 'Required permissions',
+      permissionsCount:
+        '{n} permission required | {n} permission required | {n} permissions required',
       noPermissions: 'No special permission required.',
       domains: 'External domains detected',
       noDomains: 'No external domain reported by the static analysis.',
