@@ -785,7 +785,8 @@ onMounted(load)
 .verification-checklist {
   grid-column: 1 / -1;
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  /* E-mail, profile and identity always share one row; the review item spans below. */
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 8px;
   margin: 0;
   padding: 0;
@@ -885,5 +886,23 @@ onMounted(load)
   font-size: 12px;
   font-weight: 600;
   color: var(--muted);
+}
+/* Narrow screens: keep the three columns, the state goes under the label. */
+@media (max-width: 599px) {
+  .verification-checklist li:not(.is-review-item) {
+    padding: 8px;
+  }
+  .verification-checklist li:not(.is-review-item) .verification-item-main {
+    flex-wrap: wrap;
+    gap: 4px 6px;
+  }
+  .verification-checklist li:not(.is-review-item) .verification-item-label {
+    font-size: 13px;
+    overflow-wrap: anywhere;
+  }
+  .verification-checklist li:not(.is-review-item) .verification-item-state {
+    flex-basis: 100%;
+    font-size: 11px;
+  }
 }
 </style>
