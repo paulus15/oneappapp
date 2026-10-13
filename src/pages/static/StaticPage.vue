@@ -3,16 +3,8 @@
     <template v-if="page">
       <header class="workspace-heading"
         ><span class="eyebrow">{{ page.eyebrow }}</span
-        ><h1>{{ page.title }}</h1
-        ><p v-if="page.updated" class="text-muted"
-          >{{ ui('Dernière mise à jour :') }} {{ page.updated }}</p
-        ></header
+        ><h1>{{ page.title }}</h1></header
       >
-      <q-banner v-if="page.draft" class="workspace-alert q-mb-lg" role="note">{{
-        ui(
-          'Brouillon — ce texte doit être validé par un juriste avant la mise en ligne publique de PWA Store.'
-        )
-      }}</q-banner>
       <article>
         <section v-for="section in page.sections" :key="section.title">
           <h2>{{ section.title }}</h2>

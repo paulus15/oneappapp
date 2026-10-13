@@ -1,5 +1,6 @@
 <template>
   <q-btn
+    v-if="!hideTrigger"
     flat
     no-caps
     :dense="dense"
@@ -157,6 +158,8 @@ const props = defineProps({
   appName: { type: String, default: '' },
   platform: Boolean,
   label: { type: String, default: '' },
+  // The parent shows its own entry (e.g. a menu item) and calls open().
+  hideTrigger: Boolean,
   dense: Boolean
 })
 const $q = useQuasar(),
@@ -312,6 +315,7 @@ async function send() {
 }
 
 onBeforeUnmount(reset)
+defineExpose({ open })
 </script>
 <style scoped>
 .suggestion-card {

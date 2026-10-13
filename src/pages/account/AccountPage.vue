@@ -188,6 +188,14 @@ import MyReviews from '@/components/MyReviews.vue'
 import MySuggestions from '@/components/MySuggestions.vue'
 import DeveloperOverview from '@/components/DeveloperOverview.vue'
 import PersonalLibrary from '@/components/PersonalLibrary.vue'
+const LINKABLE_TABS = [
+  'activity',
+  'favorites',
+  'reviews',
+  'suggestions',
+  'profile',
+  'preferences'
+]
 const { t } = useI18n()
 const auth = useAuthStore(),
   q = useQuasar(),
@@ -204,11 +212,19 @@ const loading = ref(true),
   sending = ref(false),
   removing = ref(null),
   error = ref(''),
-  // Notifications link to /account?tab=suggestions.
-  tab = ref(useRoute().query.tab === 'suggestions' ? 'suggestions' : 'activity')
+  route = useRoute(),
+  // Links open a tab directly: /account?tab=favorites (mobile bar), ?tab=suggestions (notifications).
+  tabFromQuery = () =>
+    LINKABLE_TABS.includes(route.query.tab) ? route.query.tab : 'activity',
+  tab = ref(tabFromQuery())
 const favorites = ref([]),
   page = ref(1),
   lastPage = ref(1)
+// The mobile bar opens "Favoris" then "Profil" on the same page: follow the URL.
+watch(
+  () => route.query.tab,
+  () => (tab.value = tabFromQuery())
+)
 watch(developerView, () => {
   if (tab.value === 'library') tab.value = 'activity'
 })

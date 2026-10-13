@@ -88,8 +88,6 @@ export const pages = {
   'publishing-rules': {
     eyebrow: 'Développeurs',
     title: 'Règles de publication',
-    draft: true,
-    updated: '12 octobre 2026',
     sections: [
       {
         title: '1. Éditeur',
@@ -138,8 +136,6 @@ export const pages = {
   terms: {
     eyebrow: 'Légal',
     title: 'Conditions d’utilisation',
-    draft: true,
-    updated: '12 octobre 2026',
     sections: [
       {
         title: '1. Objet',
@@ -180,29 +176,15 @@ export const pages = {
         paragraphs: [
           'PWA Store peut suspendre un compte ou une application en cas de manquement, après une décision motivée, sauf urgence liée à la sécurité des utilisateurs.'
         ]
-      },
-      {
-        title: '7. Droit applicable',
-        paragraphs: [
-          'À compléter après revue juridique : droit applicable, juridiction compétente et identité de l’exploitant.'
-        ]
       }
     ]
   },
   privacy: {
     eyebrow: 'Légal',
     title: 'Politique de confidentialité',
-    draft: true,
-    updated: '12 octobre 2026',
     sections: [
       {
-        title: '1. Responsable du traitement',
-        paragraphs: [
-          'À compléter : identité et coordonnées de l’exploitant de PWA Store, et le cas échéant de son représentant ou délégué à la protection des données.'
-        ]
-      },
-      {
-        title: '2. Données collectées',
+        title: '1. Données collectées',
         list: [
           'Compte : nom, adresse e-mail, pays de résidence déclaré (modifiable une fois tous les 30 jours), langue de l’interface, mot de passe (conservé sous forme de hachage irréversible) et préférences (notifications, historique des fiches consultées).',
           'Sécurité : codes de confirmation à usage unique (conservés sous forme de hachage à clé), sessions ouvertes (navigateur ou appareil tel qu’il se présente, dates de création, de dernière utilisation et d’expiration), journal des actions sensibles avec l’adresse IP de leur auteur (changement de pays, décisions de modération, consultation des identifiants de test).',
@@ -217,7 +199,7 @@ export const pages = {
         ]
       },
       {
-        title: '3. Finalités',
+        title: '2. Finalités',
         list: [
           'Fournir le service et sécuriser les comptes.',
           'Vérifier les éditeurs avant toute publication.',
@@ -225,13 +207,10 @@ export const pages = {
           'Produire des statistiques agrégées pour les développeurs et l’administration.',
           'Prévenir les abus : limites de fréquence, signalements, comptage des installations par compte distinct.',
           'Répondre aux demandes envoyées par le formulaire de contact.'
-        ],
-        paragraphs: [
-          'À valider par un juriste : base légale de chaque traitement (exécution du service, vérification des éditeurs, intérêt légitime pour la sécurité et les statistiques, information des utilisateurs par l’éditeur pour la mesure des installations).'
         ]
       },
       {
-        title: '4. Durées de conservation',
+        title: '3. Durées de conservation',
         list: [
           'Compte désactivé : données personnelles anonymisées 30 jours après la désactivation ; les avis restent affichés sous un nom anonyme.',
           'Justificatifs et pièces d’identité : supprimés automatiquement au terme de la durée de conservation configurée (30 jours par défaut).',
@@ -244,18 +223,15 @@ export const pages = {
         ]
       },
       {
-        title: '5. Vos droits',
+        title: '4. Vos droits',
         paragraphs: [
-          'Vous disposez de droits d’accès, de rectification, d’opposition et d’effacement. Pour les exercer, utilisez le formulaire de contact en choisissant « Données personnelles ».',
-          'À valider juridiquement : en Côte d’Ivoire, la loi n° 2013-450 relative à la protection des données à caractère personnel et l’autorité de protection (ARTCI) ; pour les personnes situées dans l’Union européenne, le RGPD. Les autres pays ciblés doivent être examinés.',
-          'À compléter : formalité préalable auprès de l’ARTCI (déclaration ou autorisation) et sa référence.'
+          'Vous disposez de droits d’accès, de rectification, d’opposition et d’effacement. Pour les exercer, utilisez le formulaire de contact en choisissant « Données personnelles ».'
         ]
       },
       {
-        title: '6. Destinataires et transferts',
+        title: '5. Destinataires et transferts',
         paragraphs: [
-          'Au sein de PWA Store, seuls les membres de l’équipe habilités accèdent aux pièces d’identité et aux identifiants de test, selon leurs permissions. Les éditeurs reçoivent des statistiques agrégées sur leurs applications, jamais l’identité des personnes qui les consultent ou les installent ; les avis sont publiés sous le nom du compte.',
-          'À compléter : hébergeur, prestataire d’envoi d’e-mails, localisation des serveurs et garanties applicables aux transferts internationaux.'
+          'Au sein de PWA Store, seuls les membres de l’équipe habilités accèdent aux pièces d’identité et aux identifiants de test, selon leurs permissions. Les éditeurs reçoivent des statistiques agrégées sur leurs applications, jamais l’identité des personnes qui les consultent ou les installent ; les avis sont publiés sous le nom du compte.'
         ]
       }
     ]

@@ -1,31 +1,30 @@
 <template>
   <q-page class="home-page">
-    <main ref="motionRoot" class="home-content">
-      <section
-        class="hero-panel"
-        :class="{ 'hero-intro': intro }"
-        aria-labelledby="hero-title"
-      >
-        <div class="hero-orb hero-orb-one" />
-        <div class="hero-orb hero-orb-two" />
+    <!-- Night-blue band: country and categories on phones, the hero from tablets up. -->
+    <section class="store-band" aria-labelledby="hero-title">
+      <div class="band-decor" aria-hidden="true">
+        <span class="globe" />
+        <span class="float-tile tile-a"><q-icon name="add" /></span>
+        <span class="float-tile tile-b"><q-icon name="school" /></span>
+        <span class="float-tile tile-c"><q-icon name="shopping_cart" /></span>
+        <span class="float-tile tile-d"><q-icon name="favorite" /></span>
+      </div>
+      <div class="band-inner">
         <div class="hero-copy">
-          <span class="eyebrow"
-            ><q-icon name="auto_awesome" /> {{ t('store.hero.eyebrow') }}</span
-          >
-          <h1 id="hero-title">
-            <span class="line"
-              ><span class="line-inner">{{ t('store.hero.line1') }}</span></span
-            >
-            <span class="line"
-              ><span class="line-inner">{{ t('store.hero.line2') }}</span></span
-            >
-          </h1>
-          <p>{{ t('store.hero.lead') }}</p>
+          <h1 id="hero-title">{{
+            ui('Des applications web pour tous vos besoins.')
+          }}</h1>
+          <p>{{
+            ui(
+              'Découvrez des PWA vérifiées, installables et adaptées à votre pays.'
+            )
+          }}</p>
           <div class="hero-actions">
             <q-btn
               unelevated
               no-caps
-              :label="t('store.hero.explore')"
+              icon="explore"
+              :label="ui('Explorer les applications')"
               to="/applications"
               class="primary-cta"
             />
@@ -33,50 +32,25 @@
               v-if="!isMobile"
               outline
               no-caps
-              :label="t('store.hero.becomeDeveloper')"
+              icon="rocket_launch"
+              :label="ui('Publier une PWA')"
               to="/developer/activate"
               class="secondary-cta"
             />
           </div>
         </div>
-
-        <div class="device-scene" aria-hidden="true">
-          <div v-if="home?.latest?.length" class="floating-apps">
-            <div
-              v-for="entry in home.latest.slice(0, 3)"
-              :key="entry.id"
-              class="floating-app"
-            >
-              <q-icon name="apps" /><span>{{ entry.name }}</span>
-            </div>
-          </div>
-          <span class="platform-badge android"><q-icon name="android" /></span>
-          <span class="platform-badge web"><q-icon name="language" /></span>
-          <span class="platform-badge apps"><q-icon name="apps" /></span>
-          <span class="platform-badge windows"><q-icon name="window" /></span>
-          <div class="phone-wrap">
-            <div class="phone-card">
-              <span class="phone-speaker" />
-              <span class="install-ring" />
-              <img
-                class="hero-brand-icon"
-                src="/brand/pwa-store-icon.png"
-                width="180"
-                height="180"
-                alt=""
-              />
-              <strong>PWA Store</strong>
-              <small
-                >{{ t('store.hero.phone1') }}<br />{{
-                  t('store.hero.phone2')
-                }}</small
-              >
-            </div>
-          </div>
+        <div class="band-filters">
+          <CountryChoice pill />
+          <CategoryChips
+            v-if="sections.categories.length"
+            v-model="activeCategory"
+            :categories="sections.categories"
+          />
         </div>
-        <div class="hero-dots" aria-hidden="true"><i /><i /><i /><i /></div>
-      </section>
+      </div>
+    </section>
 
+    <main class="home-sheet">
       <!-- Search results (?search=) -->
       <template v-if="activeSearch">
         <div class="search-notice">
@@ -162,39 +136,92 @@
         </section>
       </template>
 
+      <!-- One category chosen in the chips -->
+      <section
+        v-else-if="activeCategory"
+        class="home-section"
+        aria-labelledby="category-title"
+      >
+        <header class="section-heading">
+          <h2 id="category-title">{{ activeCategoryName }}</h2>
+          <router-link
+            :to="`/categories/${activeCategory}`"
+            :aria-label="t('store.row.seeAllOf', { title: activeCategoryName })"
+            >{{ t('store.row.seeAll') }}</router-link
+          >
+        </header>
+        <div v-if="categoryLoading" class="tile-grid" aria-busy="true">
+          <div v-for="n in 6" :key="n" class="tile-skeleton">
+            <q-skeleton class="tile-skeleton-icon" />
+            <q-skeleton type="text" width="70%" />
+            <q-skeleton type="text" width="45%" />
+          </div>
+        </div>
+        <div v-else-if="categoryApps.length" class="tile-grid">
+          <StoreAppTile v-for="app in categoryApps" :key="app.id" :app="app" />
+        </div>
+        <div v-else class="home-empty">
+          <q-icon name="category" />
+          <p>{{
+            categoryError ||
+            ui('Aucune application dans cette catégorie pour votre pays.')
+          }}</p>
+        </div>
+      </section>
+
       <!-- Discover -->
       <template v-else>
+        <ul class="trust-strip" :aria-label="ui('Pourquoi PWA Store')">
+          <li v-for="item in trust" :key="item.label">
+            <span class="trust-icon" :style="{ '--trust': item.color }"
+              ><q-icon :name="item.icon" aria-hidden="true"
+            /></span>
+            <span>{{ item.label }}</span>
+          </li>
+        </ul>
+
+        <q-banner v-if="homeError" class="workspace-alert" role="alert">
+          {{
+            ui('Le catalogue n’a pas pu être chargé. Vérifiez votre connexion.')
+          }}
+          <template #action>
+            <q-btn flat no-caps :label="ui('Réessayer')" @click="loadHome" />
+          </template>
+        </q-banner>
+
+        <section
+          v-for="block in tileSections"
+          :id="block.id"
+          :key="block.id"
+          class="home-section"
+          :aria-labelledby="`${block.id}-title`"
+        >
+          <header class="section-heading">
+            <h2 :id="`${block.id}-title`">{{ block.title }}</h2>
+            <router-link
+              v-if="block.to && block.apps.length"
+              :to="block.to"
+              :aria-label="t('store.row.seeAllOf', { title: block.title })"
+              >{{ t('store.row.seeAll') }}</router-link
+            >
+          </header>
+          <div v-if="pending" class="tile-grid" aria-busy="true">
+            <div v-for="n in 6" :key="n" class="tile-skeleton">
+              <q-skeleton class="tile-skeleton-icon" />
+              <q-skeleton type="text" width="70%" />
+              <q-skeleton type="text" width="45%" />
+            </div>
+          </div>
+          <div v-else class="tile-grid">
+            <StoreAppTile v-for="app in block.apps" :key="app.id" :app="app" />
+          </div>
+        </section>
+
         <AppRow
           id="featured"
           variant="featured"
-          priority
-          :title="t('store.home.featured')"
-          :kicker="t('store.home.featuredKicker')"
+          :title="ui('Sélections du moment')"
           :apps="sections.featured"
-          :loading="pending"
-        />
-        <AppRow
-          id="trending"
-          :title="t('store.home.trending')"
-          :kicker="t('store.home.trendingKicker')"
-          to="/rankings?type=trending"
-          :apps="sections.trending"
-          :loading="pending"
-        />
-        <AppRow
-          id="latest"
-          :title="t('store.home.latest')"
-          :kicker="t('store.home.latestKicker')"
-          to="/rankings?type=new"
-          :apps="sections.latest"
-          :loading="pending"
-        />
-        <AppRow
-          id="recommended"
-          :title="t('store.home.recommended')"
-          :kicker="t('store.home.recommendedKicker')"
-          to="/recommended"
-          :apps="sections.recommended"
           :loading="pending"
         />
         <AppRow
@@ -213,69 +240,40 @@
           aria-labelledby="categories-title"
         >
           <header class="section-heading">
-            <div>
-              <span class="section-kicker">{{
-                t('store.home.categoriesKicker')
-              }}</span>
-              <h2 id="categories-title">{{ t('store.home.categories') }}</h2>
-            </div>
+            <h2 id="categories-title">{{ t('store.home.categories') }}</h2>
             <router-link
               to="/categories"
               :aria-label="
                 t('store.row.seeAllOf', { title: t('store.home.categories') })
               "
-              >{{ t('store.row.seeAll') }} <q-icon name="arrow_forward"
-            /></router-link>
+              >{{ t('store.row.seeAll') }}</router-link
+            >
           </header>
           <div v-if="pending" class="category-tiles">
             <q-skeleton
               v-for="n in 4"
               :key="n"
               height="68px"
-              class="tile-skeleton"
+              class="category-skeleton"
             />
           </div>
           <div v-else class="category-tiles">
             <CategoryTile
-              v-for="category in sections.categories"
+              v-for="category in sections.categories.slice(0, 8)"
               :key="category.id"
               :category="category"
             />
           </div>
         </section>
 
-        <section
-          v-if="sections.discover.length"
-          id="discover"
-          class="home-section"
-          aria-labelledby="discover-title"
-        >
-          <header class="section-heading">
-            <div>
-              <span class="section-kicker">{{
-                t('store.home.discoverKicker')
-              }}</span>
-              <h2 id="discover-title">{{ t('store.home.discover') }}</h2>
-            </div>
-            <router-link
-              to="/applications"
-              :aria-label="
-                t('store.row.seeAllOf', { title: t('store.home.discover') })
-              "
-              >{{ t('store.row.seeAll') }} <q-icon name="arrow_forward"
-            /></router-link>
-          </header>
-          <AppGrid :apps="sections.discover" />
-        </section>
-
-        <div v-if="home && !hasApps" class="home-empty glass-panel">
+        <div v-if="home && !homeError && !hasApps" class="home-empty">
           <q-icon name="storefront" />
           <h2>{{ t('store.home.emptyTitle') }}</h2>
           <p>{{ t('store.home.emptyText') }}</p>
         </div>
 
+        <!-- Developer actions are offered on computers only. -->
         <section v-if="!isMobile" id="business" class="developer-band">
-          <q-icon name="developer_mode" class="developer-watermark" />
           <div>
             <h2>{{ t('store.home.developerTitle') }}</h2>
             <p>{{ t('store.home.developerText') }}</p>
@@ -296,22 +294,6 @@
           </div>
         </section>
       </template>
-
-      <section
-        id="features"
-        class="feature-grid"
-        :aria-label="t('store.features.label')"
-      >
-        <article
-          v-for="feature in features"
-          :key="feature.key"
-          class="glass-panel feature-card"
-        >
-          <q-icon :name="feature.icon" :style="{ color: feature.color }" />
-          <h3>{{ t(`store.features.${feature.key}.title`) }}</h3>
-          <p>{{ t(`store.features.${feature.key}.text`) }}</p>
-        </article>
-      </section>
     </main>
 
     <AppFooter />
@@ -326,21 +308,41 @@ import AppFooter from '@/components/AppFooter.vue'
 import AppGrid from '@/components/AppGrid.vue'
 import AppRow from '@/components/AppRow.vue'
 import CategoryTile from '@/components/CategoryTile.vue'
-import { useHeroIntro } from '@/composables/useHeroIntro'
+import CountryChoice from '@/components/CountryChoice.vue'
+import CategoryChips from '@/components/store/CategoryChips.vue'
+import StoreAppTile from '@/components/store/StoreAppTile.vue'
 import { useWorkspaceAccess } from '@/composables/useWorkspaceAccess'
+import { ui } from '@/i18n/text'
 import { catalogApi } from '@/services/catalog'
 
 const { t } = useI18n()
 const { isMobile } = useWorkspaceAccess()
-const motionRoot = ref(null)
-const { intro } = useHeroIntro(motionRoot)
 const route = useRoute()
 const router = useRouter()
 const activeSearch = computed(() => String(route.query.search || '').trim())
 
 const home = ref(null)
 const homeLoading = ref(true)
+const homeError = ref(false)
 const pending = computed(() => !home.value && homeLoading.value)
+
+// The chosen chip lives in the URL (?category=), so Back and shared links keep it.
+const activeCategory = computed({
+  get: () => String(route.query.category || ''),
+  set: slug =>
+    router.replace({
+      query: { ...route.query, category: slug || undefined }
+    })
+})
+const activeCategoryName = computed(() => {
+  const category = sections.value.categories.find(
+    c => c.slug === activeCategory.value
+  )
+  return category ? ui(category.name) : ''
+})
+const categoryApps = ref([])
+const categoryLoading = ref(false)
+const categoryError = ref('')
 
 const rawApps = ref([])
 const total = ref(0)
@@ -392,13 +394,13 @@ const sections = computed(() => {
   const featured = list(data.featured).length
     ? list(data.featured)
     : list(data.latest).slice(0, 6)
+  // Only categories holding apps visible in this country; the busiest first.
   const categories = [...list(data.categories)]
-    .filter(c => c?.slug)
+    .filter(c => c?.slug && Number(c.applications_count || 0) > 0)
     .sort(
       (a, b) =>
         Number(b.applications_count || 0) - Number(a.applications_count || 0)
     )
-    .slice(0, 8)
   return {
     featured,
     trending,
@@ -415,6 +417,41 @@ const sections = computed(() => {
     ).slice(0, 12)
   }
 })
+// Store-style tile grids; a section without apps is never shown (no invented content).
+const tileSections = computed(() =>
+  [
+    {
+      id: 'popular',
+      title: ui('Applications populaires'),
+      to: '/rankings',
+      apps: sections.value.trending.length
+        ? sections.value.trending
+        : list(home.value?.popular)
+    },
+    {
+      id: 'latest',
+      title: ui('Nouveautés'),
+      to: '/rankings?type=new',
+      apps: sections.value.latest
+    },
+    {
+      id: 'recommended',
+      title: ui('Recommandées pour vous'),
+      to: '/recommended',
+      apps: sections.value.recommended
+    },
+    {
+      id: 'discover',
+      title: ui('Applications à découvrir'),
+      to: '/applications',
+      apps: sections.value.discover
+    }
+  ]
+    .map(block => ({ ...block, apps: block.apps.slice(0, 12) }))
+    .filter(block =>
+      pending.value ? block.id !== 'recommended' : block.apps.length
+    )
+)
 const hasApps = computed(() =>
   ['featured', 'trending', 'latest', 'recommended', 'discover'].some(
     key => sections.value[key].length
@@ -423,10 +460,12 @@ const hasApps = computed(() =>
 
 async function loadHome() {
   homeLoading.value = true
+  homeError.value = false
   try {
     home.value = (await catalogApi.home()).data || {}
   } catch (err) {
     console.error('Error fetching home sections', err)
+    homeError.value = true
     home.value = {}
   } finally {
     homeLoading.value = false
@@ -452,6 +491,30 @@ async function fetchApps() {
   }
 }
 
+async function fetchCategory() {
+  if (!activeCategory.value || activeSearch.value) return
+  const slug = activeCategory.value
+  categoryLoading.value = true
+  categoryError.value = ''
+  try {
+    const { data } = await catalogApi.apps({
+      category: slug,
+      sort_by: 'downloads'
+    })
+    // A later chip may have been chosen meanwhile: keep only the latest answer.
+    if (slug === activeCategory.value) categoryApps.value = list(data?.data)
+  } catch {
+    if (slug === activeCategory.value) {
+      categoryApps.value = []
+      categoryError.value = ui(
+        'Les applications n’ont pas pu être chargées. Vérifiez votre connexion.'
+      )
+    }
+  } finally {
+    if (slug === activeCategory.value) categoryLoading.value = false
+  }
+}
+
 function clearSearch() {
   router.push({ path: '/' })
 }
@@ -466,89 +529,87 @@ watch(activeSearch, value => {
   if (!value) resetFilters()
 })
 watch([activeSearch, selectedPlatform, selectedPriceType, sortBy], fetchApps)
+watch(activeCategory, fetchCategory)
 
 onMounted(() => {
   loadHome()
   fetchApps()
+  fetchCategory()
 })
 
-const features = [
-  { key: 'modern', icon: 'devices', color: 'var(--pwa-primary)' },
-  { key: 'verified', icon: 'fact_check', color: 'var(--pwa-primary)' },
-  { key: 'reviews', icon: 'reviews', color: 'var(--pwa-secondary)' },
-  { key: 'africa', icon: 'public', color: 'var(--pwa-accent)' }
-]
+// Labels follow the interface language (computed, not frozen at setup).
+const trust = computed(() => [
+  {
+    icon: 'verified_user',
+    color: '#12a150',
+    label: ui('Applications vérifiées')
+  },
+  { icon: 'bolt', color: '#075bff', label: ui('Applications installables') },
+  {
+    icon: 'storefront',
+    color: '#ff9416',
+    label: ui('Sans Play Store ni App Store')
+  },
+  {
+    icon: 'public',
+    color: '#7c4dff',
+    label: ui('Catalogue adapté à votre pays')
+  }
+])
 </script>
 
 <style scoped lang="scss">
+/* Night blue, electric blue and cyan from the PWA Store identity; orange stays an accent. */
 .home-page {
+  --night: #071a3d;
+  --night-2: #0b2a63;
   min-height: 100vh;
   overflow-x: clip;
   color: var(--text);
   background: var(--page);
 }
-.home-content {
-  position: relative;
-  z-index: 1;
-  min-width: 0;
-  max-width: 1320px;
-  display: flex;
-  flex-direction: column;
-  gap: 28px;
-  margin: 0 auto;
-  padding: 14px var(--ui-page-gutter) 28px;
-}
-.home-content > * {
-  min-width: 0;
-}
 
-/* Hero (useHeroIntro drives .eyebrow, .line-inner, .phone-wrap, .platform-badge…). */
-.hero-panel {
+/* Band */
+.store-band {
   position: relative;
-  min-height: 240px;
-  display: flex;
-  align-items: center;
   overflow: hidden;
-  padding: 20px 4% 20px 5%;
-  background: var(--surface);
-  border: 1px solid var(--outline);
-  border-radius: 18px;
-  box-shadow: var(--ui-shadow-md);
+  color: #fff;
+  background:
+    radial-gradient(
+      120% 90% at 85% 10%,
+      rgba(8, 200, 248, 0.28),
+      transparent 55%
+    ),
+    radial-gradient(
+      90% 80% at 0% 100%,
+      rgba(7, 91, 255, 0.45),
+      transparent 60%
+    ),
+    linear-gradient(135deg, var(--night) 0%, var(--night-2) 100%);
   isolation: isolate;
 }
-.hero-copy {
+.band-inner {
   position: relative;
-  z-index: 3;
-  max-width: 580px;
+  z-index: 2;
+  max-width: 1320px;
+  margin: 0 auto;
+  padding: clamp(28px, 5vw, 56px) var(--ui-page-gutter) 56px;
 }
-.eyebrow,
-.section-kicker {
-  color: var(--pwa-link);
-  font-size: 10px;
-  font-weight: 800;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-.eyebrow {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  margin-bottom: 8px;
+.hero-copy {
+  max-width: 620px;
 }
 .hero-copy h1 {
   margin: 0;
-  max-width: 550px;
-  color: var(--text);
-  font-size: clamp(26px, 3.2vw, 38px);
+  font-size: clamp(28px, 4vw, 46px);
   font-weight: 800;
-  line-height: 1.1;
-  letter-spacing: -0.04em;
+  line-height: 1.08;
+  letter-spacing: -0.03em;
 }
 .hero-copy p {
-  max-width: 500px;
-  margin: 10px 0 16px;
-  color: var(--muted);
-  font-size: 13px;
+  max-width: 520px;
+  margin: 12px 0 22px;
+  color: #c9d8ff;
+  font-size: clamp(14px, 1.4vw, 17px);
   line-height: 1.5;
 }
 .hero-actions {
@@ -557,186 +618,229 @@ const features = [
   gap: 10px;
 }
 .hero-actions .q-btn {
-  min-height: 36px;
-  padding: 0 16px;
-  border-radius: 8px;
-  font-size: 12px;
+  min-height: 44px;
+  padding: 0 18px;
+  border-radius: 12px;
   font-weight: 700;
 }
 .primary-cta {
-  color: var(--pwa-on-primary);
+  color: #fff;
   background: var(--pwa-primary);
 }
 .secondary-cta {
-  color: var(--text);
+  color: #fff;
 }
-.hero-orb {
-  position: absolute;
-  border-radius: 50%;
-  filter: blur(2px);
-  opacity: 0.6;
-}
-.hero-orb-one {
-  top: -100px;
-  right: 5%;
-  width: 250px;
-  height: 250px;
-  background: color-mix(in srgb, var(--primary) 22%, transparent);
-}
-.hero-orb-two {
-  bottom: -150px;
-  left: 30%;
-  width: 300px;
-  height: 300px;
-  background: color-mix(in srgb, var(--secondary) 14%, transparent);
-}
-.device-scene {
-  position: absolute;
-  z-index: 2;
-  top: 50%;
-  right: 4%;
-  width: 260px;
-  height: 270px;
-  transform: translateY(-50%);
-}
-.phone-card {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 154px;
-  height: 252px;
+.band-filters {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  transform: translate(-50%, -50%) rotate(2deg);
-  background: var(--surface-low);
-  border: 4px solid var(--surface-highest);
-  border-radius: 24px;
-  box-shadow: 15px 20px 45px rgba(2, 5, 20, 0.3);
+  align-items: flex-start;
+  gap: 14px;
+  margin-top: 26px;
+  min-width: 0;
 }
-.phone-speaker {
-  position: absolute;
-  top: 9px;
-  width: 40px;
-  height: 4px;
-  background: var(--surface-highest);
-  border-radius: 8px;
+.band-filters > :deep(*) {
+  max-width: 100%;
 }
-.phone-card strong {
-  font-size: 15px;
+.band-filters :deep(.category-chips) {
+  width: 100%;
 }
-.phone-card small {
-  margin-top: 6px;
-  color: var(--muted);
-  text-align: center;
-  line-height: 1.3;
-  font-size: 9px;
-}
-.platform-badge {
-  position: absolute;
-  z-index: 4;
-  width: 38px;
-  height: 38px;
-  display: grid;
-  place-items: center;
-  background: var(--surface);
-  border: 1px solid var(--outline);
-  border-radius: 10px;
-  box-shadow: 0 8px 25px rgba(3, 7, 24, 0.2);
-}
-.platform-badge .q-icon {
-  font-size: 20px;
-}
-.platform-badge.android {
-  top: 24px;
-  left: 12px;
-  color: var(--pwa-platform-android);
-}
-.platform-badge.web {
-  bottom: 40px;
-  left: 4px;
-  color: var(--text);
-}
-.platform-badge.apps {
-  top: 40px;
-  right: 4px;
-  color: var(--pwa-link);
-}
-.platform-badge.windows {
-  right: 12px;
-  bottom: 40px;
-  color: var(--pwa-platform-windows);
-}
-.hero-copy h1 .line {
-  display: block;
-  overflow: hidden;
-  padding-bottom: 0.08em;
-  margin-bottom: -0.08em;
-}
-.hero-copy h1 .line-inner {
-  display: inline-block;
-}
-.phone-wrap {
+
+/* Decoration: a dotted globe and floating app tiles (pure CSS, hidden from assistive tech). */
+.band-decor {
   position: absolute;
   inset: 0;
-}
-.install-ring {
-  position: absolute;
-  top: 34%;
-  left: 50%;
-  width: 96px;
-  height: 96px;
-  margin: -48px 0 0 -48px;
-  border-radius: 28px;
-  border: 2px solid var(--pwa-secondary);
-  opacity: 0;
+  z-index: 1;
   pointer-events: none;
 }
-.hero-intro
-  :is(
-    .eyebrow,
-    .hero-copy > p,
-    .hero-actions > *,
-    .phone-wrap,
-    .platform-badge
-  ) {
-  opacity: 0;
-}
-.hero-intro .line-inner {
-  transform: translateY(110%);
-}
-.floating-apps {
+.globe {
   position: absolute;
-  inset: 15% -5%;
-  z-index: 4;
-  pointer-events: none;
+  top: 50%;
+  right: -60px;
+  width: 440px;
+  aspect-ratio: 1;
+  transform: translateY(-50%);
+  border-radius: 50%;
+  background:
+    radial-gradient(
+      circle at 35% 35%,
+      rgba(8, 200, 248, 0.35),
+      transparent 60%
+    ),
+    radial-gradient(rgba(140, 200, 255, 0.55) 1px, transparent 1.6px) 0 0 / 12px
+      12px;
+  box-shadow:
+    inset -30px -20px 80px rgba(3, 12, 40, 0.75),
+    0 0 80px rgba(8, 200, 248, 0.25);
+  opacity: 0.85;
 }
-.floating-app {
+.float-tile {
   position: absolute;
-  display: flex;
-  gap: 10px;
-  align-items: center;
-  max-width: 175px;
-  padding: 12px 16px;
+  width: 58px;
+  height: 58px;
+  display: grid;
+  place-items: center;
+  color: #fff;
+  font-size: 28px;
   border-radius: 16px;
-  background: var(--pwa-surface);
-  color: var(--pwa-text);
-  border: 1px solid rgba(8, 200, 248, 0.3);
-  box-shadow: 0 14px 40px #075bff20;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.3);
+  animation: float 6s ease-in-out infinite;
 }
-.floating-app span {
-  overflow: hidden;
-  white-space: nowrap;
-  text-overflow: ellipsis;
+.tile-a {
+  top: 16%;
+  right: 34%;
+  background: linear-gradient(145deg, #2ed47a, #12a150);
 }
-.floating-app:nth-child(2) {
-  right: 0;
-  top: 42%;
+.tile-b {
+  top: 30%;
+  right: 8%;
+  background: linear-gradient(145deg, #8b5cf6, #6d28d9);
+  animation-delay: -2s;
 }
-.floating-app:nth-child(3) {
-  left: 2%;
-  bottom: 0;
+.tile-c {
+  bottom: 18%;
+  right: 30%;
+  background: linear-gradient(145deg, #ffae42, #ff7a00);
+  animation-delay: -4s;
+}
+.tile-d {
+  bottom: 26%;
+  right: 4%;
+  background: linear-gradient(145deg, #ff5f8f, #e11d48);
+  animation-delay: -1s;
+}
+@keyframes float {
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+/* White sheet over the band, as in a native store */
+.home-sheet {
+  position: relative;
+  z-index: 3;
+  max-width: 1320px;
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+  margin: -28px auto 0;
+  padding: 24px var(--ui-page-gutter) 32px;
+  background: var(--page);
+  border-radius: 28px 28px 0 0;
+}
+.home-sheet > * {
+  min-width: 0;
+}
+
+/* Trust strip */
+.trust-strip {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.trust-strip li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+  font-size: 13.5px;
+  font-weight: 650;
+  background: var(--surface);
+  border: 1px solid var(--outline);
+  border-radius: 16px;
+  box-shadow: var(--ui-shadow-sm, 0 2px 8px rgba(4, 18, 51, 0.06));
+}
+.trust-icon {
+  flex: none;
+  width: 36px;
+  height: 36px;
+  display: grid;
+  place-items: center;
+  color: #fff;
+  font-size: 20px;
+  background: var(--trust);
+  border-radius: 50%;
+}
+
+/* Sections */
+.section-heading {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+.section-heading h2 {
+  margin: 0;
+  font-size: clamp(17px, 2vw, 21px);
+  font-weight: 750;
+  letter-spacing: -0.02em;
+}
+.section-heading a {
+  flex: 0 0 auto;
+  color: var(--pwa-link);
+  font-size: 13px;
+  font-weight: 700;
+  text-decoration: none;
+}
+.section-kicker {
+  color: var(--pwa-link);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.tile-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(118px, 1fr));
+  gap: 14px 10px;
+}
+.tile-skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 6px;
+}
+.tile-skeleton-icon {
+  width: 100%;
+  max-width: 96px;
+  aspect-ratio: 1;
+  height: auto;
+  border-radius: 22%;
+}
+.category-tiles {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 10px;
+}
+.category-skeleton {
+  border-radius: var(--ui-radius-md);
+}
+.home-empty {
+  display: grid;
+  justify-items: center;
+  gap: 4px;
+  padding: 32px 20px;
+  color: var(--muted);
+  text-align: center;
+  background: var(--surface);
+  border: 1px solid var(--outline);
+  border-radius: var(--ui-radius-lg);
+}
+.home-empty > .q-icon {
+  color: var(--pwa-link);
+  font-size: 40px;
+}
+.home-empty h2 {
+  margin: 6px 0 0;
+  color: var(--text);
+  font-size: 18px;
+}
+.home-empty p {
+  max-width: 420px;
+  margin: 0;
 }
 
 /* Search mode */
@@ -745,14 +849,12 @@ const features = [
   align-items: center;
   justify-content: space-between;
   gap: 8px;
-  margin-bottom: -16px;
   padding: 8px 12px;
-  color: var(--text);
+  font-size: 13px;
+  font-weight: 600;
   background: var(--surface);
   border: 1px solid var(--outline);
   border-radius: 10px;
-  font-size: 13px;
-  font-weight: 600;
 }
 .search-notice span {
   min-width: 0;
@@ -763,7 +865,6 @@ const features = [
   align-items: center;
   justify-content: space-between;
   gap: 16px;
-  margin-bottom: -12px;
   padding: 14px;
   border-radius: 16px;
 }
@@ -783,86 +884,27 @@ const features = [
   }
 }
 
-/* Sections */
-.section-heading {
-  display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
-  gap: 12px;
-  margin-bottom: 10px;
-}
-.section-heading h2 {
-  margin: 0;
-  font-size: clamp(17px, 2vw, 20px);
-  font-weight: 750;
-  line-height: 1.2;
-  letter-spacing: -0.02em;
-}
-.section-heading a {
-  flex: 0 0 auto;
-  display: inline-flex;
-  align-items: center;
-  gap: 3px;
-  color: var(--pwa-link);
-  font-size: 12px;
-  font-weight: 700;
-  text-decoration: none;
-}
-.category-tiles {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-  gap: 10px;
-}
-.tile-skeleton {
-  border-radius: var(--ui-radius-md);
-}
-.home-empty {
-  display: grid;
-  justify-items: center;
-  gap: 4px;
-  padding: 36px 20px;
-  color: var(--muted);
-  text-align: center;
-  border-radius: var(--ui-radius-lg);
-}
-.home-empty > .q-icon {
-  color: var(--pwa-link);
-  font-size: 40px;
-}
-.home-empty h2 {
-  margin: 6px 0 0;
-  color: var(--text);
-  font-size: 18px;
-}
-.home-empty p {
-  max-width: 420px;
-  margin: 0;
-}
+/* Developer band */
 .developer-band {
-  position: relative;
   display: flex;
   align-items: center;
   justify-content: space-between;
   flex-wrap: wrap;
   gap: 14px;
-  overflow: hidden;
-  padding: 18px 20px;
-  background: color-mix(in srgb, var(--primary) 10%, var(--surface));
-  border: 1px solid color-mix(in srgb, var(--primary) 20%, transparent);
+  padding: 20px 22px;
+  color: #fff;
+  background: linear-gradient(135deg, #071a3d, #0b3a8f);
   border-radius: var(--ui-radius-lg);
-}
-.developer-band > div {
-  position: relative;
 }
 .developer-band h2 {
   margin: 0 0 4px;
-  font-size: 17px;
+  font-size: 18px;
   font-weight: 750;
 }
 .developer-band p {
   margin: 0;
-  color: var(--muted);
-  font-size: 13px;
+  color: #c9d8ff;
+  font-size: 13.5px;
 }
 .developer-actions {
   display: flex;
@@ -870,90 +912,83 @@ const features = [
   gap: 8px;
 }
 .developer-actions .q-btn:first-child {
-  color: var(--pwa-on-primary);
-  background: var(--primary);
+  color: #fff;
+  background: var(--pwa-accent);
 }
-.developer-watermark {
-  position: absolute;
-  right: 30%;
-  bottom: -24px;
-  color: var(--pwa-link);
-  font-size: 96px;
-  opacity: 0.08;
-}
-.feature-grid {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 10px;
-}
-.feature-card {
-  padding: 14px 12px;
-  text-align: center;
-  border-radius: 14px;
-}
-.feature-card > .q-icon {
-  font-size: 22px;
-}
-.feature-card h3 {
-  margin: 6px 0 2px;
-  font-size: 13px;
-  font-weight: 700;
-}
-.feature-card p {
-  margin: 0;
-  color: var(--muted);
-  font-size: 12px;
-  line-height: 1.4;
+.developer-actions .q-btn:last-child {
+  color: #fff;
 }
 
-@media (max-width: 1350px) {
-  .device-scene {
-    right: 2%;
-    transform: translateY(-50%) scale(0.8);
+/* Desktop: wider tiles, the band is a hero */
+@media (min-width: 1024px) {
+  .band-inner {
+    min-height: 330px;
+    padding-bottom: 64px;
   }
-  .hero-copy {
-    max-width: 60%;
+  /* The right side belongs to the decoration: chips never run under the floating tiles. */
+  .band-filters {
+    max-width: 62%;
+  }
+  .tile-grid {
+    grid-template-columns: repeat(6, minmax(0, 1fr));
   }
 }
-@media (max-width: 899px) {
-  .hero-panel {
-    min-height: 280px;
+/* Tablet */
+@media (min-width: 600px) and (max-width: 1023px) {
+  .tile-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
   }
-  .hero-copy {
-    max-width: 65%;
-  }
-  .device-scene {
-    right: -5%;
-    transform: translateY(-50%) scale(0.65);
-  }
-  .feature-grid {
+  .trust-strip {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
+  .globe {
+    width: 320px;
+    right: -120px;
+  }
+  .float-tile {
+    display: none;
+  }
 }
-@media (max-width: 699px) {
-  .home-content {
-    gap: 22px;
-    padding: 12px 12px 20px;
+/* From tablets up the header already carries the country: the band keeps the categories. */
+@media (min-width: 600px) {
+  .band-filters > .country-choice {
+    display: none;
   }
-  .hero-panel {
-    min-height: 286px;
-    align-items: flex-start;
-    padding: 18px 16px;
+}
+/* Phones: a native-store screen. No hero text: country, categories, then apps. */
+@media (max-width: 599px) {
+  .hero-copy,
+  .float-tile,
+  .trust-strip {
+    display: none;
   }
-  .hero-copy {
-    max-width: none;
+  .globe {
+    width: 240px;
+    right: -110px;
+    opacity: 0.45;
   }
-  .hero-copy h1 {
-    font-size: 28px;
+  .band-inner {
+    padding: 14px 16px 44px;
   }
-  .hero-copy p {
-    font-size: 12px;
+  .band-filters {
+    margin-top: 0;
+    gap: 12px;
   }
-  .device-scene {
-    top: auto;
-    right: 50%;
-    bottom: -140px;
-    transform: translateX(50%) scale(0.58);
+  .home-sheet {
+    gap: 26px;
+    padding: 20px 16px 24px;
+    border-radius: 24px 24px 0 0;
+  }
+  .tile-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 12px 6px;
+  }
+  .category-tiles {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
+  .developer-band {
+    padding: 18px;
   }
   .filter-bar-panel {
     align-items: stretch;
@@ -972,72 +1007,18 @@ const features = [
   .filter-select:last-child {
     grid-column: 1 / -1;
   }
-  .category-tiles {
-    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-  }
-}
-/* Phones: the phone mock-up does not fit beside the text; the promise and the action stay. */
-@media (max-width: 599px) {
-  .device-scene {
-    display: none;
-  }
-  .hero-panel {
-    min-height: 0;
-    padding: 22px 18px;
-  }
-}
-@media (max-width: 420px) {
-  .hero-panel {
-    padding: 20px 16px;
-  }
-  .hero-copy h1 {
-    font-size: 24px;
-  }
-  .hero-actions {
-    flex-direction: column;
-  }
-  .hero-actions .q-btn {
-    width: 100%;
-  }
-  .filter-controls {
-    grid-template-columns: 1fr;
-  }
-  .filter-select:last-child {
-    grid-column: auto;
-  }
-  .category-tiles {
-    grid-template-columns: 1fr;
-  }
-  .feature-grid {
-    grid-template-columns: 1fr;
-  }
-}
-</style>
-
-<style scoped>
-@media (max-width: 599px) {
-  .hero-panel {
-    border-radius: 20px;
-  }
-  .hero-copy p {
-    font-size: 14px;
-    line-height: 1.6;
-  }
-  .hero-actions .q-btn {
-    min-height: 46px;
-  }
-  .category-tiles {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 8px;
-  }
-  .feature-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 10px;
-  }
 }
 @media (max-width: 359px) {
-  .feature-grid {
+  .tile-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .category-tiles {
     grid-template-columns: 1fr;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .float-tile {
+    animation: none;
   }
 }
 </style>

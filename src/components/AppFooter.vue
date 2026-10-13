@@ -17,9 +17,12 @@
       class="links"
     >
       <h2>{{ group.title }}</h2>
-      <router-link v-for="link in group.links" :key="link.to" :to="link.to">{{
-        link.label
-      }}</router-link>
+      <router-link
+        v-for="link in group.links.filter(l => !l.desktopOnly || !isMobile)"
+        :key="link.to"
+        :to="link.to"
+        >{{ link.label }}</router-link
+      >
     </nav>
     <p class="legal"
       >© {{ year }} {{ ui('PWA Store. Tous droits réservés.') }}</p
@@ -30,6 +33,9 @@
 import { ui } from '@/i18n/text'
 
 import BrandLogo from '@/components/BrandLogo.vue'
+import { useWorkspaceAccess } from '@/composables/useWorkspaceAccess'
+// Becoming a developer happens on a computer: that entry is not offered on phones.
+const { isMobile } = useWorkspaceAccess()
 const year = new Date().getFullYear()
 const groups = [
   {
@@ -70,6 +76,7 @@ const groups = [
     links: [
       {
         to: '/developers',
+        desktopOnly: true,
         get label() {
           return ui('Devenir développeur')
         }

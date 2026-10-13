@@ -22,6 +22,9 @@
           :aria-label="ui('PWA Store, accueil')"
         >
           <BrandLogo compact />
+          <span class="mobile-brand-name" aria-hidden="true"
+            >PWA <b>Store</b></span
+          >
         </router-link>
 
         <router-link
@@ -168,7 +171,7 @@
             </transition>
           </button>
           <CountryChoice class="gt-xs" />
-          <NotificationBell class="gt-xs" />
+          <NotificationBell />
 
           <template v-if="authStore.isAuthenticated">
             <q-btn flat no-caps class="profile-button">
@@ -279,6 +282,83 @@
           <q-icon name="arrow_forward" class="developer-entry-arrow" />
         </router-link>
 
+        <!-- Help and feedback: same look as the navigation entries. -->
+        <p class="drawer-label">{{ ui('Aide et avis') }}</p>
+        <q-list class="navigation-list">
+          <q-item clickable v-ripple to="/help" @click="handleNavigation">
+            <q-item-section avatar>
+              <span class="nav-icon"><q-icon name="help_outline" /></span>
+            </q-item-section>
+            <q-item-section>{{ ui('Centre d’aide') }}</q-item-section>
+          </q-item>
+          <q-item clickable v-ripple @click="openFeedback">
+            <q-item-section avatar>
+              <span class="nav-icon"><q-icon name="forum" /></span>
+            </q-item-section>
+            <q-item-section>{{ ui('Donner mon avis') }}</q-item-section>
+          </q-item>
+        </q-list>
+        <!-- Feedback about the platform, read by the PWA Store team only. -->
+        <SuggestionButton ref="feedback" platform hide-trigger />
+
+        <!-- Phone settings (the header keeps them on larger screens). -->
+        <template v-if="$q.screen.lt.sm">
+          <p class="drawer-label">{{ ui('Préférences') }}</p>
+          <q-list class="navigation-list drawer-prefs">
+            <q-item clickable v-ripple @click="toggleTheme">
+              <q-item-section avatar>
+                <span class="nav-icon"
+                  ><q-icon :name="isDark ? 'light_mode' : 'dark_mode'"
+                /></span>
+              </q-item-section>
+              <q-item-section>{{ ui('Thème sombre') }}</q-item-section>
+              <q-item-section side>
+                <q-toggle
+                  :model-value="isDark"
+                  dense
+                  :aria-label="ui('Thème sombre')"
+                  @update:model-value="toggleTheme"
+                  @click.stop
+                />
+              </q-item-section>
+            </q-item>
+            <q-item>
+              <q-item-section avatar>
+                <span class="nav-icon"><q-icon name="language" /></span>
+              </q-item-section>
+              <q-item-section>{{ ui('Langue') }}</q-item-section>
+              <q-item-section side>
+                <q-btn-toggle
+                  :model-value="locale"
+                  :options="
+                    LOCALES.map(l => ({ label: l.short, value: l.value }))
+                  "
+                  :aria-label="t('language.label')"
+                  dense
+                  unelevated
+                  no-caps
+                  rounded
+                  toggle-color="primary"
+                  class="lang-toggle"
+                  @update:model-value="setLocale"
+                />
+              </q-item-section>
+            </q-item>
+            <q-item>
+              <q-item-section avatar>
+                <span class="nav-icon"><q-icon name="public" /></span>
+              </q-item-section>
+              <q-item-section>{{ ui('Pays') }}</q-item-section>
+              <q-item-section side>
+                <CountryChoice pill />
+              </q-item-section>
+            </q-item>
+          </q-list>
+        </template>
+
+        <!-- Everything below sits at the bottom of the menu. -->
+        <div class="drawer-spacer" />
+
         <div v-if="!isMobile" class="publish-card">
           <span class="publish-glow" />
           <span class="publish-icon"><q-icon name="rocket_launch" /></span>
@@ -298,50 +378,16 @@
           />
         </div>
 
-        <!-- Feedback about the platform, read by the PWA Store team only. -->
-        <div class="q-px-md q-pb-sm">
-          <SuggestionButton
-            platform
-            class="full-width"
-            :label="ui('Donner mon avis sur PWA Store')"
-          />
-        </div>
-
-        <!-- Install Store Button -->
-        <div v-if="canInstallStore" class="q-px-md q-pb-md">
-          <q-btn
-            color="blue-grey-7"
-            unelevated
-            no-caps
-            class="full-width text-weight-bold"
-            icon="add_to_home_screen"
-            :label="ui('Installer PWA Store')"
-            @click="promptInstallStore"
-          />
-        </div>
-
-        <!-- The header language button is hidden on phones. -->
-        <!-- Phone settings: kept out of the crowded header. -->
-        <div class="drawer-settings lt-sm">
-          <button class="drawer-setting" type="button" @click="toggleTheme">
-            <q-icon :name="isDark ? 'light_mode' : 'dark_mode'" />
-            <span>{{ isDark ? ui('Thème clair') : ui('Thème sombre') }}</span>
-          </button>
-          <CountryChoice />
-        </div>
-        <div class="drawer-language lt-sm">
-          <q-icon name="language" />
-          <q-btn-toggle
-            :model-value="locale"
-            :options="LOCALES.map(l => ({ label: l.short, value: l.value }))"
-            :aria-label="t('language.label')"
-            dense
-            unelevated
-            no-caps
-            toggle-color="primary"
-            @update:model-value="setLocale"
-          />
-        </div>
+        <q-btn
+          v-if="canInstallStore"
+          unelevated
+          no-caps
+          color="primary"
+          class="full-width text-weight-bold q-mt-sm"
+          icon="add_to_home_screen"
+          :label="ui('Installer PWA Store')"
+          @click="promptInstallStore"
+        />
       </div>
     </q-drawer>
 
@@ -359,25 +405,15 @@
       :aria-label="ui('Navigation mobile principale')"
     >
       <q-btn
-        v-for="item in mainNavigation"
+        v-for="item in mobileNavigation"
         :key="item.key"
         flat
         no-caps
         :icon="item.icon"
-        :label="t(`nav.${item.key}`)"
+        :label="item.label"
         :to="item.to"
-        :class="{ active: isActive(item) }"
-        :aria-current="isActive(item) ? 'page' : undefined"
-      />
-      <q-btn
-        flat
-        no-caps
-        icon="person_outline"
-        :label="ui('Compte')"
-        :to="authStore.isAuthenticated ? '/account' : '/login'"
-        :class="{
-          active: route.path === '/account' || route.path === '/login'
-        }"
+        :class="{ active: item.active }"
+        :aria-current="item.active ? 'page' : undefined"
       />
     </nav>
   </q-layout>
@@ -435,6 +471,47 @@ const mainNavigation = [
   { key: 'categories', icon: 'category', to: '/categories' },
   { key: 'rankings', icon: 'leaderboard', to: '/rankings' }
 ]
+// Phone bar, as in a native store: Home, Categories, Favourites, Profile.
+// Signed-out visitors are sent to the sign-in page, then back to what they asked for.
+const mobileNavigation = computed(() => {
+  const signedIn = authStore.isAuthenticated
+  const onAccount = route.path === '/account'
+  const accountTab = route.query.tab || 'activity'
+  const favorites = '/account?tab=favorites'
+  return [
+    {
+      key: 'home',
+      icon: 'home',
+      label: ui('Accueil'),
+      to: '/',
+      active: route.path === '/'
+    },
+    {
+      key: 'categories',
+      icon: 'grid_view',
+      label: ui('Catégories'),
+      to: '/categories',
+      active: route.path.startsWith('/categories')
+    },
+    {
+      key: 'favorites',
+      icon: 'favorite_border',
+      label: ui('Favoris'),
+      to: signedIn
+        ? favorites
+        : { path: '/login', query: { redirect: favorites } },
+      active: onAccount && accountTab === 'favorites'
+    },
+    {
+      key: 'profile',
+      icon: 'person_outline',
+      label: ui('Profil'),
+      to: signedIn ? '/account' : '/login',
+      active:
+        (onAccount && accountTab !== 'favorites') || route.path === '/login'
+    }
+  ]
+})
 const isActive = item =>
   item.to === '/' ? route.path === '/' : route.path.startsWith(item.to)
 
@@ -541,6 +618,12 @@ function removeHistoryItem(index) {
 
 function handleNavigation() {
   if ($q.screen.lt.md) leftDrawerOpen.value = false
+}
+
+const feedback = ref(null)
+function openFeedback() {
+  handleNavigation()
+  feedback.value?.open()
 }
 
 async function handleLogout() {
@@ -908,32 +991,23 @@ async function promptInstallStore() {
   font-size: 9px;
   font-weight: 800;
 }
-.drawer-settings {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 8px 16px 0;
+.drawer-spacer {
+  flex: 1 1 auto;
+  min-height: 16px;
 }
-.drawer-setting {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  height: 38px;
-  padding: 0 12px;
-  color: var(--text);
-  background: var(--surface-highest);
+.drawer-prefs .q-item__section--side {
+  padding-left: 8px;
+}
+.one-drawer .drawer-prefs .country-pill {
+  max-width: 130px;
+  min-height: 32px;
+  padding: 0 10px;
+  font-size: 12.5px;
+  box-shadow: none;
   border: 1px solid var(--outline);
-  border-radius: 999px;
-  font: inherit;
-  font-size: 13px;
-  font-weight: 600;
-  cursor: pointer;
 }
-.drawer-language {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 8px 16px 16px;
+.lang-toggle {
+  border: 1px solid var(--outline);
 }
 .drawer-label {
   margin: 16px 12px 6px;
@@ -1079,7 +1153,7 @@ async function promptInstallStore() {
   max-width: calc(100vw - 24px);
   height: 60px;
   display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   padding: 6px;
   background: color-mix(in srgb, var(--surface-low) 88%, transparent);
   border: 1px solid var(--outline);
@@ -1138,10 +1212,57 @@ async function promptInstallStore() {
   }
 }
 
+/* Phones and tablets: night-blue header, as in a native store. */
+@media (max-width: 1023px) {
+  .one-header {
+    color: #fff;
+    background: #071a3d;
+    border-bottom: 0;
+    backdrop-filter: none;
+  }
+  .one-header .menu-button,
+  .one-header .icon-action,
+  .one-header .profile-button {
+    color: #fff;
+  }
+  .mobile-brand {
+    display: inline-flex;
+    align-items: center;
+    color: #fff;
+    text-decoration: none;
+  }
+  .mobile-brand-name {
+    font-size: 17px;
+    font-weight: 800;
+    letter-spacing: -0.01em;
+    white-space: nowrap;
+  }
+  .mobile-brand-name b {
+    color: #08c8f8;
+  }
+  .header-search input {
+    color: #0b1b3f;
+    background: #fff;
+    border-color: transparent;
+  }
+  .header-search .q-icon {
+    color: #5b6b8c;
+  }
+}
 @media (max-width: 599px) {
+  /* Logo and actions on the first row, the search bar on its own row below. */
   .one-toolbar {
+    flex-wrap: wrap;
+    row-gap: 8px;
     min-height: 58px;
-    padding: 0 10px;
+    padding: 6px 12px 10px;
+  }
+  .header-search {
+    order: 10;
+    flex: 1 0 100%;
+  }
+  .header-actions {
+    margin-left: auto;
   }
   .menu-button {
     margin-right: -5px;

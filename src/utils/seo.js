@@ -1,6 +1,7 @@
 export const SITE_URL = 'https://pwastore.online'
 export const SITE_NAME = 'PWAStore'
-export const SITE_IMAGE = `${SITE_URL}/brand/pwa-store-wordmark.png`
+// Absolute URL: link previews ignore relative paths.
+export const SITE_IMAGE = `${SITE_URL}/icons/icon-512x512.png`
 
 // Only public landing pages belong in the static sitemap. Dynamic listings are added at build time.
 export const PUBLIC_PAGES = {
@@ -258,7 +259,8 @@ export function applySeo(seo, doc = document) {
   }))
     meta('property', `og:${key}`, value)
   for (const [key, value] of Object.entries({
-    card: 'summary_large_image',
+    // Square icon: the small card shows it whole.
+    card: 'summary',
     title: seo.title,
     description: seo.description,
     image: seo.image
