@@ -17,6 +17,12 @@ use Illuminate\Http\Request;
 
 const E2E_PWA_HOST = 'demo.pwastore-e2e.example';
 
+// The loopback-only TLS proxy terminates HTTPS for this isolated test process.
+// No production middleware or trusted-proxy setting is modified.
+if (getenv('PWA_E2E_HTTPS') === '1' && ($_SERVER['REMOTE_ADDR'] ?? '') === '127.0.0.1') {
+    $_SERVER['HTTPS'] = 'on';
+}
+
 $publicPath = getcwd();
 $uri = urldecode(parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH) ?? '');
 if ($uri !== '/' && file_exists($publicPath.$uri)) {

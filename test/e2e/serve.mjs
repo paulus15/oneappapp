@@ -1,4 +1,6 @@
 import { createServer } from 'node:http'
+import { createServer as createHttpsServer } from 'node:https'
+import { readFileSync } from 'node:fs'
 import { readFile, stat } from 'node:fs/promises'
 import { extname, join, normalize } from 'node:path'
 const root = process.argv[2],
@@ -14,7 +16,18 @@ const types = {
   '.ico': 'image/x-icon',
   '.webmanifest': 'application/manifest+json'
 }
-createServer(async (req, res) => {
+const serve =
+  process.env.E2E_TLS_CERT && process.env.E2E_TLS_KEY
+    ? handler =>
+        createHttpsServer(
+          {
+            cert: readFileSync(process.env.E2E_TLS_CERT),
+            key: readFileSync(process.env.E2E_TLS_KEY)
+          },
+          handler
+        )
+    : createServer
+serve(async (req, res) => {
   const path = normalize(
     decodeURIComponent(new URL(req.url, 'http://x').pathname)
   ).replace(/^(\.\.[/\\])+/, '')

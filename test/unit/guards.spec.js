@@ -35,6 +35,22 @@ describe('resolveAccess', () => {
     expect(resolveAccess(page, developer)).toBe(true)
   })
 
+  it('opens the developer profile for developers, activation for others', () => {
+    const profile = route('/developer/profile', {
+      requiresAuth: true,
+      developerOnly: true
+    })
+    const activate = route('/developer/activate', { requiresAuth: true })
+    expect(resolveAccess(profile, guest)).toEqual({
+      path: '/login',
+      query: { redirect: '/developer/profile' }
+    })
+    expect(resolveAccess(profile, user)).toBe('/developer/activate')
+    expect(resolveAccess(activate, user)).toBe(true)
+    expect(resolveAccess(profile, developer)).toBe(true)
+    expect(resolveAccess(activate, developer)).toBe('/developer/profile')
+  })
+
   it('hides every developer page on mobile, even for developers', () => {
     const page = route('/developer', {
       requiresAuth: true,

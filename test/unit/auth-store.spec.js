@@ -229,3 +229,86 @@ describe('auth store', () => {
     expect(auth.isAuthenticated).toBe(true)
   })
 })
+
+describe('session hint (skip /auth/me for anonymous visitors)', () => {
+  beforeEach(() => {
+    localStorage.clear()
+    sessionStorage.clear()
+    post.mockReset()
+    get.mockReset()
+    setActivePinia(createPinia())
+  })
+
+  it('does not call /auth/me for a visitor who was signed out', async () => {
+    localStorage.setItem('pwa-session', '0')
+    const auth = useAuthStore()
+    await auth.restoreSession()
+    expect(get).not.toHaveBeenCalled()
+    expect(auth.hydrated).toBe(true)
+    expect(auth.isAuthenticated).toBe(false)
+  })
+
+  it('restores the user on reload when the browser was signed in', async () => {
+    localStorage.setItem('pwa-session', '1')
+    get.mockResolvedValue({ data: session.user })
+    const auth = useAuthStore()
+    await auth.restoreSession()
+    expect(get).toHaveBeenCalledWith('/auth/me')
+    expect(auth.isAuthenticated).toBe(true)
+  })
+
+  it('checks once with the server when the state is unknown', async () => {
+    get.mockRejectedValue({ response: { status: 401 } })
+    const auth = useAuthStore()
+    await auth.restoreSession()
+    expect(get).toHaveBeenCalledTimes(1)
+    expect(localStorage.getItem('pwa-session')).toBe('0')
+  })
+
+  it('marks the browser signed in after login and 2FA, never storing a secret', async () => {
+    const auth = useAuthStore()
+    post.mockResolvedValueOnce({
+      data: { requires_otp: true, challenge_id: 'c1', purpose: 'login' }
+    })
+    await auth.login('awa@example.test', 'secret-password')
+    expect(localStorage.getItem('pwa-session')).toBe('0')
+    post.mockResolvedValueOnce({ data: session })
+    await auth.verifyOtp('123456')
+    expect(localStorage.getItem('pwa-session')).toBe('1')
+    const stored = Array.from({ length: localStorage.length }, (_, i) =>
+      localStorage.getItem(localStorage.key(i))
+    )
+    expect(stored).toEqual(['1'])
+  })
+
+  it('marks the browser signed in after registration and /auth/me', async () => {
+    post.mockResolvedValue({ data: session })
+    await useAuthStore().register('Awa', 'a@b.test', 'pw', 'pw', 1)
+    expect(localStorage.getItem('pwa-session')).toBe('1')
+    localStorage.clear()
+    setActivePinia(createPinia())
+    get.mockResolvedValue({ data: session.user })
+    await useAuthStore().fetchUser()
+    expect(localStorage.getItem('pwa-session')).toBe('1')
+  })
+
+  it('clears the hint on logout and on 401', async () => {
+    const auth = useAuthStore()
+    auth.acceptAuthResult(session)
+    post.mockResolvedValue({ data: {} })
+    await auth.logout()
+    expect(localStorage.getItem('pwa-session')).toBe('0')
+
+    auth.acceptAuthResult(session)
+    get.mockRejectedValue({ response: { status: 401 } })
+    await auth.fetchUser()
+    expect(localStorage.getItem('pwa-session')).toBe('0')
+  })
+
+  it('keeps the hint after a network failure so the next load retries', async () => {
+    localStorage.setItem('pwa-session', '1')
+    get.mockRejectedValue(new Error('offline'))
+    await expect(useAuthStore().restoreSession()).rejects.toThrow('offline')
+    expect(localStorage.getItem('pwa-session')).toBe('1')
+  })
+})

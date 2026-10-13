@@ -16,6 +16,9 @@ export function resolveAccess(to, auth, { isMobile = false } = {}) {
   )
     return '/admin'
   if (to.meta.developerOnly && !auth.isDeveloper) return '/developer/activate'
+  // Activation is done once; afterwards every "developer space" entry opens the profile.
+  if (to.path === '/developer/activate' && auth.isDeveloper)
+    return '/developer/profile'
   if (to.meta.requiresValidatedDeveloper && !auth.canCreateApp)
     return '/developer/profile'
   return true

@@ -2,7 +2,7 @@ import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { homedir } from 'node:os'
 
-export const API = 'http://127.0.0.1:8011/api'
+export const API = 'https://127.0.0.1:8012/api'
 const log = () =>
   join(
     process.env.E2E_BACKEND_DIR || join(homedir(), 'LaravelProjects/oneapp'),
@@ -29,7 +29,7 @@ export async function otpFor(email, { after = 0 } = {}) {
 }
 export const logSize = () => readFileSync(log()).length
 
-/** Signs in through the API and stores the session the way the app does. */
+/** Bearer transport is used ONLY in the Node test runner to prepare fixtures. */
 export async function apiLogin(request, email, password) {
   const res = await request.post(`${API}/auth/login`, {
     data: { email, password, remember: true }
@@ -39,8 +39,18 @@ export async function apiLogin(request, email, password) {
   return (await res.json()).access_token
 }
 export async function useSession(page, token) {
-  await page.goto('/')
-  await page.evaluate(t => localStorage.setItem('auth_token', t), token)
+  // Install an HttpOnly cookie through Playwright, never through page JavaScript.
+  await page.context().addCookies([
+    {
+      name: '__Host-pwastore_auth',
+      value: token,
+      domain: new URL(API).hostname,
+      path: '/',
+      httpOnly: true,
+      secure: true,
+      sameSite: 'Lax'
+    }
+  ])
 }
 /** Answers a Quasar prompt dialog. */
 export async function answerDialog(page, text) {

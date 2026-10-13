@@ -3,6 +3,7 @@ import { defineStore } from 'pinia'
 import { Notify } from 'quasar'
 import { api } from '@/boot/axios'
 import { setLocale } from '@/i18n'
+import { sessionHint, setSessionHint } from '@/utils/sessionHint'
 const hydrations = new WeakMap()
 
 function clearLegacyAuthStorage() {
@@ -123,11 +124,14 @@ export const useAuthStore = defineStore('auth', {
     setUser(user) {
       this.user = user
       // Account data lives in memory; the server authenticates the HttpOnly cookie.
+      // Only a "signed in" flag is kept, so the next visit knows to restore the session.
+      if (user) setSessionHint(true)
     },
     clearSession({ keepChallenge = false } = {}) {
       this.user = null
       this.sessionRevision++
       this.hydrated = true
+      setSessionHint(false)
       clearLegacyAuthStorage()
       // Searches typed while signed in stay private to that session.
       localStorage.removeItem('oneapp_search_history')
@@ -199,6 +203,14 @@ export const useAuthStore = defineStore('auth', {
       }
       this.clearSession()
       return true
+    },
+    // On start-up: ask the server only if this browser may be signed in (or we cannot tell).
+    restoreSession() {
+      if (sessionHint() === false && !this.isAuthenticated) {
+        this.hydrated = true
+        return Promise.resolve()
+      }
+      return this.fetchUser()
     },
     async fetchUser() {
       if (hydrations.has(this)) return hydrations.get(this)

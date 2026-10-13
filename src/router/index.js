@@ -51,7 +51,8 @@ export default defineRouter((/* { store, ssrContext } */) => {
     const auth = useAuthStore()
     if (!auth.hydrated) {
       try {
-        await auth.fetchUser()
+        // Anonymous visitors (signed out last time) skip GET /auth/me.
+        await auth.restoreSession()
       } catch {
         if (to.meta.requiresAuth && to.path !== '/account') return '/account'
       }

@@ -49,11 +49,40 @@
         />
       </q-card>
       <template v-else>
+        <section
+          class="verification-status"
+          :class="`tone-${statusMeta.tone}`"
+          role="status"
+          :aria-label="
+            ui('Statut de vérification : {p0}', { p0: statusMeta.label })
+          "
+        >
+          <span class="verification-status-icon"
+            ><q-icon :name="statusMeta.icon" aria-hidden="true"
+          /></span>
+          <div class="verification-status-copy">
+            <span class="eyebrow">{{ ui('Statut de vérification') }}</span>
+            <strong data-test="profile-status">{{ statusMeta.label }}</strong>
+            <small v-if="statusDetail">{{ statusDetail }}</small>
+          </div>
+          <ul
+            class="verification-checklist"
+            :aria-label="ui('Éléments vérifiés')"
+          >
+            <li
+              v-for="item in checklist"
+              :key="item.key"
+              :class="`tone-${item.tone}`"
+              :data-test="`check-${item.key}`"
+            >
+              <q-icon :name="item.icon" aria-hidden="true" />
+              <span class="verification-item-label">{{ item.label }}</span>
+              <span class="verification-item-state">{{ item.stateLabel }}</span>
+            </li>
+          </ul>
+        </section>
         <div class="workspace-actions"
-          ><q-chip
-            :color="statusColor"
-            text-color="white"
-            :label="statusLabel" /><q-btn
+          ><q-btn
             flat
             no-caps
             to="/developer"
@@ -380,6 +409,7 @@ import {
   identityLabels,
   identityOptions
 } from '@/utils/identity'
+import { profileStatus, verificationChecklist } from '@/utils/developerStatus'
 import { useAuthStore } from '@/stores/auth'
 const auth = useAuthStore(),
   q = useQuasar()
@@ -439,18 +469,33 @@ const labels = {
     return ui('Publication suspendue')
   }
 }
-const statusLabel = computed(
-  () => labels[profile.value?.status] || ui('Brouillon')
+const statusMeta = computed(() => profileStatus(profile.value?.status))
+const checklist = computed(() =>
+  verificationChecklist(profile.value, auth.user)
 )
-const statusColor = computed(
-  () =>
-    ({
-      verified: 'positive',
-      rejected: 'negative',
-      suspended: 'negative',
-      pending_verification: 'warning'
-    })[profile.value?.status] || 'primary'
-)
+const formatDate = value =>
+  value ? new Date(value).toLocaleDateString(currentLocale()) : null
+const statusDetail = computed(() => {
+  const p = profile.value
+  switch (statusMeta.value.status) {
+    case 'verified': {
+      const date = formatDate(p.verified_at || p.validation?.validated_at)
+      return date ? ui('Vérifié le {p0}', { p0: date }) : null
+    }
+    case 'pending_verification': {
+      const date = formatDate(p.submitted_at)
+      return date ? ui('Soumis le {p0}', { p0: date }) : null
+    }
+    case 'rejected':
+      return ui('Corrigez votre profil puis soumettez-le à nouveau.')
+    case 'suspended':
+      return null
+    default:
+      return ui(
+        'Complétez les éléments ci-dessous puis soumettez votre profil.'
+      )
+  }
+})
 const editable = computed(() =>
   ['draft', 'rejected'].includes(profile.value?.status)
 )
@@ -566,3 +611,90 @@ async function uploadIdentity() {
 }
 onMounted(load)
 </script>
+<style scoped>
+.verification-status {
+  --tone: var(--muted);
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 12px 16px;
+  align-items: center;
+  margin: 16px 0;
+  padding: 18px 20px;
+  border: 1px solid color-mix(in srgb, var(--tone) 45%, var(--outline));
+  border-left-width: 5px;
+  border-left-color: var(--tone);
+  border-radius: 16px;
+  background: color-mix(in srgb, var(--tone) 10%, var(--surface-low));
+  color: var(--text);
+}
+.tone-positive {
+  --tone: var(--q-positive);
+}
+.tone-warning {
+  --tone: var(--q-warning);
+}
+.tone-negative {
+  --tone: var(--q-negative);
+}
+.tone-neutral {
+  --tone: var(--muted);
+}
+.verification-status-icon {
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  font-size: 28px;
+  color: var(--tone);
+  background: color-mix(in srgb, var(--tone) 18%, var(--surface-low));
+}
+.verification-status-copy {
+  display: grid;
+  gap: 2px;
+}
+.verification-status-copy .eyebrow {
+  font-size: 12px;
+  color: var(--muted);
+}
+.verification-status-copy strong {
+  font-size: 18px;
+}
+.verification-status-copy small {
+  color: var(--muted);
+}
+.verification-checklist {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.verification-checklist li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  padding: 8px 12px;
+  border: 1px solid var(--outline);
+  border-radius: 12px;
+  background: var(--surface-low);
+}
+.verification-checklist .q-icon {
+  flex: none;
+  font-size: 20px;
+  color: var(--tone);
+}
+.verification-item-label {
+  flex: 1;
+  min-width: 0;
+}
+.verification-item-state {
+  flex: none;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--muted);
+}
+</style>

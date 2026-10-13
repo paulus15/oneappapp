@@ -146,21 +146,27 @@ Pour utiliser une autre API de développement, définir `VITE_API_URL` **avant**
 **macOS / Linux :**
 
 ```bash
-VITE_API_URL=http://127.0.0.1:8011/api npm run dev
+VITE_API_URL=https://oneapp.test/api npm run dev
 ```
 
 **Windows PowerShell :**
 
 ```powershell
-$env:VITE_API_URL = "http://127.0.0.1:8011/api"
+$env:VITE_API_URL = "https://oneapp.test/api"
 npm run dev
 ```
 
-L’exemple suppose qu’une API écoute déjà sur cette adresse. Ces commandes ne démarrent pas Laravel. Avec un frontend servi en HTTPS, prévoir aussi une API HTTPS lorsque les règles de contenu mixte du navigateur l’exigent.
+L’exemple suppose qu’une API HTTPS est déjà accessible sur cette adresse. Ces commandes ne démarrent pas Laravel. **Le frontend et l’API doivent utiliser HTTPS, même en développement**, et l’origine exacte du frontend (protocole, hôte, port) doit correspondre à `PWA_FRONTEND_URL` côté Laravel. Le mode cookie utilise aussi les autorisations CORS avec credentials.
 
 Le frontend lit cette valeur dans `quasar.config.js`, puis l’intègre à sa configuration Axios et à sa politique de sécurité. Pour ce projet, utiliser les variables du terminal comme dans les exemples ; créer seulement un fichier `.env.production` ne garantit pas leur prise en compte.
 
 > L’URL de l’API est publique. Un mot de passe, une clé Laravel ou un jeton privé ne doit jamais être intégré aux variables du frontend : les fichiers compilés peuvent être téléchargés par les visiteurs.
+
+### Comment fonctionne l’authentification
+
+Le navigateur transmet le cookie HttpOnly/Secure avec `withCredentials: true` et l’en-tête `X-PWA-Auth: cookie`. La connexion, l’OTP et la réinitialisation n’attendent plus de `access_token`. Les anciens jetons stockés dans JavaScript sont supprimés ; le compte reste en mémoire et sa session est vérifiée avec `/auth/me`. Les téléchargements de justificatifs utilisent la même instance API.
+
+La déconnexion appelle le serveur avant de vider l’état local. En cas de panne réseau, un message indique que la session peut rester active : JavaScript ne peut pas effacer lui-même un cookie HttpOnly. Voir [les contrôles avant production](docs/AUTH_COOKIE.md).
 
 ## 5. Compiler le projet pour la production
 
@@ -235,7 +241,7 @@ node test/e2e/serve.mjs dist/pwa 9124
 
 Ouvrir `http://127.0.0.1:9124`. Cette commande sert les fichiers compilés et permet les routes de l’application ; elle ne lance pas les tests E2E. Arrêter le serveur avec **Ctrl+C**.
 
-L’API doit autoriser cette origine locale pour que les appels fonctionnent. Cette prévisualisation ne reproduit pas les règles de cache de Nginx. Ne pas ouvrir directement `index.html` par double-clic : l’application doit être servie par HTTP ou HTTPS.
+Cette prévisualisation HTTP sert uniquement à examiner les fichiers et l’interface : elle ne convient pas à la validation de l’authentification cookie. Pour celle-ci, servir le frontend et l’API en HTTPS avec des certificats locaux, comme décrit dans le [plan de test](docs/PWASTORE_TEST_PLAN.md#8-validation-du-mode-cookie-https). Cette prévisualisation ne reproduit pas les règles de cache de Nginx. Ne pas ouvrir directement `index.html` par double-clic : l’application doit être servie par HTTP ou HTTPS.
 
 ## 6. Comprendre le déploiement automatique
 
@@ -323,7 +329,7 @@ Le fragment Nginx se place dans le bloc HTTPS existant du frontend. Il contient 
 root /var/www/apps/pwastore/app;
 ```
 
-Il complète les directives du site ; il ne contient pas à lui seul les certificats ni toute la configuration HTTPS.
+Il complète les directives du site ; il ne contient pas à lui seul les certificats ni toute la configuration HTTPS. Installer aussi [le snippet des en-têtes de sécurité](deploy/nginx/pwastore-security-headers.conf) à l’emplacement `/etc/nginx/snippets/pwastore-security-headers.conf`, selon le guide VPS. Chaque bloc qui définit son cache inclut ce snippet.
 
 ### Dans GitHub
 
@@ -378,9 +384,9 @@ Après l’activation, le script contrôle en HTTPS :
 - Le contenu des fichiers servis et leur correspondance avec le build transféré.
 - L’identification de la version dans `release.json`.
 - Les fichiers JavaScript, CSS, les icônes, le manifeste et le service worker.
-- Les règles de cache des principaux fichiers PWA.
 - L’accueil et plusieurs routes, dont `/applications`, `/login` et `/developer`.
-- Une réponse JSON valide de `/api/categories` et l’autorisation CORS pour le domaine du frontend.
+
+Le contrôle complémentaire `python3 scripts/deploy/check_runtime.py` vérifie les en-têtes Nginx, le cache et le CORS du mode cookie. Il se lance séparément après la configuration du serveur.
 
 Une page d’erreur qui répond simplement avec le code HTTP 200 ne suffit pas à réussir le contrôle : le contenu doit aussi correspondre.
 

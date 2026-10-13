@@ -294,11 +294,12 @@ test('the published app appears in the Store with its hosting badge', async ({
   browser
 }) => {
   const visitor = await browser.newContext({
+    ignoreHTTPSErrors: true,
     locale: 'fr-FR',
     reducedMotion: 'reduce'
   })
   const guest = await visitor.newPage()
-  await guest.goto('http://127.0.0.1:9124/')
+  await guest.goto('https://127.0.0.1:9124/')
   const card = guest.locator('a.app-card', { hasText: appName }).first()
   await expect(card).toBeVisible()
   await card.click()
@@ -372,11 +373,12 @@ test('with full motion, the intro ends readable and tiles and counters land', as
   request
 }) => {
   const context = await browser.newContext({
+    ignoreHTTPSErrors: true,
     locale: 'fr-FR',
     reducedMotion: 'no-preference'
   })
   const page = await context.newPage()
-  await page.goto('http://127.0.0.1:9124/')
+  await page.goto('https://127.0.0.1:9124/')
   // The intro reveals the promise line by line and leaves it in place.
   await expect(page.locator('.hero-panel')).not.toHaveClass(/hero-intro/)
   await expect
@@ -401,8 +403,8 @@ test('with full motion, the intro ends readable and tiles and counters land', as
       headers: { Authorization: `Bearer ${token}` }
     })
   ).json()
-  await page.evaluate(t => localStorage.setItem('auth_token', t), token)
-  await page.goto('http://127.0.0.1:9124/admin')
+  await useSession(page, token)
+  await page.goto('https://127.0.0.1:9124/admin')
   const queue = page
     .locator('.queue-card', { hasText: 'demande(s) de publication à examiner' })
     .locator('strong')

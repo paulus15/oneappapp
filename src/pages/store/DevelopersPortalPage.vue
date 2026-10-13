@@ -133,7 +133,7 @@ const cta = computed(() =>
           get label() {
             return ui('Ouvrir mon espace développeur')
           },
-          to: '/developer'
+          to: '/developer/profile'
         }
       : {
           get label() {

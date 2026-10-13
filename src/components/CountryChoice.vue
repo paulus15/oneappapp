@@ -1,5 +1,5 @@
 <template>
-  <!-- Visitors choose the country they browse from; it is never guessed. -->
+  <!-- Visitors choose the country they browse from; on a first visit it is preselected from the connection. -->
   <span class="country-choice">
     <button
       v-if="!authStore.isAuthenticated"
@@ -49,17 +49,30 @@
   </span>
 </template>
 <script setup>
-import { ref } from 'vue'
+import { onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import CountrySelect from '@/components/CountrySelect.vue'
 import { useAuthStore } from '@/stores/auth'
-import { setVisitorCountry, visitorCountry } from '@/utils/visitorCountry'
+import {
+  setVisitorCountry,
+  visitorCountry,
+  visitorCountryReady
+} from '@/utils/visitorCountry'
 
 const { t } = useI18n()
 const authStore = useAuthStore()
 const code = ref(visitorCountry())
 const selected = ref(code.value)
 const open = ref(false)
+
+// Show the detected country once the first-visit detection answers.
+onMounted(async () => {
+  const detected = await visitorCountryReady()
+  if (detected && !code.value) {
+    code.value = detected
+    selected.value ||= detected
+  }
+})
 
 function apply(value) {
   setVisitorCountry(value)

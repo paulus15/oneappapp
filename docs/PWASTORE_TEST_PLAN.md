@@ -122,3 +122,32 @@ Le chemin du backend se change avec `E2E_BACKEND_DIR`.
 Ce que couvrent les scénarios : inscription par l’interface et code OTP, activation développeur, profil, dépôt de la pièce d’identité, vérification par un administrateur, référencement par URL avec contrôle du lien (PWA de test), couverture, icône et capture, onglet Contenu (accès pour la vérification, annonces, classification 3+), passage en anglais et retour, soumission, approbation qui publie automatiquement, visibilité dans le Store avec le badge d’hébergement, avis d’un autre utilisateur et réponse de l’éditeur, animations avec mouvement complet ; dépôt d’un build ZIP (activé pour ce test par `PWA_BUILD_UPLOADS=true` dans `backend.sh`) avec détection automatique des domaines externes et observation interne d’un administrateur ; refus : pages privées pour un visiteur, compte non confirmé, back-office réservé, outils développeur masqués sur mobile sans débordement horizontal.
 
 Défauts trouvés par ces tests et corrigés : la pièce d’identité et les justificatifs ne pouvaient pas être envoyés depuis l’interface (FormData sérialisé en JSON), et la CSP de la page n’autorisait que l’API `https://oneapp.test` et deux domaines d’images.
+
+## 8. Validation du mode cookie HTTPS
+
+Les résultats historiques du §7 ne valident pas la migration cookie. Les tests navigateur restent à lancer manuellement sur la base isolée `oneapp_e2e` ; leur lancement recrée cette base. Ne pas utiliser un backend de production.
+
+Le harness utilise désormais une API HTTPS sur `https://127.0.0.1:8012` et le frontend HTTPS sur `https://127.0.0.1:9124`. Le serveur PHP de test reste interne sur `127.0.0.1:8011`, derrière un relais TLS local ; le routeur de test indique HTTPS à Laravel uniquement dans ce processus isolé. L’origine CORS et `PWA_FRONTEND_URL` sont identiques à celle du navigateur. Les tokens utilisés par le runner Node pour préparer les fixtures ne sont jamais injectés dans localStorage : Playwright installe des cookies HttpOnly pour ces fixtures.
+
+Créer un certificat temporaire réservé aux tests :
+
+```bash
+openssl req -x509 -newkey rsa:2048 -nodes \
+  -keyout /tmp/pwastore-e2e.key -out /tmp/pwastore-e2e.crt \
+  -days 1 -subj '/CN=127.0.0.1' -addext 'subjectAltName=IP:127.0.0.1'
+
+E2E_TLS_CERT=/tmp/pwastore-e2e.crt \
+E2E_TLS_KEY=/tmp/pwastore-e2e.key \
+npm run test:e2e
+```
+
+Les exceptions de certificat sont limitées au navigateur et aux serveurs de cette configuration Playwright locale. La vérification TLS/SSH de production reste active. Les prérequis PHP/MySQL, Chrome et `E2E_BACKEND_DIR` du §7 restent nécessaires. Les ports 8011, 8012 et 9124 doivent être libres.
+
+Pour prévisualiser uniquement un build avec ce certificat :
+
+```bash
+E2E_TLS_CERT=/tmp/pwastore-e2e.crt E2E_TLS_KEY=/tmp/pwastore-e2e.key \
+node test/e2e/serve.mjs dist/pwa 9124
+```
+
+Le build doit pointer vers l’API HTTPS de test et celle-ci doit accepter exactement l’origine du frontend. Le guide [AUTH_COOKIE.md](AUTH_COOKIE.md) détaille les contrôles de connexion, OTP, reset, justificatifs, expiration, déconnexion et attributs du cookie.

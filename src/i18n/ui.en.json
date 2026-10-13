@@ -1077,5 +1077,17 @@
   "Activations": "Activations",
   "{n} activations": "{n} activations",
   "Déconnecté sur cet appareil. La session n’a pas pu être fermée sur le serveur : fermez-la depuis « Sécurité du compte » une fois en ligne.": "Signed out on this device. The session could not be closed on the server: close it from “Account security” once you are online.",
-  "La déconnexion a échoué. Votre session peut encore être active. Réessayez une fois la connexion rétablie.": "Sign-out failed. Your session may still be active. Try again when the connection is restored."
+  "La déconnexion a échoué. Votre session peut encore être active. Réessayez une fois la connexion rétablie.": "Sign-out failed. Your session may still be active. Try again when the connection is restored.",
+  "Statut de vérification : {p0}": "Verification status: {p0}",
+  "Statut de vérification": "Verification status",
+  "Éléments vérifiés": "Verification checklist",
+  "Vérifié le {p0}": "Verified on {p0}",
+  "Soumis le {p0}": "Submitted on {p0}",
+  "Corrigez votre profil puis soumettez-le à nouveau.": "Update your profile, then submit it again.",
+  "Complétez les éléments ci-dessous puis soumettez votre profil.": "Complete the items below, then submit your profile.",
+  "En cours": "In progress",
+  "À faire": "To do",
+  "Expirée": "Expired",
+  "Informations du profil": "Profile details",
+  "Validation par l’équipe PWA Store": "Review by the PWA Store team"
 }

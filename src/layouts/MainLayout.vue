@@ -268,7 +268,7 @@
         }}</p>
         <router-link
           v-if="!isMobile"
-          to="/developer/activate"
+          to="/developer/profile"
           class="developer-entry"
         >
           <span class="developer-entry-icon"><q-icon name="terminal" /></span>

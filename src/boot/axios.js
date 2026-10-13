@@ -3,7 +3,8 @@ import axios from 'axios'
 import { useAuthStore } from '@/stores/auth'
 import { API_BASE_URL } from '@/utils/media'
 import { onLocaleChosen, requestedLocale } from '@/i18n'
-import { visitorCountry } from '@/utils/visitorCountry'
+import { detectVisitorCountry, visitorCountry } from '@/utils/visitorCountry'
+import { sessionHint } from '@/utils/sessionHint'
 import { unauthorizedRedirect } from '@/router/guards'
 
 // Create an axios instance
@@ -39,11 +40,32 @@ api.interceptors.request.use(config => {
   return config
 })
 
+// Asks the API which country the connection comes from (null when unknown).
+const fetchDetectedCountry = () =>
+  api
+    .get('/geo/country', { skipCountryDetection: true })
+    .then(({ data }) => data?.code ?? null)
+
+// Anonymous visitors without a chosen country get the detected one; a signed-in
+// account (or one that was signed in last time) keeps its own country.
+function shouldDetectCountry(config) {
+  return (
+    !config?.skipCountryDetection &&
+    !useAuthStore().isAuthenticated &&
+    sessionHint() !== true
+  )
+}
+
 export default boot(({ app, router }) => {
+  // Start the first-visit detection right away so the first catalogue request waits less.
+  if (shouldDetectCountry()) detectVisitorCountry(fetchDetectedCountry)
+
   api.interceptors.request.use(
-    config => {
+    async config => {
+      if (shouldDetectCountry(config))
+        await detectVisitorCountry(fetchDetectedCountry)
       if (!useAuthStore().isAuthenticated && visitorCountry()) {
-        // Visitors browse the catalogue of the country they chose.
+        // Visitors browse the catalogue of the country they chose (or that was detected).
         config.headers['X-Country'] = visitorCountry()
       }
       // Server messages (requirements, blockers) follow the language chosen in the store.

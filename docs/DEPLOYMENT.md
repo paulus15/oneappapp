@@ -98,7 +98,10 @@ Les cinq secrets sont obligatoires. La clé privée est écrite temporairement a
 
 Sauvegarder **le seul vhost de `pwastore.online`**, puis intégrer les directives de `deploy/nginx/pwastore-frontend.conf` dans son bloc HTTPS existant, en remplaçant ses anciens blocs `root` et `location` correspondants. Conserver `listen`, `server_name`, les certificats TLS et les éventuels headers de sécurité. Ce fichier est un fragment, pas un vhost autonome. Ne pas l’inclure dans le vhost de l’API.
 
+Installer également le snippet partagé **avant** de valider la configuration :
+
 ```sh
+sudo install -m 0644 deploy/nginx/pwastore-security-headers.conf /etc/nginx/snippets/pwastore-security-headers.conf
 sudo nginx -t
 # Exécuter seulement si le contrôle précédent réussit :
 sudo systemctl reload nginx
@@ -106,7 +109,9 @@ sudo systemctl reload nginx
 
 Cela se fait une seule fois. Aucun reload/redémarrage Nginx pendant les déploiements statiques. Vérifier aussi l’absence de `open_file_cache` conservant l’ancienne cible et la compatibilité de tout `disable_symlinks` hérité. Les routes Vue utilisent le fallback `index.html` ; les assets inexistants répondent 404. `index.html` n’est pas stocké ; le worker, le manifeste et les métadonnées sont revalidés. Seuls les assets fingerprintés ont un cache immutable d’un an.
 
-L’API doit déjà autoriser `https://pwastore.online` dans son CORS, avec les méthodes et headers utilisés (`Authorization`, `Content-Type`, `Accept-Language`, `X-Country`). Le workflow ne modifie pas Laravel. Le contrôle HTTP vérifie une réponse JSON et `Access-Control-Allow-Origin` sur `/api/categories`. L’authentification utilise actuellement un Bearer token ; les parcours login, vérification d’e-mail et redirections doivent être validés manuellement.
+L’API doit déjà autoriser `https://pwastore.online` dans son CORS, avec les méthodes et headers utilisés (`X-PWA-Auth`, `Content-Type`, `Accept-Language`, `X-Country`). Le workflow ne modifie pas Laravel. Le contrôle complémentaire `python3 scripts/deploy/check_runtime.py` utilise `X-PWA-Auth: cookie`, vérifie une réponse JSON, `Access-Control-Allow-Origin: https://pwastore.online` et `Access-Control-Allow-Credentials: true` sur `/api/categories`, ainsi que la prérequête OPTIONS. L’API doit définir `PWA_FRONTEND_URL=https://pwastore.online` exactement. Le navigateur utilise un cookie HttpOnly/Secure ; les parcours login, OTP, réinitialisation, justificatif, expiration et déconnexion doivent être validés manuellement. Voir [le guide de validation cookie](AUTH_COOKIE.md).
+
+Chaque `location` qui définit `add_header` inclut explicitement `pwastore-security-headers.conf`, car Nginx 1.22 n’hérite plus des `add_header` du bloc parent dans ce cas. Le snippet fournit HSTS, nosniff, la protection anti-iframe, Referrer-Policy et Permissions-Policy, avec `always`, y compris sur les réponses d’erreur. Ne pas supprimer ces includes en adaptant le vhost.
 
 État observé le 13 octobre 2026 pendant la préparation : `/api/categories` a d’abord répondu 200, puis 500 avec et sans l’en-tête `Origin`. Vérifier et résoudre cette erreur serveur avant le premier déploiement ; aucune modification du backend n’a été effectuée ici.
 
@@ -116,12 +121,12 @@ Aucun secret n’est injecté au frontend ; l’URL publique de l’API est int�
 
 `.github/workflows/deploy-production.yml` démarre sur push vers `main` ou manuellement. `concurrency` sérialise le workflow sans interrompre un déploiement actif ; un verrou serveur protège aussi l’activation et les rollbacks manuels.
 
-1. Installation avec les deux fichiers lock, lint sans modification et 56 tests unitaires existants.
+1. Installation avec les deux fichiers lock, lint sans modification et tests unitaires du frontend.
 2. Build PWA ; vérification HTML/JS/CSS/manifeste/worker/icônes ; ajout d’un `release.json` contenant le commit et les empreintes SHA-256 des fichiers.
 3. Tests de sécurité du déploiement ; artifact contenant exclusivement `dist/pwa` et ses métadonnées publiques, sans code source ni outils de déploiement.
 4. Job `deploy` uniquement sur `main`, dépendant de `build`. Transfert vers `shared/frontend/incoming/<SHA>-<run>-<attempt>` par SSH vérifié/rsync. Aucun `rsync --delete`.
 5. Validation du manifeste contre l’empreinte calculée sur le runner, du commit, de l’ensemble exact des fichiers et de leurs empreintes. Déplacement vers `releases`, puis remplacement atomique du lien `app`.
-6. Vérifications HTTPS du commit, du contenu des JS/CSS/icônes/worker/manifeste, des headers de cache, des routes principales et de l’API/CORS. Trois tentatives ; restauration de l’ancien lien sur échec détecté. Un simple HTTP 200 ne suffit pas.
+6. Vérifications HTTPS du commit, du contenu des JS/CSS/icônes/worker/manifeste et des routes principales. Les contrôles de sécurité, cache et API/CORS se lancent séparément avec `python3 scripts/deploy/check_runtime.py`. Trois tentatives ; restauration de l’ancien lien sur échec détecté. Un simple HTTP 200 ne suffit pas.
 7. Marquage de la version saine, conservation des cinq versions saines les plus récentes, toujours en protégeant la version active. Les releases échouées et transferts interrompus restent disponibles pour diagnostic, hors de la purge automatique.
 
 Dans **Actions → Deploy frontend production → Run workflow**, sélectionner `main`. Un lancement sur une autre branche compile seulement et ne déploie pas.
@@ -149,11 +154,13 @@ Pour restaurer exceptionnellement la sauvegarde legacy (sans `release.json`), su
 
 - **GitHub Actions** : logs `build`/`deploy` et résumé de déploiement ; `ROLLBACK: restored …` confirme la restauration. La release exacte apparaît dans `https://pwastore.online/release.json` (la PWA en cache peut encore présenter la version précédente jusqu’à son actualisation).
 - **VPS** : journaux access/error du vhost Nginx, `journalctl -u ssh`, cible de `app`, marqueurs `shared/frontend/healthy`.
+- **Exit code 1 sans détail avec l’ancien script** : les validations initiales pouvaient échouer silencieusement, notamment avec `VPS_USER=root`, un hôte contenant `https://` ou un secret avec des espaces. Pousser la version corrigée de `scripts/deploy/upload.sh` et lancer une **nouvelle exécution sur le nouveau commit** ; « Re-run jobs » sur une ancienne exécution reprend l’ancien commit. Les annotations indiquent désormais la variable ou la phase fautive sans afficher les valeurs secrètes. Ne jamais ajouter `set -x`.
+- **VPS_USER=root** : la version actuelle accepte ce compte avec un avertissement. Le compte dédié décrit dans ce guide reste préférable pour limiter les permissions. L’ancienne version du script le refusait silencieusement.
 - **Host key verification failed** : comparer la nouvelle empreinte dans la console LWS avant toute mise à jour du secret.
 - **Permission denied** : vérifier clé publique, utilisateur, port, droits SSH, ACL du parent, propriétaire du lien et sticky bit. Ne pas donner sudo au compte.
 - **app must be a symlink** : effectuer la migration initiale documentée.
 - **Missing or redirected directory** : créer les répertoires exacts, sans liens intermédiaires.
-- **API CORS origin mismatch** : corriger le CORS du backend séparément ; le contrôle est bloquant même si l’API répond 200.
+- **API CORS origin mismatch** : corriger le CORS du backend séparément ; le contrôle complémentaire échoue même si l’API répond 200.
 - **HTTP content mismatch** : inspecter racine Nginx, DNS, proxy/CDN et cache ; le domaine doit réellement servir la nouvelle release. Tous les headers hérités doivent rester cohérents.
 - **Stale .app-next** : inspecter ce lien et l’actuel `app`, puis retirer uniquement le lien temporaire confirmé, sous verrou, avant de relancer.
 - **Arrêt brutal du VPS ou SIGKILL** : aucun script ne peut garantir un rollback après un arrêt matériel ; comparer le lien actif aux marqueurs sains et lancer le rollback manuel. Les interruptions normales sont traitées.
