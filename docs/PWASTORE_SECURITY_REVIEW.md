@@ -145,14 +145,14 @@ Lecture seule, constats vérifiés dans le code. Total : **30** — Critique 0, 
 
 ### Élevée
 
-- **E1 — Revue initiale contournée par des `pending_changes` résiduels.** App publiée → modification en attente « propre » → archiver → restaurer (brouillon, `pending_changes` conservés) → `PUT` écrit le contenu malveillant dans les colonnes de base → soumission : le modérateur voit la fiche effective (les `pending_changes` l'emportent), l'approbation `initial` publie les colonnes de base jamais vues. `ApplicationLifecycle` (archived/draft), `PublicationWorkflow::decide` (branche initial), `Application::effectiveListing`.
+- **E1 — ✅ corrigé (lot 1) — Revue initiale contournée par des `pending_changes` résiduels.** App publiée → modification en attente « propre » → archiver → restaurer (brouillon, `pending_changes` conservés) → `PUT` écrit le contenu malveillant dans les colonnes de base → soumission : le modérateur voit la fiche effective (les `pending_changes` l'emportent), l'approbation `initial` publie les colonnes de base jamais vues. `ApplicationLifecycle` (archived/draft), `PublicationWorkflow::decide` (branche initial), `Application::effectiveListing`.
 
 ### Moyenne
 
-- **M1 — SSRF : hôte terminé par un point** (`https://evil.com./`) : `CURLOPT_RESOLVE` épinglé pour `evil.com`, curl résout `evil.com.` lui-même → rebinding DNS possible. `ExternalPwaChecker.php:50,99-101`.
-- **M2 — Markdown des avis dans les e-mails** : `[lien](https://phish…)` ou pixel `![](…)` dans un e-mail officiel au développeur. `ReviewController.php:53`, `UserNotice.php:39`.
-- **M3 — `PUT /account` sans limite** : oracle sur le mot de passe courant avec un jeton volé. `routes/api.php:102`.
-- **M4 — `/analytics/events` falsifiable** : crashs/appareils gonflés pour une app concurrente, déduplication contournée par `device_model`. `AnalyticsController.php:32-38`.
+- **M1 — ✅ corrigé (lot 1) — SSRF : hôte terminé par un point** (`https://evil.com./`) : `CURLOPT_RESOLVE` épinglé pour `evil.com`, curl résout `evil.com.` lui-même → rebinding DNS possible. `ExternalPwaChecker.php:50,99-101`.
+- **M2 — ✅ corrigé (lot 1) — Markdown des avis dans les e-mails** : `[lien](https://phish…)` ou pixel `![](…)` dans un e-mail officiel au développeur. `ReviewController.php:53`, `UserNotice.php:39`.
+- **M3 — ✅ corrigé (lot 1) — `PUT /account` sans limite** : oracle sur le mot de passe courant avec un jeton volé. `routes/api.php:102`.
+- **M4 — ✅ corrigé (lot 1) — `/analytics/events` falsifiable** : crashs/appareils gonflés pour une app concurrente, déduplication contournée par `device_model`. `AnalyticsController.php:32-38`.
 - **M5 — Pas de proxy de confiance** : derrière nginx, une seule IP pour tous → limites partagées (blocage de l'inscription/connexion pour tous), HSTS jamais envoyé, vues uniques faussées. `bootstrap/app.php`. À confirmer sur le VPS.
 - **M6 — Déploiement sans tests** : push sur `main` → production + `migrate --force`. `vps-deploy.yml`.
 - **M7 — Actions CI épinglées par tag** : `webfactory/ssh-agent` reçoit la clé SSH du VPS. `vps-deploy.yml:25,28`.
