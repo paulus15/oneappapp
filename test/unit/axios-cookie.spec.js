@@ -1,10 +1,16 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-const { auth, onLocaleChosen, detectVisitorCountry } = vi.hoisted(() => ({
-  auth: { isAuthenticated: false, clearSession: vi.fn() },
-  onLocaleChosen: vi.fn(),
-  detectVisitorCountry: vi.fn(async () => 'CI')
-}))
+const { auth, onLocaleChosen, detectVisitorCountry, countryFromTimezone } =
+  vi.hoisted(() => ({
+    auth: { isAuthenticated: false, clearSession: vi.fn() },
+    onLocaleChosen: vi.fn(),
+    detectVisitorCountry: vi.fn(async () => 'CI'),
+    // Picks the last active code, to prove the active list reaches the detection.
+    countryFromTimezone: vi.fn(async activeCodes =>
+      (await activeCodes()).at(-1)
+    )
+  }))
+vi.mock('@/utils/timezoneCountry', () => ({ countryFromTimezone }))
 vi.mock('quasar/wrappers', () => ({ boot: fn => fn }))
 vi.mock('@/stores/auth', () => ({ useAuthStore: () => auth }))
 vi.mock('@/utils/media', () => ({
@@ -110,19 +116,20 @@ describe('first-visit country detection', () => {
     expect(adapter.mock.calls[0][0].headers.get('X-Country')).toBe('CI')
   })
 
-  it('asks the API for the detected country without waiting on itself', async () => {
+  it('detects from the time zone among active countries, without waiting on itself', async () => {
     await api.get('/home')
     const fetchCode = detectVisitorCountry.mock.calls[0][0]
     detectVisitorCountry.mockClear()
     adapter.mockImplementation(async config => ({
-      data: { code: 'SN' },
+      data: [{ code: 'CI' }, { code: 'SN' }],
       status: 200,
       statusText: 'OK',
       headers: {},
       config
     }))
     expect(await fetchCode()).toBe('SN')
-    expect(adapter.mock.calls.at(-1)[0].url).toBe('/geo/country')
+    expect(countryFromTimezone).toHaveBeenCalledTimes(1)
+    expect(adapter.mock.calls.at(-1)[0].url).toBe('/countries')
     expect(detectVisitorCountry).not.toHaveBeenCalled()
   })
 

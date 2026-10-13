@@ -5,6 +5,7 @@ import { API_BASE_URL } from '@/utils/media'
 import { onLocaleChosen, requestedLocale } from '@/i18n'
 import { detectVisitorCountry, visitorCountry } from '@/utils/visitorCountry'
 import { sessionHint } from '@/utils/sessionHint'
+import { countryFromTimezone } from '@/utils/timezoneCountry'
 import { unauthorizedRedirect } from '@/router/guards'
 
 // Create an axios instance
@@ -40,11 +41,13 @@ api.interceptors.request.use(config => {
   return config
 })
 
-// Asks the API which country the connection comes from (null when unknown).
+// Guesses the country from the browser time zone, among the store's active countries.
 const fetchDetectedCountry = () =>
-  api
-    .get('/geo/country', { skipCountryDetection: true })
-    .then(({ data }) => data?.code ?? null)
+  countryFromTimezone(() =>
+    api
+      .get('/countries', { skipCountryDetection: true })
+      .then(({ data }) => (data || []).map(country => country.code))
+  )
 
 // Anonymous visitors without a chosen country get the detected one; a signed-in
 // account (or one that was signed in last time) keeps its own country.

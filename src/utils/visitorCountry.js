@@ -2,7 +2,7 @@
 const KEY = 'pwa-country'
 // 'manual' once the visitor picked (or cleared) a country themselves, 'auto' when it was detected.
 const SOURCE_KEY = 'pwa-country-source'
-// Detection is tried once per browsing session when the server could not tell.
+// Detection is tried once per browsing session when the time zone could not tell.
 const TRIED_KEY = 'pwa-country-detection-tried'
 const DETECTION_TIMEOUT_MS = 2500
 const ISO = /^[A-Z]{2}$/
@@ -64,7 +64,7 @@ function rememberDetected(value) {
   }
 }
 
-// First visit only: preselect the country the server sees the connection coming from.
+// First visit only: preselect the country guessed from the browser time zone.
 // `fetchCode` resolves to an ISO code or null. Requests wait at most DETECTION_TIMEOUT_MS;
 // a late answer is still remembered for the next pages.
 export function detectVisitorCountry(fetchCode) {

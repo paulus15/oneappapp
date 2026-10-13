@@ -72,12 +72,57 @@
             <li
               v-for="item in checklist"
               :key="item.key"
-              :class="`tone-${item.tone}`"
+              :class="[
+                `tone-${item.tone}`,
+                { 'is-review-item': item.key === 'review' }
+              ]"
               :data-test="`check-${item.key}`"
             >
-              <q-icon :name="item.icon" aria-hidden="true" />
-              <span class="verification-item-label">{{ item.label }}</span>
-              <span class="verification-item-state">{{ item.stateLabel }}</span>
+              <div class="verification-item-main">
+                <q-icon :name="item.icon" aria-hidden="true" />
+                <span class="verification-item-label">{{ item.label }}</span>
+                <span class="verification-item-state">{{
+                  item.stateLabel
+                }}</span>
+              </div>
+
+              <!-- Jauge de progression délimitée de 0H à 12H -->
+              <div v-if="item.key === 'review'" class="review-progress-section">
+                <div class="review-progress-info">
+                  <span class="review-progress-target">
+                    {{ ui('Délai maximal de validation : 12h') }}
+                  </span>
+                  <span class="review-progress-elapsed">
+                    {{ reviewProgressText }}
+                  </span>
+                </div>
+
+                <div class="review-progress-bar-wrap">
+                  <q-linear-progress
+                    :value="reviewProgressRatio"
+                    :color="reviewProgressColor"
+                    track-color="surface-high"
+                    rounded
+                    size="10px"
+                    class="review-progress-bar"
+                  />
+                  <div class="review-progress-ticks" aria-hidden="true">
+                    <span class="tick tick-0" />
+                    <span class="tick tick-3" />
+                    <span class="tick tick-6" />
+                    <span class="tick tick-9" />
+                    <span class="tick tick-12" />
+                  </div>
+                </div>
+
+                <div class="review-progress-scale" aria-hidden="true">
+                  <span class="scale-item">0H</span>
+                  <span class="scale-item">3H</span>
+                  <span class="scale-item">6H</span>
+                  <span class="scale-item">9H</span>
+                  <span class="scale-item">12H (max)</span>
+                </div>
+              </div>
             </li>
           </ul>
         </section>
@@ -401,7 +446,7 @@ import { ui } from '@/i18n/text'
 
 import CountrySelect from '@/components/CountrySelect.vue'
 import DeveloperDocuments from '@/components/DeveloperDocuments.vue'
-import { computed, onMounted, reactive, ref } from 'vue'
+import { computed, onBeforeUnmount, onMounted, reactive, ref } from 'vue'
 import { useQuasar } from 'quasar'
 import { accountApi, apiMessage } from '@/services/account'
 import {
@@ -473,6 +518,80 @@ const statusMeta = computed(() => profileStatus(profile.value?.status))
 const checklist = computed(() =>
   verificationChecklist(profile.value, auth.user)
 )
+const now = ref(Date.now())
+let timer = null
+
+onMounted(() => {
+  timer = setInterval(() => {
+    now.value = Date.now()
+  }, 30000)
+})
+
+onBeforeUnmount(() => {
+  if (timer) clearInterval(timer)
+})
+
+function formatDuration(hours) {
+  const h = Math.floor(hours)
+  const m = Math.round((hours - h) * 60)
+  if (h === 0) return `${Math.max(1, m)}min`
+  return m > 0 ? `${h}h ${m}min` : `${h}h`
+}
+
+const reviewProgress = computed(() => {
+  const status = profile.value?.status
+  if (status === 'verified') {
+    return {
+      ratio: 1,
+      color: 'positive',
+      text: ui('Profil validé par l’équipe')
+    }
+  }
+  if (status === 'rejected') {
+    return {
+      ratio: 1,
+      color: 'negative',
+      text: ui('Revue effectuée · Corrections demandées')
+    }
+  }
+  if (status === 'pending_verification') {
+    const rawDate =
+      profile.value?.submitted_at ||
+      profile.value?.updated_at ||
+      profile.value?.created_at
+    const startMs = rawDate ? new Date(rawDate).getTime() : now.value
+    const elapsedHours = Math.max(0, (now.value - startMs) / (3600 * 1000))
+    const ratio = Math.min(1, Math.max(0, elapsedHours / 12))
+    const color = elapsedHours > 12 ? 'warning' : 'primary'
+
+    if (elapsedHours >= 12) {
+      return {
+        ratio: 1,
+        color,
+        text: ui('12h écoulées · Traitement prioritaire en cours')
+      }
+    }
+    const elapsedStr = formatDuration(elapsedHours)
+    const remainingStr = formatDuration(12 - elapsedHours)
+    return {
+      ratio,
+      color,
+      text: ui('{p0} écoulées · ~{p1} restantes', {
+        p0: elapsedStr,
+        p1: remainingStr
+      })
+    }
+  }
+  return {
+    ratio: 0,
+    color: 'primary',
+    text: ui('Validation sous 12h max dès soumission du dossier')
+  }
+})
+
+const reviewProgressRatio = computed(() => reviewProgress.value.ratio)
+const reviewProgressColor = computed(() => reviewProgress.value.color)
+const reviewProgressText = computed(() => reviewProgress.value.text)
 const formatDate = value =>
   value ? new Date(value).toLocaleDateString(currentLocale()) : null
 const statusDetail = computed(() => {
@@ -681,6 +800,76 @@ onMounted(load)
   border: 1px solid var(--outline);
   border-radius: 12px;
   background: var(--surface-low);
+}
+.verification-checklist li.is-review-item {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 10px;
+  padding: 12px 14px;
+}
+.verification-item-main {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  min-width: 0;
+}
+.review-progress-section {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: 100%;
+  padding-top: 6px;
+  border-top: 1px dashed var(--outline);
+}
+.review-progress-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  font-size: 12px;
+}
+.review-progress-target {
+  font-weight: 600;
+  color: var(--text);
+}
+.review-progress-elapsed {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--muted);
+}
+.review-progress-bar-wrap {
+  position: relative;
+  width: 100%;
+}
+.review-progress-bar {
+  width: 100%;
+}
+.review-progress-ticks {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  justify-content: space-between;
+  pointer-events: none;
+  padding: 0 4px;
+}
+.review-progress-ticks .tick {
+  width: 2px;
+  height: 100%;
+  background: rgba(255, 255, 255, 0.45);
+  border-radius: 1px;
+}
+.review-progress-scale {
+  display: flex;
+  justify-content: space-between;
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--muted);
+  user-select: none;
+  padding: 0 2px;
 }
 .verification-checklist .q-icon {
   flex: none;

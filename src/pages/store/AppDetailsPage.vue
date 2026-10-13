@@ -188,30 +188,7 @@
             class="detail-card glass-panel"
             aria-labelledby="shots-title"
           >
-            <h2 id="shots-title" class="section-title">{{
-              t('store.details.screenshots')
-            }}</h2>
-            <ScrollRow item-width="auto" :watch-key="screenshots.length">
-              <figure
-                v-for="(shot, i) in screenshots"
-                :key="shot.key"
-                class="screenshot-card"
-                :class="`shot-${shot.device}`"
-              >
-                <img
-                  :src="shot.src"
-                  :alt="
-                    t('store.details.screenshotAlt', {
-                      n: i + 1,
-                      name: app.name
-                    })
-                  "
-                  loading="lazy"
-                  decoding="async"
-                  referrerpolicy="no-referrer"
-                />
-              </figure>
-            </ScrollRow>
+            <AppScreenshots :screenshots="screenshots" :app-name="app.name" />
           </section>
 
           <section
@@ -438,7 +415,7 @@ import AppRow from '@/components/AppRow.vue'
 import CoverImage from '@/components/CoverImage.vue'
 import HostingBadge from '@/components/HostingBadge.vue'
 import ReportButton from '@/components/ReportButton.vue'
-import ScrollRow from '@/components/ScrollRow.vue'
+import AppScreenshots from '@/components/AppScreenshots.vue'
 import SuggestionButton from '@/components/SuggestionButton.vue'
 import { useWorkspaceAccess } from '@/composables/useWorkspaceAccess'
 import { ui } from '@/i18n/text'

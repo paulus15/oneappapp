@@ -85,15 +85,12 @@
               <strong>{{ listing.short_description }}</strong>
             </p>
             <p class="pre-line">{{ listing.description }}</p>
-            <div v-if="screens.length" class="dossier-shots">
-              <img
-                v-for="url in screens"
-                :key="url"
-                :src="resolveMediaUrl(url)"
-                alt=""
-                loading="lazy"
-              />
-            </div>
+            <AppScreenshots
+              v-if="adminScreenshots.length"
+              :screenshots="adminScreenshots"
+              :app-name="listing.name || dossier.application?.name"
+              class="q-my-md"
+            />
             <dl class="facts">
               <template v-for="row in listingRows" :key="row.key">
                 <dt>{{ row.label }}</dt>
@@ -484,6 +481,7 @@ import { useI18n } from 'vue-i18n'
 import AppIcon from '@/components/AppIcon.vue'
 import HostingBadge from '@/components/HostingBadge.vue'
 import ExternalResourcesReport from '@/components/ExternalResourcesReport.vue'
+import AppScreenshots from '@/components/AppScreenshots.vue'
 import { adminApi } from '@/services/admin'
 import { apiMessage } from '@/services/account'
 import { resolveMediaUrl } from '@/utils/media'
@@ -528,6 +526,23 @@ const screens = computed(() => [
   ...(listing.value.media?.screenshots?.mobile || []),
   ...(listing.value.media?.screenshots?.tablet || [])
 ])
+const adminScreenshots = computed(() => {
+  const mob = (listing.value.media?.screenshots?.mobile || []).map(
+    (src, i) => ({
+      key: `mobile-${i}`,
+      device: 'mobile',
+      src: resolveMediaUrl(src)
+    })
+  )
+  const tab = (listing.value.media?.screenshots?.tablet || []).map(
+    (src, i) => ({
+      key: `tablet-${i}`,
+      device: 'tablet',
+      src: resolveMediaUrl(src)
+    })
+  )
+  return [...mob, ...tab].filter(s => s.src)
+})
 // Detector limitations are repeated on every report; keep the reviewer's list short.
 const warnings = computed(() =>
   (version.value?.warnings || []).filter(

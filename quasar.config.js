@@ -157,7 +157,9 @@ export default defineConfig((/* ctx */) => {
         cfg.cleanupOutdatedCaches = true
         cfg.globIgnores = [
           ...(cfg.globIgnores || []),
-          '**/*-{cyrillic,cyrillic-ext,greek,greek-ext,vietnamese}-*.woff2'
+          '**/*-{cyrillic,cyrillic-ext,greek,greek-ext,vietnamese}-*.woff2',
+          // Time zone data is only needed for a first-visit country guess.
+          '**/moment-timezone-*.js'
         ]
         // Never answer API or Sanctum navigations with the cached index.html.
         cfg.navigateFallbackDenylist = [
