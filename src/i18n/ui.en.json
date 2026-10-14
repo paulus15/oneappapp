@@ -1253,5 +1253,20 @@
   "Confirmer votre nouvelle adresse": "Confirm your new address",
   "Le support PWA Store va remplacer l’adresse de votre compte par celle qui a reçu ce lien. Toutes vos sessions seront fermées.": "PWA Store support will replace your account's address with the one that received this link. All your sessions will be closed.",
   "Ce lien est incomplet. Ouvrez-le directement depuis l’e-mail reçu.": "This link is incomplete. Open it directly from the email you received.",
-  "Confirmer cette adresse": "Confirm this address"
+  "Confirmer cette adresse": "Confirm this address",
+  "Vérification du lien de votre PWA": "Checking your PWA's link",
+  "Le lien n’a pas été enregistré. Corrigez-le puis réessayez.": "The link was not saved. Fix it and try again.",
+  "Corriger le lien": "Fix the link",
+  "Vérification du format du lien (HTTPS)": "Checking the link format (HTTPS)",
+  "Vérification du domaine": "Checking the domain",
+  "Vérification du certificat HTTPS et de l’accès à la page": "Checking the HTTPS certificate and page access",
+  "Recherche du manifeste PWA": "Looking for the PWA manifest",
+  "Enregistrement du brouillon": "Saving the draft",
+  "en attente": "pending",
+  "en cours": "in progress",
+  "réussie": "passed",
+  "à revoir": "to review",
+  "échouée": "failed",
+  "non effectuée": "not run",
+  "résultat en attente": "awaiting result"
 }

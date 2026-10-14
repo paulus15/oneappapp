@@ -66,6 +66,7 @@
         <p class="text-caption text-muted">{{ t('newApp.draftNote') }}</p>
       </q-form>
     </q-card>
+    <UrlCheckOverlay ref="urlCheck" />
   </q-page>
 </template>
 <script setup>
@@ -73,6 +74,7 @@ import { computed, onMounted, reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import HostingBadge from '@/components/HostingBadge.vue'
+import UrlCheckOverlay from '@/components/UrlCheckOverlay.vue'
 import { usePlatform } from '@/composables/usePlatform'
 import { catalogApi } from '@/services/catalog'
 import { accountApi, apiMessage } from '@/services/account'
@@ -86,6 +88,7 @@ const form = reactive({
   source_type: 'url',
   external_url: ''
 })
+const urlCheck = ref(null)
 const categories = ref([]),
   loadingCategories = ref(true),
   busy = ref(false),
@@ -117,19 +120,34 @@ function identifier(name) {
   return `${base}.${Date.now().toString(36)}`
 }
 
+async function saveDraft() {
+  const { data: app } = await accountApi.createApp({
+    name: form.name.trim(),
+    identifier: identifier(form.name),
+    category_id: form.category_id
+  })
+  await accountApi.source(app.id, {
+    source_type: form.source_type,
+    external_url: form.source_type === 'url' ? form.external_url.trim() : null
+  })
+  return app
+}
+
 async function create() {
   busy.value = true
   error.value = ''
   try {
-    const { data: app } = await accountApi.createApp({
-      name: form.name.trim(),
-      identifier: identifier(form.name),
-      category_id: form.category_id
-    })
-    await accountApi.source(app.id, {
-      source_type: form.source_type,
-      external_url: form.source_type === 'url' ? form.external_url : null
-    })
+    if (form.source_type === 'url') {
+      // The link is checked step by step first; the draft is only saved when it passes.
+      let app = null
+      const saved = await urlCheck.value.run(
+        form.external_url.trim(),
+        async () => (app = await saveDraft())
+      )
+      if (saved) router.replace(`/developer/apps/${app.id}`)
+      return
+    }
+    const app = await saveDraft()
     router.replace(`/developer/apps/${app.id}`)
   } catch (e) {
     error.value = apiMessage(e)

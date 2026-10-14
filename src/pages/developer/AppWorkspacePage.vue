@@ -988,6 +988,7 @@
         </q-tab-panel>
       </q-tab-panels>
     </template>
+    <UrlCheckOverlay ref="urlCheck" />
   </q-page>
 </template>
 <script setup>
@@ -1021,6 +1022,7 @@ import InstallMeasure from '@/components/InstallMeasure.vue'
 import AppContentPanel from '@/components/AppContentPanel.vue'
 import CountrySelect from '@/components/CountrySelect.vue'
 import ExternalResourcesReport from '@/components/ExternalResourcesReport.vue'
+import UrlCheckOverlay from '@/components/UrlCheckOverlay.vue'
 
 const route = useRoute(),
   q = useQuasar(),
@@ -1144,7 +1146,8 @@ const app = ref(null),
   categories = ref([]),
   loading = ref(true),
   busy = ref(false),
-  error = ref('')
+  error = ref(''),
+  urlCheck = ref(null)
 const tab = ref(route.query.tab || 'info')
 const helpOpen = ref(false)
 const form = reactive({
@@ -1472,7 +1475,22 @@ function removeScreen(device, url) {
 function rejected() {
   q.notify({ type: 'negative', message: t('workspace.fileRejected') })
 }
-function saveSource() {
+async function saveSource() {
+  const url = (source.external_url || '').trim()
+  // A new link is checked step by step before it replaces the saved one.
+  if (source.source_type === 'url' && url !== (app.value?.external_url || '')) {
+    const saved = await urlCheck.value.run(url, () =>
+      accountApi.source(app.value.id, {
+        source_type: 'url',
+        external_url: url
+      })
+    )
+    if (saved) {
+      await load()
+      q.notify({ type: 'positive', message: t('publication.source.saved') })
+    }
+    return saved
+  }
   return run(
     () =>
       accountApi.source(app.value.id, {
