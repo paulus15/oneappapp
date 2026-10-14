@@ -42,7 +42,7 @@
     <p v-if="error" class="text-negative" role="alert">{{ error }}</p>
     <p v-if="submitted" class="text-positive" role="status">{{
       ui(
-        'Application soumise. Un autre administrateur doit examiner le dossier.'
+        'Application soumise. Vous pouvez l’examiner depuis les demandes de publication.'
       )
     }}</p>
   </div>
