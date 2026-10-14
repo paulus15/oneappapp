@@ -113,34 +113,26 @@
                 required
                 maxlength="255"
               />
+              <!-- Chosen at sign-up and never changed afterwards (older accounts without one pick it once). -->
               <CountrySelect
                 v-model="form.country_id"
                 required
+                :disable="!!auth.user.country_id"
                 :label="ui('Pays de résidence déclaré')"
               />
               <p class="text-caption text-muted">{{ t('geo.profileHint') }}</p>
+              <!-- The sign-in address is the account's identity: it cannot be changed. -->
               <q-input
                 v-model="form.email"
                 :label="ui('Adresse e-mail')"
                 type="email"
-                autocomplete="email"
                 outlined
-                required
+                readonly
+                disable
+                :hint="
+                  ui('L’adresse e-mail du compte ne peut pas être modifiée.')
+                "
               />
-              <template v-if="form.email !== auth.user.email"
-                ><q-input
-                  v-model="form.current_password"
-                  :label="ui('Mot de passe actuel')"
-                  type="password"
-                  autocomplete="current-password"
-                  outlined
-                  required
-                /><p class="text-caption">{{
-                  ui(
-                    'Votre adresse actuelle restera valide jusqu’à confirmation de la nouvelle. Si la double authentification est activée, un premier code sera demandé sur l’ancienne adresse.'
-                  )
-                }}</p></template
-              >
               <q-btn
                 type="submit"
                 no-caps
@@ -204,8 +196,7 @@ const auth = useAuthStore(),
 const form = reactive({
   name: '',
   email: '',
-  country_id: null,
-  current_password: ''
+  country_id: null
 })
 const loading = ref(true),
   saving = ref(false),
@@ -246,8 +237,7 @@ async function load() {
     Object.assign(form, {
       name: auth.user.name,
       email: auth.user.email,
-      country_id: auth.user.country_id,
-      current_password: ''
+      country_id: auth.user.country_id
     })
     await loadFavorites()
   } catch (e) {
@@ -261,12 +251,6 @@ async function save() {
   error.value = ''
   try {
     const { data } = await accountApi.update(form)
-    form.current_password = ''
-    if (data.requires_otp) {
-      auth.setChallenge(data)
-      router.push('/verify-email')
-      return
-    }
     auth.setUser(data.user)
     q.notify({
       type: 'positive',

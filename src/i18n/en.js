@@ -276,7 +276,7 @@ export default {
   },
   geo: {
     profileHint:
-      'The catalogue you see depends on this country. You can change it once every 30 days.',
+      'The catalogue you see depends on this country. It is chosen at sign-up and cannot be changed afterwards.',
     visitor: {
       change: 'Choose my country',
       current: 'Country: {code}. Change country',

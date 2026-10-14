@@ -3,15 +3,15 @@
   <span class="country-choice">
     <!-- Pill (home page): flag and country name. Visitors choose here; accounts change it in their space. -->
     <template v-if="pill">
-      <router-link
+      <!-- An account's country is fixed at sign-up: shown, not changeable. -->
+      <span
         v-if="authStore.isAuthenticated"
-        to="/account"
-        class="country-pill"
+        class="country-pill is-fixed"
         :title="ui('Pays de votre compte')"
       >
         <span class="pill-flag" aria-hidden="true">{{ pillFlag }}</span>
-        <span>{{ pillName || ui('Choisir mon pays') }}</span>
-      </router-link>
+        <span>{{ pillName || ui('Pays non renseigné') }}</span>
+      </span>
       <button
         v-else
         type="button"
@@ -160,6 +160,9 @@ function apply(value) {
 .pill-flag {
   font-size: 18px;
   line-height: 1;
+}
+.country-pill.is-fixed {
+  cursor: default;
 }
 .country-pill:focus-visible {
   outline: 3px solid #08c8f8;

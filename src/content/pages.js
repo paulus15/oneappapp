@@ -186,7 +186,7 @@ export const pages = {
       {
         title: '1. Données collectées',
         list: [
-          'Compte : nom, adresse e-mail, pays de résidence déclaré (modifiable une fois tous les 30 jours), langue de l’interface, mot de passe (conservé sous forme de hachage irréversible) et préférences (notifications, historique des fiches consultées).',
+          'Compte : nom, adresse e-mail, pays de résidence déclaré à l’inscription (non modifiable ensuite), langue de l’interface, mot de passe (conservé sous forme de hachage irréversible) et préférences (notifications, historique des fiches consultées).',
           'Sécurité : codes de confirmation à usage unique (conservés sous forme de hachage à clé), sessions ouvertes (navigateur ou appareil tel qu’il se présente, dates de création, de dernière utilisation et d’expiration), journal des actions sensibles avec l’adresse IP de leur auteur (changement de pays, décisions de modération, consultation des identifiants de test).',
           'Développeurs : profil (type de compte, nom public, nom légal, pays, représentant, e-mail professionnel, site web, description) et pièce d’identité (type, date d’expiration et fichier conservé dans un stockage privé, accessible seulement aux vérificateurs habilités, puis supprimé au terme de la durée de conservation).',
           'Bibliothèque et usage : favoris, applications déclarées installées par appareil (identifiant de l’appareil généré par le navigateur, plateforme, pays du compte, dates d’installation et d’ouverture), demandes d’installation, fiches consultées récemment (seulement si l’option est activée dans vos préférences), événements d’usage envoyés par l’application (type d’événement, plateforme, modèle de l’appareil, pays du compte).',
