@@ -1,7 +1,9 @@
+import ServiceErrorPage from '@/pages/ServiceErrorPage.vue'
+
 const routes = [
   ...[403, 500, 503].map(status => ({
     path: `/errors/${status}`,
-    component: () => import('@/pages/ServiceErrorPage.vue'),
+    component: ServiceErrorPage,
     props: { status }
   })),
   {

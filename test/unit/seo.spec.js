@@ -1,4 +1,4 @@
-import { describe, expect, it, afterEach } from 'vitest'
+import { describe, expect, it, afterEach, vi } from 'vitest'
 import { applySeo, routeSeo, SITE_URL } from '@/utils/seo'
 import { catalogPages, generateSeo } from '../../scripts/seo/generate.mjs'
 import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises'
@@ -126,6 +126,74 @@ describe('build-time SEO files', () => {
         status: 503
       }))
     ).rejects.toThrow('503')
+  })
+  it.each([502, 503, 504])(
+    'builds static SEO files when the catalogue returns %s, without partial entries',
+    async status => {
+      directory = await mkdtemp(join(tmpdir(), 'pwastore-seo-'))
+      await writeFile(
+        join(directory, 'index.html'),
+        '<html><head><title>Store</title></head><body><div id="q-app"></div></body></html>'
+      )
+      const warning = vi.spyOn(console, 'warn').mockImplementation(() => {})
+      const fetcher = vi
+        .fn()
+        .mockResolvedValueOnce({
+          ok: true,
+          json: async () => ({
+            data: [{ id: 17, name: 'Public', status: 'published' }],
+            last_page: 2
+          })
+        })
+        .mockResolvedValueOnce({ ok: false, status })
+      await generateSeo(directory, {
+        apiUrl: 'https://api.example/api',
+        fetcher
+      })
+      const sitemap = await readFile(join(directory, 'sitemap.xml'), 'utf8')
+      expect(sitemap).toContain(
+        '<loc>https://pwastore.online/applications</loc>'
+      )
+      expect(sitemap).not.toContain('/apps/17')
+      expect(await readFile(join(directory, 'spa.html'), 'utf8')).toContain(
+        'q-app'
+      )
+      expect(await readFile(join(directory, 'login.html'), 'utf8')).toContain(
+        'noindex, follow'
+      )
+      expect(warning).toHaveBeenCalledWith(
+        expect.stringContaining(`HTTP ${status}`)
+      )
+    }
+  )
+  it.each([401, 403, 404, 500])(
+    'still fails on catalogue HTTP %s',
+    async status => {
+      directory = await mkdtemp(join(tmpdir(), 'pwastore-seo-'))
+      await writeFile(
+        join(directory, 'index.html'),
+        '<html><head></head><body></body></html>'
+      )
+      await expect(
+        generateSeo(directory, {
+          apiUrl: 'https://api.example/api',
+          fetcher: async () => ({ ok: false, status })
+        })
+      ).rejects.toThrow(`HTTP ${status}`)
+    }
+  )
+  it('still fails on malformed catalogue data', async () => {
+    directory = await mkdtemp(join(tmpdir(), 'pwastore-seo-'))
+    await writeFile(
+      join(directory, 'index.html'),
+      '<html><head></head><body></body></html>'
+    )
+    await expect(
+      generateSeo(directory, {
+        apiUrl: 'https://api.example/api',
+        fetcher: async () => ({ ok: true, json: async () => ({ data: [] }) })
+      })
+    ).rejects.toThrow('Invalid SEO catalogue pagination')
   })
   it('writes crawlable files, route-specific HTML, private noindex and a neutral SPA fallback', async () => {
     directory = await mkdtemp(join(tmpdir(), 'pwastore-seo-'))

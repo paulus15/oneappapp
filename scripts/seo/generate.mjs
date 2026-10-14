@@ -21,6 +21,13 @@ const escapeXml = value =>
       })[char]
   )
 
+class CatalogueUnavailable extends Error {
+  constructor(status) {
+    super(`SEO catalogue HTTP ${status}`)
+    this.name = 'CatalogueUnavailable'
+  }
+}
+
 export async function catalogPages(apiUrl, fetcher = fetch) {
   const base = new URL(apiUrl)
   if (
@@ -37,6 +44,8 @@ export async function catalogPages(apiUrl, fetcher = fetch) {
       signal: AbortSignal.timeout(20000),
       redirect: 'error'
     })
+    if ([502, 503, 504].includes(response.status))
+      throw new CatalogueUnavailable(response.status)
     if (!response.ok) throw new Error(`SEO catalogue HTTP ${response.status}`)
     return response.json()
   }
@@ -116,7 +125,19 @@ export async function generateSeo(outDir, { apiUrl, fetcher } = {}) {
   const root = resolve(outDir)
   const shell = await readFile(resolve(root, 'index.html'), 'utf8')
   const pages = Object.keys(PUBLIC_PAGES).map(path => ({ path, details: {} }))
-  if (apiUrl) pages.push(...(await catalogPages(apiUrl, fetcher)))
+  if (apiUrl) {
+    try {
+      pages.push(...(await catalogPages(apiUrl, fetcher)))
+    } catch (error) {
+      if (!(error instanceof CatalogueUnavailable)) throw error
+      // The UI must remain deployable while the API is down for maintenance.
+      // Do not publish a partially fetched catalogue as if it were complete.
+      console.warn(
+        `SEO: ${error.message}; generating static public pages only. ` +
+          'Rebuild after API recovery to restore catalogue HTML and sitemap entries.'
+      )
+    }
+  }
   const unique = [...new Map(pages.map(page => [page.path, page])).values()]
   // Unknown/dynamic URLs receive a neutral shell, never the home page's canonical.
   await writeFile(resolve(root, 'spa.html'), shell)
