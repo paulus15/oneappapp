@@ -22,7 +22,7 @@ describe('resolveAccess', () => {
 
   it('reserves admin pages to admins', () => {
     const page = route('/admin', { requiresAuth: true, adminOnly: true })
-    expect(resolveAccess(page, developer)).toBe('/account')
+    expect(resolveAccess(page, developer)).toBe('/errors/403')
     expect(resolveAccess(page, admin)).toBe(true)
   })
 
@@ -79,7 +79,7 @@ describe('resolveAccess', () => {
       user: { admin_permissions: ['apps.moderate'] }
     }
     const manager = { ...admin, user: { admin_permissions: ['users.manage'] } }
-    expect(resolveAccess(page, moderator)).toBe('/admin')
+    expect(resolveAccess(page, moderator)).toBe('/errors/403')
     expect(resolveAccess(page, manager)).toBe(true)
   })
 

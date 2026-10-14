@@ -60,6 +60,15 @@ export default defineRouter((/* { store, ssrContext } */) => {
     return resolveAccess(to, auth, { isMobile: !!mobileView?.matches })
   })
 
+  Router.onError((_error, to) => {
+    if (!to?.path?.startsWith('/errors/')) {
+      Router.replace({
+        path: '/errors/500',
+        query: { redirect: to?.fullPath || '/' }
+      }).catch(() => {})
+    }
+  })
+
   function updateTitle(to) {
     applySeo(routeSeo(to, currentLocale()))
   }

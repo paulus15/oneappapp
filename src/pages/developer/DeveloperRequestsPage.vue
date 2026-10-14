@@ -25,10 +25,14 @@
       </div>
     </div>
     <q-linear-progress v-if="loading" indeterminate />
-    <q-banner v-if="error" class="workspace-alert" role="alert">{{
-      error
-    }}</q-banner>
-    <p v-if="!loading && !items.length" class="text-muted">{{
+    <EmptyState
+      v-if="error"
+      tone="error"
+      icon="cloud_off"
+      :title="ui('Chargement impossible')"
+      ><q-btn flat :label="ui('Réessayer')" @click="load"
+    /></EmptyState>
+    <p v-if="!loading && !error && !items.length" class="text-muted">{{
       t('workspace.history.noRequest')
     }}</p>
     <section v-if="items.length" class="workspace-card">
@@ -84,15 +88,26 @@
         </q-item>
       </q-list>
     </section>
-    <div v-if="lastPage > 1" class="row justify-center q-mt-md">
-      <q-pagination v-model="page" :max="lastPage" direction-links />
-    </div>
+    <LoadMore
+      v-if="!loading"
+      auto
+      :has-more="list.hasMore.value"
+      :loading="list.loadingMore.value"
+      :error="list.moreError.value"
+      :shown="items.length"
+      :total="list.total.value"
+      @load="list.loadMore"
+    />
   </q-page>
 </template>
 <script setup>
+import { ui } from '@/i18n/text'
+import LoadMore from '@/components/LoadMore.vue'
+import EmptyState from '@/components/EmptyState.vue'
+import { useLoadMore } from '@/composables/useLoadMore'
 import { onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { accountApi, apiMessage } from '@/services/account'
+import { accountApi } from '@/services/account'
 import AppIcon from '@/components/AppIcon.vue'
 
 // Every request sent for review, across all the developer's apps.
@@ -105,29 +120,21 @@ const COLORS = {
   rejected: 'red-7',
   withdrawn: 'grey-7'
 }
-const items = ref([]),
-  summary = ref(null),
-  page = ref(1),
-  lastPage = ref(1),
-  loading = ref(true),
-  error = ref('')
+const list = useLoadMore(async page => {
+  const { data } = await accountApi.developerRequests(page)
+  return { ...data.requests, summary: data.summary }
+})
+const items = list.items,
+  loading = list.loading,
+  error = list.error,
+  summary = ref(null)
+watch(list.last, data => {
+  summary.value = data?.summary || null
+})
 const formatDate = value =>
   value ? new Date(value).toLocaleString(locale.value) : ''
 
-async function load() {
-  loading.value = true
-  try {
-    const { data } = await accountApi.developerRequests(page.value)
-    summary.value = data.summary
-    items.value = data.requests.data
-    lastPage.value = data.requests.last_page
-  } catch (e) {
-    error.value = apiMessage(e)
-  } finally {
-    loading.value = false
-  }
-}
-watch(page, load)
+const load = list.reload
 onMounted(load)
 </script>
 <style scoped>

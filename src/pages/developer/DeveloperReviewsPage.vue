@@ -30,9 +30,24 @@
       ui(error)
     }}</q-banner>
     <q-linear-progress v-if="loading" indeterminate />
-    <p v-if="!loading && !reviews.length" class="text-muted">{{
-      ui('Aucun avis pour ce filtre.')
-    }}</p>
+    <EmptyState
+      v-if="list.error.value"
+      tone="error"
+      icon="cloud_off"
+      :title="ui('Chargement impossible')"
+      :text="ui('Les données n’ont pas pu être chargées.')"
+      ><q-btn
+        flat
+        no-caps
+        color="primary"
+        :label="ui('Réessayer')"
+        @click="load"
+    /></EmptyState>
+    <EmptyState
+      v-if="!loading && !error && !list.error.value && !reviews.length"
+      icon="inbox"
+      :title="ui('Aucun avis pour ce filtre.')"
+    />
     <div class="workspace-grid">
       <q-card
         v-for="review in reviews"
@@ -73,15 +88,22 @@
         />
       </q-card>
     </div>
-    <q-pagination
-      v-if="lastPage > 1"
-      v-model="page"
-      :max="lastPage"
-      class="q-mt-md"
+    <LoadMore
+      v-if="!loading && !list.error.value"
+      auto
+      :has-more="list.hasMore.value"
+      :loading="list.loadingMore.value"
+      :error="list.moreError.value"
+      :shown="reviews.length"
+      :total="list.total.value"
+      @load="list.loadMore"
     />
   </q-page>
 </template>
 <script setup>
+import LoadMore from '@/components/LoadMore.vue'
+import EmptyState from '@/components/EmptyState.vue'
+import { useLoadMore } from '@/composables/useLoadMore'
 import { currentLocale } from '@/i18n'
 import { ui } from '@/i18n/text'
 
@@ -92,37 +114,32 @@ import { api } from '@/boot/axios'
 import { apiMessage } from '@/services/account'
 import { communityApi } from '@/services/community'
 
+const list = useLoadMore(async page => {
+  const { data } = await api.get('/developer/reviews', {
+    params: {
+      page: page,
+      application_id: applicationId.value || undefined,
+      unanswered: unanswered.value ? 1 : undefined
+    }
+  })
+  return data
+})
+
 const $q = useQuasar()
 // E-mail links point to one review: /developer/reviews?id=…
 const highlightId = Number(useRoute().query.id) || null
-const reviews = ref([]),
+const reviews = list.items,
   appOptions = ref([]),
-  loading = ref(true),
+  loading = list.loading,
   error = ref(''),
-  page = ref(1),
-  lastPage = ref(1),
   applicationId = ref(null),
   unanswered = ref(false)
 
-async function load() {
-  loading.value = true
+const load = () => {
   error.value = ''
-  try {
-    const { data } = await api.get('/developer/reviews', {
-      params: {
-        page: page.value,
-        application_id: applicationId.value || undefined,
-        unanswered: unanswered.value ? 1 : undefined
-      }
-    })
-    reviews.value = data.data
-    lastPage.value = data.last_page
-  } catch (e) {
-    error.value = apiMessage(e)
-  } finally {
-    loading.value = false
-  }
+  return list.reload()
 }
+
 function reply(review) {
   $q.dialog({
     get title() {
@@ -153,13 +170,15 @@ function reply(review) {
   })
 }
 watch([applicationId, unanswered], () => {
-  page.value = 1
   load()
 })
-watch(page, load)
 onMounted(async () => {
-  const { data } = await api.get('/developer/apps')
-  appOptions.value = data.map(a => ({ value: a.id, label: a.name }))
+  try {
+    const { data } = await api.get('/developer/apps')
+    appOptions.value = data.map(a => ({ value: a.id, label: a.name }))
+  } catch {
+    /* The review list stays available without filter options. */
+  }
   await load()
   if (highlightId) {
     await nextTick()

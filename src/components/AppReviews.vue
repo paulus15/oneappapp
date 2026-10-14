@@ -92,14 +92,20 @@
       ui('Confirmez votre adresse e-mail pour donner votre avis.')
     }}</p>
 
-    <q-banner v-if="error" class="workspace-alert" role="alert">{{
-      ui(error)
-    }}</q-banner>
-    <p v-if="!loading && !data.data.length" class="text-muted">{{
-      ui('Aucun avis pour le moment.')
-    }}</p>
+    <q-banner v-if="error" class="workspace-alert" role="alert"
+      >{{ ui(error)
+      }}<template #action
+        ><q-btn flat :label="ui('Réessayer')" @click="load" /></template
+    ></q-banner>
+    <EmptyState
+      v-if="!loading && !error && !reviews.length"
+      compact
+      icon="rate_review"
+      :title="ui('Aucun avis pour le moment.')"
+      :text="ui('Les avis des utilisateurs apparaîtront ici.')"
+    />
     <q-list separator>
-      <q-item v-for="review in data.data" :key="review.id" class="review">
+      <q-item v-for="review in reviews" :key="review.id" class="review">
         <q-item-section>
           <div class="row items-center justify-between">
             <strong>{{ review.user?.name || ui('Utilisateur') }}</strong>
@@ -149,12 +155,20 @@
         </q-item-section>
       </q-item>
     </q-list>
-    <div v-if="data.last_page > 1" class="row justify-center q-mt-sm">
-      <q-pagination v-model="page" :max="data.last_page" />
-    </div>
+    <LoadMore
+      auto
+      v-if="!loading"
+      :has-more="list.hasMore.value"
+      :loading="loadingMore"
+      :error="moreError"
+      :shown="reviews.length"
+      :total="data.total"
+      @load="loadNext"
+    />
   </section>
 </template>
 <script setup>
+import { useLoadMore } from '@/composables/useLoadMore'
 import { currentLocale } from '@/i18n'
 import { ui } from '@/i18n/text'
 
@@ -162,6 +176,8 @@ import { computed, reactive, ref, watch } from 'vue'
 import { useQuasar } from 'quasar'
 import { useRoute } from 'vue-router'
 import ReportButton from '@/components/ReportButton.vue'
+import EmptyState from '@/components/EmptyState.vue'
+import LoadMore from '@/components/LoadMore.vue'
 import { useAuthStore } from '@/stores/auth'
 import { communityApi } from '@/services/community'
 import { apiMessage } from '@/services/account'
@@ -179,10 +195,18 @@ const data = ref({
   last_page: 1,
   mine: null
 })
-const loading = ref(true),
+// The first page carries the summary (average, distribution, my review); the next ones
+// only add reviews below ("Voir plus").
+const list = useLoadMore(
+  async page =>
+    (await communityApi.reviews(props.app.id, { page, sort: sort.value })).data
+)
+const reviews = list.items,
+  loadingMore = list.loadingMore,
+  moreError = list.moreError
+const loading = list.loading,
   busy = ref(false),
   error = ref(''),
-  page = ref(1),
   sort = ref('recent')
 const form = reactive({ rating: 5, comment: '' })
 const sortOptions = [
@@ -212,25 +236,20 @@ const canReview = computed(
 )
 const date = value => new Date(value).toLocaleDateString(currentLocale())
 
+const loadNext = list.loadMore
 async function load() {
-  loading.value = true
-  try {
-    data.value = (
-      await communityApi.reviews(props.app.id, {
-        page: page.value,
-        sort: sort.value
-      })
-    ).data
-    if (data.value.mine)
-      Object.assign(form, {
-        rating: data.value.mine.rating,
-        comment: data.value.mine.comment || ''
-      })
-  } catch (e) {
-    error.value = apiMessage(e)
-  } finally {
-    loading.value = false
+  error.value = ''
+  await list.reload()
+  if (list.error.value) {
+    error.value = apiMessage(list.last.value)
+    return
   }
+  data.value = list.last.value || {}
+  if (data.value.mine)
+    Object.assign(form, {
+      rating: data.value.mine.rating,
+      comment: data.value.mine.comment || ''
+    })
 }
 async function run(action, message) {
   busy.value = true
@@ -292,7 +311,8 @@ function removeReply(review) {
   return run(() => communityApi.deleteReply(review.id), ui('Réponse retirée.'))
 }
 watch(() => props.app.id, load, { immediate: true })
-watch([page, sort], load)
+// "Voir plus" changes the page itself; only the order starts the list over.
+watch(sort, load)
 </script>
 <style scoped>
 .summary {

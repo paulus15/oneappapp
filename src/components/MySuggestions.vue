@@ -9,9 +9,24 @@
       error
     }}</q-banner>
     <q-linear-progress v-if="loading" indeterminate />
-    <p v-if="!loading && !items.length" class="text-muted">{{
-      ui('Vous n’avez pas encore envoyé de suggestion.')
-    }}</p>
+    <EmptyState
+      v-if="list.error.value"
+      tone="error"
+      icon="cloud_off"
+      :title="ui('Chargement impossible')"
+      :text="ui('Les données n’ont pas pu être chargées.')"
+      ><q-btn
+        flat
+        no-caps
+        color="primary"
+        :label="ui('Réessayer')"
+        @click="load"
+    /></EmptyState>
+    <EmptyState
+      v-if="!loading && !error && !list.error.value && !items.length"
+      icon="inbox"
+      :title="ui('Vous n’avez pas encore envoyé de suggestion.')"
+    />
     <q-list v-if="items.length" bordered separator class="rounded-borders">
       <q-expansion-item v-for="item in items" :key="item.id" @show="open(item)">
         <template #header>
@@ -61,16 +76,22 @@
         </q-card>
       </q-expansion-item>
     </q-list>
-    <q-pagination
-      v-if="lastPage > 1"
-      v-model="page"
-      :max="lastPage"
-      class="q-mt-md"
-      @update:model-value="load"
+    <LoadMore
+      v-if="!loading && !list.error.value"
+      auto
+      :has-more="list.hasMore.value"
+      :loading="list.loadingMore.value"
+      :error="list.moreError.value"
+      :shown="items.length"
+      :total="list.total.value"
+      @load="list.loadMore"
     />
   </section>
 </template>
 <script setup>
+import LoadMore from '@/components/LoadMore.vue'
+import EmptyState from '@/components/EmptyState.vue'
+import { useLoadMore } from '@/composables/useLoadMore'
 import { currentLocale } from '@/i18n'
 import { ui } from '@/i18n/text'
 
@@ -84,27 +105,21 @@ import {
   suggestionsApi
 } from '@/services/suggestions'
 
+const list = useLoadMore(async page => {
+  const { data } = await suggestionsApi.mine(page)
+  return data
+})
+
 const $q = useQuasar()
-const items = ref([]),
+const items = list.items,
   details = reactive({}),
-  loading = ref(true),
+  loading = list.loading,
   error = ref(''),
-  page = ref(1),
-  lastPage = ref(1),
   removing = ref(null)
 
-async function load() {
-  loading.value = true
+const load = () => {
   error.value = ''
-  try {
-    const { data } = await suggestionsApi.mine(page.value)
-    items.value = data.data
-    lastPage.value = data.meta?.last_page || 1
-  } catch (e) {
-    error.value = apiMessage(e)
-  } finally {
-    loading.value = false
-  }
+  return list.reload()
 }
 
 async function open(item) {

@@ -39,32 +39,37 @@
       </li>
     </ol>
 
-    <div v-else-if="error" class="rank-state glass-panel" role="alert">
-      <q-icon name="cloud_off" />
-      <h2>{{ t('store.rankings.errorTitle') }}</h2>
-      <p>{{ t('store.rankings.errorText') }}</p>
+    <EmptyState
+      v-else-if="error && !unavailable"
+      tone="error"
+      icon="cloud_off"
+      :title="t('store.rankings.errorTitle')"
+      :text="t('store.rankings.errorText')"
+    >
       <q-btn
         unelevated
         no-caps
         color="primary"
         icon="refresh"
         :label="t('common.retry')"
-        @click="load"
+        @click="reload"
       />
-    </div>
+    </EmptyState>
 
-    <div v-else-if="!items.length" class="rank-state glass-panel">
-      <q-icon :name="unavailable ? 'hourglass_empty' : 'leaderboard'" />
-      <h2>{{
+    <EmptyState
+      v-else-if="!items.length"
+      :icon="unavailable ? 'hourglass_empty' : 'leaderboard'"
+      :title="
         unavailable
           ? t('store.rankings.soonTitle')
           : t('store.rankings.emptyTitle')
-      }}</h2>
-      <p>{{
+      "
+      :text="
         unavailable
           ? t('store.rankings.soonText')
           : t(`store.rankings.empty.${type}`)
-      }}</p>
+      "
+    >
       <q-btn
         outline
         no-caps
@@ -72,7 +77,7 @@
         :label="t('store.rankings.browse')"
         to="/applications"
       />
-    </div>
+    </EmptyState>
 
     <ol
       v-else
@@ -119,17 +124,17 @@
       </li>
     </ol>
 
-    <div v-if="!loading && lastPage > 1" class="rank-pagination">
-      <q-pagination
-        :model-value="page"
-        :max="lastPage"
-        :max-pages="6"
-        direction-links
-        boundary-numbers
-        color="primary"
-        @update:model-value="setPage"
-      />
-    </div>
+    <LoadMore
+      auto
+      v-if="!loading && items.length"
+      :has-more="hasMore"
+      :loading="loadingMore"
+      :error="moreError"
+      :shown="items.length"
+      :total="total"
+      :page-size="24"
+      @load="loadMore"
+    />
 
     <AppFooter />
   </q-page>
@@ -140,6 +145,9 @@ import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import AppFooter from '@/components/AppFooter.vue'
 import AppIcon from '@/components/AppIcon.vue'
+import EmptyState from '@/components/EmptyState.vue'
+import LoadMore from '@/components/LoadMore.vue'
+import { useLoadMore } from '@/composables/useLoadMore'
 import HostingBadge from '@/components/HostingBadge.vue'
 import { useCascade } from '@/composables/useCascade'
 import { catalogApi } from '@/services/catalog'
@@ -163,63 +171,40 @@ const type = computed(() =>
     ? String(route.query.type)
     : 'popular'
 )
-const page = computed(() => Math.max(1, Number(route.query.page) || 1))
-
-const rows = ref([]),
-  loading = ref(true),
-  error = ref(false),
-  unavailable = ref(false),
-  lastPage = ref(1),
-  from = ref(1)
+// Server-side pages of the ranking, shown as one list that grows with "Voir plus".
+const {
+  items: rows,
+  total,
+  hasMore,
+  loading,
+  loadingMore,
+  error,
+  moreError,
+  last,
+  reload,
+  loadMore
+} = useLoadMore(
+  async page => (await catalogApi.rankings({ type: type.value, page })).data
+)
+// The endpoint is new: an API without it answers 404, which is not an outage.
+const unavailable = computed(
+  () => error.value && last.value?.response?.status === 404
+)
 const items = computed(() =>
   rows.value.map((app, i) => {
     const card = toCard(app)
-    return { ...card, position: card.rank ?? from.value + i }
+    return { ...card, position: card.rank ?? i + 1 }
   })
 )
 
 const listEl = ref(null)
 const { enabled: cascade, landed } = useCascade(listEl)
 
-let request = 0
-async function load() {
-  const current = ++request
-  loading.value = true
-  error.value = false
-  unavailable.value = false
-  try {
-    const { data } = await catalogApi.rankings({
-      type: type.value,
-      page: page.value
-    })
-    if (current !== request) return
-    rows.value = Array.isArray(data?.data) ? data.data : []
-    lastPage.value = Math.max(1, Number(data?.last_page) || 1)
-    const perPage = Number(data?.per_page) || rows.value.length
-    from.value = Number(data?.from) || (page.value - 1) * perPage + 1
-  } catch (e) {
-    if (current !== request) return
-    rows.value = []
-    lastPage.value = 1
-    // The endpoint is new: an API without it answers 404, which is not an outage.
-    if (e.response?.status === 404) unavailable.value = true
-    else error.value = true
-  } finally {
-    if (current === request) loading.value = false
-  }
-}
-
 function setType(value) {
   router.replace({ query: { ...route.query, type: value, page: undefined } })
 }
-function setPage(value) {
-  router.replace({
-    query: { ...route.query, page: value > 1 ? value : undefined }
-  })
-  window.scrollTo({ top: 0 })
-}
 
-watch([type, page], load, { immediate: true })
+watch(type, reload, { immediate: true })
 </script>
 <style scoped>
 .rank-tabs {
@@ -327,33 +312,6 @@ a.rank-row:hover .rank-icon {
 }
 .skeleton-icon {
   border-radius: 14px;
-}
-.rank-state {
-  display: grid;
-  justify-items: center;
-  gap: 6px;
-  padding: 36px 20px;
-  color: var(--muted);
-  text-align: center;
-  border-radius: var(--ui-radius-lg);
-}
-.rank-state > .q-icon {
-  color: var(--pwa-link);
-  font-size: 40px;
-}
-.rank-state h2 {
-  margin: 4px 0 0;
-  color: var(--text);
-  font-size: 18px;
-}
-.rank-state p {
-  max-width: 440px;
-  margin: 0 0 8px;
-}
-.rank-pagination {
-  display: flex;
-  justify-content: center;
-  margin-top: 18px;
 }
 @media (max-width: 599px) {
   .rank-row {

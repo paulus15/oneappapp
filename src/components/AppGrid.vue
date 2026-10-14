@@ -15,15 +15,17 @@
       :style="{ '--i': i }"
     />
   </div>
-  <div v-else class="empty-state glass-panel">
-    <q-icon :name="emptyIcon" />
-    <p>{{ empty || t('store.empty.default') }}</p>
-  </div>
+  <EmptyState
+    v-else
+    :icon="emptyIcon"
+    :text="empty || t('store.empty.default')"
+  />
 </template>
 <script setup>
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import AppCard from '@/components/AppCard.vue'
+import EmptyState from '@/components/EmptyState.vue'
 import { useCascade } from '@/composables/useCascade'
 import { toCard } from '@/utils/appCard'
 const props = defineProps({
@@ -47,19 +49,5 @@ const { enabled: cascade, landed } = useCascade(grid)
 }
 .skeleton {
   border-radius: 15px;
-}
-.empty-state {
-  display: grid;
-  justify-items: center;
-  gap: 6px;
-  padding: 28px 16px;
-  color: var(--muted);
-  text-align: center;
-}
-.empty-state .q-icon {
-  font-size: 32px;
-}
-.empty-state p {
-  margin: 0;
 }
 </style>

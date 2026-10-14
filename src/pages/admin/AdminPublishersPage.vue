@@ -59,14 +59,27 @@
               </q-item-section>
             </q-item>
           </q-list>
-          <p v-if="!loading && !publishers.length" class="text-muted">{{
-            ui('Aucun éditeur trouvé.')
-          }}</p>
-          <q-pagination
-            v-if="lastPage > 1"
-            v-model="page"
-            :max="lastPage"
-            @update:model-value="load"
+          <EmptyState
+            v-if="list.error.value"
+            tone="error"
+            icon="cloud_off"
+            :title="ui('Chargement impossible')"
+            ><q-btn flat :label="ui('Réessayer')" @click="load"
+          /></EmptyState>
+          <p
+            v-if="!loading && !list.error.value && !publishers.length"
+            class="text-muted"
+            >{{ ui('Aucun éditeur trouvé.') }}</p
+          >
+          <LoadMore
+            v-if="!list.loading.value"
+            auto
+            :has-more="list.hasMore.value"
+            :loading="list.loadingMore.value"
+            :error="list.moreError.value"
+            :shown="publishers.length"
+            :total="list.total.value"
+            @load="list.loadMore"
           />
         </div>
       </section>
@@ -185,14 +198,29 @@
               /></q-item-section>
             </q-item>
           </q-list>
-          <p v-if="!loadingAssigned && !assigned.length" class="text-muted">{{
-            ui('Aucune application rattachée.')
-          }}</p>
-          <q-pagination
-            v-if="assignedLastPage > 1"
-            v-model="assignedPage"
-            :max="assignedLastPage"
-            @update:model-value="loadAssigned"
+          <EmptyState
+            v-if="assignedList.error.value"
+            tone="error"
+            icon="cloud_off"
+            :title="ui('Chargement impossible')"
+            ><q-btn flat :label="ui('Réessayer')" @click="loadAssigned"
+          /></EmptyState>
+          <p
+            v-if="
+              !loadingAssigned && !assignedList.error.value && !assigned.length
+            "
+            class="text-muted"
+            >{{ ui('Aucune application rattachée.') }}</p
+          >
+          <LoadMore
+            v-if="!assignedList.loading.value"
+            auto
+            :has-more="assignedList.hasMore.value"
+            :loading="assignedList.loadingMore.value"
+            :error="assignedList.moreError.value"
+            :shown="assigned.length"
+            :total="assignedList.total.value"
+            @load="assignedList.loadMore"
           />
         </div>
       </section>
@@ -200,6 +228,9 @@
   </q-page>
 </template>
 <script setup>
+import LoadMore from '@/components/LoadMore.vue'
+import EmptyState from '@/components/EmptyState.vue'
+import { useLoadMore } from '@/composables/useLoadMore'
 import { computed, onMounted, reactive, ref } from 'vue'
 import { useQuasar } from 'quasar'
 import AdminNav from '@/components/AdminNav.vue'
@@ -210,18 +241,25 @@ import { apiMessage } from '@/services/account'
 import { ui } from '@/i18n/text'
 
 const $q = useQuasar()
-const publishers = ref([]),
-  search = ref(''),
-  page = ref(1),
-  lastPage = ref(1)
-const loading = ref(false),
+const list = useLoadMore(
+  async page =>
+    (await adminApi.publishers({ search: search.value || undefined, page }))
+      .data
+)
+const assignedList = useLoadMore(async page =>
+  form.id
+    ? (await adminApi.publisherApplications({ publisher_id: form.id, page }))
+        .data
+    : { data: [] }
+)
+const publishers = list.items,
+  search = ref('')
+const loading = list.loading,
   saving = ref(false),
   linking = ref(false),
   error = ref('')
-const assigned = ref([]),
-  assignedPage = ref(1),
-  assignedLastPage = ref(1),
-  loadingAssigned = ref(false)
+const assigned = assignedList.items,
+  loadingAssigned = assignedList.loading
 const application = ref(null),
   options = ref([])
 const empty = () => ({
@@ -242,41 +280,19 @@ const types = computed(() =>
 )
 const applicationLabel = app =>
   `${app.name} — ${app.identifier}${app.publisher ? ` · ${app.publisher.public_name}` : ''}`
-let listRequest = 0,
-  assignedRequest = 0,
-  searchRequest = 0
-async function load() {
-  const request = ++listRequest
-  loading.value = true
-  try {
-    const { data } = await adminApi.publishers({
-      search: search.value || undefined,
-      page: page.value
-    })
-    if (request !== listRequest) return
-    publishers.value = data.data
-    lastPage.value = data.last_page
-  } catch (e) {
-    if (request === listRequest) error.value = apiMessage(e)
-  } finally {
-    if (request === listRequest) loading.value = false
-  }
-}
+let searchRequest = 0
+const load = list.reload
 function reload() {
-  page.value = 1
   load()
 }
 function edit(publisher) {
   Object.assign(form, empty(), publisher || {})
   assigned.value = []
-  assignedPage.value = 1
   application.value = null
   options.value = []
   error.value = ''
-  ++assignedRequest
   ++searchRequest
-  loadingAssigned.value = false
-  if (form.id) loadAssigned()
+  loadAssigned()
 }
 async function save() {
   saving.value = true
@@ -302,23 +318,7 @@ async function save() {
     saving.value = false
   }
 }
-async function loadAssigned() {
-  const request = ++assignedRequest
-  loadingAssigned.value = true
-  try {
-    const { data } = await adminApi.publisherApplications({
-      publisher_id: form.id,
-      page: assignedPage.value
-    })
-    if (request !== assignedRequest) return
-    assigned.value = data.data
-    assignedLastPage.value = data.last_page
-  } catch (e) {
-    if (request === assignedRequest) error.value = apiMessage(e)
-  } finally {
-    if (request === assignedRequest) loadingAssigned.value = false
-  }
-}
+const loadAssigned = assignedList.reload
 async function findApplications(value, update, abort) {
   const request = ++searchRequest
   try {
@@ -343,7 +343,6 @@ async function assign(id, publisherId) {
   try {
     await adminApi.assignPublisher(id, publisherId)
     application.value = null
-    assignedPage.value = 1
     await Promise.all([loadAssigned(), load()])
     $q.notify({ type: 'positive', message: ui('Rattachement mis à jour.') })
   } catch (e) {

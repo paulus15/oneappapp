@@ -53,6 +53,13 @@
     <q-banner v-if="error" class="workspace-alert q-mb-md" role="alert">{{
       ui(error)
     }}</q-banner>
+    <EmptyState
+      v-if="list.error.value"
+      tone="error"
+      icon="cloud_off"
+      :title="ui('Chargement impossible')"
+      ><q-btn flat :label="ui('Réessayer')" @click="load"
+    /></EmptyState>
     <q-table
       flat
       bordered
@@ -61,10 +68,10 @@
       row-key="id"
       :loading="loading"
       :grid="$q.screen.lt.sm"
-      v-model:pagination="pagination"
-      :rows-per-page-options="[25]"
+      :pagination="{ rowsPerPage: 0 }"
+      hide-bottom
+      :rows-per-page-options="[0]"
       :no-data-label="ui('Aucun compte pour ces critères')"
-      @request="onRequest"
       @row-click="(_, row) => open(row)"
     >
       <template #body-cell-status="props">
@@ -75,6 +82,16 @@
         >
       </template>
     </q-table>
+    <LoadMore
+      v-if="!list.loading.value"
+      auto
+      :has-more="list.hasMore.value"
+      :loading="list.loadingMore.value"
+      :error="list.moreError.value"
+      :shown="users.length"
+      :total="list.total.value"
+      @load="list.loadMore"
+    />
 
     <q-dialog v-model="dialog" :maximized="$q.screen.lt.sm">
       <q-card v-if="detail" class="detail-card">
@@ -242,6 +259,9 @@
   </q-page>
 </template>
 <script setup>
+import LoadMore from '@/components/LoadMore.vue'
+import EmptyState from '@/components/EmptyState.vue'
+import { useLoadMore } from '@/composables/useLoadMore'
 import { currentLocale } from '@/i18n'
 import { ui } from '@/i18n/text'
 
@@ -254,10 +274,22 @@ import { adminApi, PERMISSION_LABELS } from '@/services/admin'
 import { apiMessage } from '@/services/account'
 import { useAuthStore } from '@/stores/auth'
 
+const list = useLoadMore(
+  async page =>
+    (
+      await adminApi.users({
+        page,
+        search: filters.search || undefined,
+        status: filters.status || undefined,
+        role: filters.role || undefined
+      })
+    ).data
+)
+
 const $q = useQuasar(),
   auth = useAuthStore()
-const users = ref([]),
-  loading = ref(false),
+const users = list.items,
+  loading = list.loading,
   busy = ref(false),
   error = ref(''),
   dialog = ref(false),
@@ -269,7 +301,6 @@ const filters = reactive({
   status: null,
   role: null
 })
-const pagination = ref({ page: 1, rowsPerPage: 25, rowsNumber: 0 })
 const permissionForm = reactive({ admin: false, permissions: [] })
 const statusLabels = {
   get active() {
@@ -390,32 +421,11 @@ const canEditPermissions = computed(() =>
 const date = value =>
   value ? new Date(value).toLocaleDateString(currentLocale()) : ''
 
-async function load() {
-  loading.value = true
-  error.value = ''
-  try {
-    const { data } = await adminApi.users({
-      page: pagination.value.page,
-      search: filters.search || undefined,
-      status: filters.status || undefined,
-      role: filters.role || undefined
-    })
-    users.value = data.data
-    pagination.value = { ...pagination.value, rowsNumber: data.total }
-  } catch (e) {
-    error.value = apiMessage(e)
-  } finally {
-    loading.value = false
-  }
-}
+const load = list.reload
 function reload() {
-  pagination.value.page = 1
   return load()
 }
-function onRequest({ pagination: next }) {
-  pagination.value.page = next.page
-  return load()
-}
+
 async function open(row) {
   error.value = ''
   try {

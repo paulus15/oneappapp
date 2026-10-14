@@ -1,5 +1,6 @@
 import { boot } from 'quasar/wrappers'
 import axios from 'axios'
+import { setMaintenance } from '@/stores/maintenance'
 import { useAuthStore } from '@/stores/auth'
 import { API_BASE_URL } from '@/utils/media'
 import { onLocaleChosen, requestedLocale } from '@/i18n'
@@ -86,9 +87,21 @@ export default boot(({ app, router }) => {
   // Set up response interceptor to handle token expiry / unauthenticated errors
   api.interceptors.response.use(
     response => {
+      if (response.config.url === '/platform')
+        setMaintenance(response.data.maintenance)
       return response
     },
     error => {
+      if (
+        error.response?.status === 503 &&
+        error.response.data?.code === 'maintenance'
+      ) {
+        setMaintenance({
+          enabled: true,
+          message: error.response.data.message,
+          until: error.response.data.until
+        })
+      }
       if (error.response && error.response.status === 401) {
         // An expired token ends the session. A 401 on an anonymous request (wrong
         // password, OTP step) must not wipe the pending OTP challenge.

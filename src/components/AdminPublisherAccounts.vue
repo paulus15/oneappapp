@@ -58,19 +58,34 @@
         </q-item-section>
       </q-item>
     </q-list>
-    <p v-if="!loading && !accounts.length" class="text-muted">{{
-      ui('Aucun compte lié.')
-    }}</p>
-    <q-pagination
-      v-if="lastPage > 1"
-      v-model="page"
-      :max="lastPage"
-      :disable="saving"
-      @update:model-value="load"
+    <EmptyState
+      v-if="list.error.value"
+      tone="error"
+      icon="cloud_off"
+      :title="ui('Chargement impossible')"
+      ><q-btn flat :label="ui('Réessayer')" @click="load"
+    /></EmptyState>
+    <p
+      v-if="!loading && !list.error.value && !accounts.length"
+      class="text-muted"
+      >{{ ui('Aucun compte lié.') }}</p
+    >
+    <LoadMore
+      v-if="!list.loading.value"
+      auto
+      :has-more="list.hasMore.value"
+      :loading="list.loadingMore.value"
+      :error="list.moreError.value"
+      :shown="accounts.length"
+      :total="list.total.value"
+      @load="list.loadMore"
     />
   </div>
 </template>
 <script setup>
+import LoadMore from '@/components/LoadMore.vue'
+import EmptyState from '@/components/EmptyState.vue'
+import { useLoadMore } from '@/composables/useLoadMore'
 import { onBeforeUnmount, onMounted, ref } from 'vue'
 import { useQuasar } from 'quasar'
 import { adminApi } from '@/services/admin'
@@ -79,16 +94,18 @@ import { ui } from '@/i18n/text'
 
 const props = defineProps({ publisherId: { type: Number, required: true } })
 const $q = useQuasar()
-const accounts = ref([]),
+const list = useLoadMore(
+  async page =>
+    (await adminApi.publisherAccounts(props.publisherId, { linked: 1, page }))
+      .data
+)
+const accounts = list.items,
   options = ref([]),
   account = ref(null)
-const page = ref(1),
-  lastPage = ref(1)
-const loading = ref(false),
+const loading = list.loading,
   saving = ref(false),
   error = ref('')
 let active = true,
-  listRequest = 0,
   searchRequest = 0
 const roleLabel = role =>
   role === 'developer'
@@ -99,27 +116,7 @@ const roleLabel = role =>
 const accountLabel = value =>
   `${value.name} — ${value.email} · ${roleLabel(value.role)}`
 
-async function load() {
-  const request = ++listRequest
-  loading.value = true
-  try {
-    const { data } = await adminApi.publisherAccounts(props.publisherId, {
-      linked: 1,
-      page: page.value
-    })
-    if (!active || request !== listRequest) return
-    accounts.value = data.data
-    lastPage.value = data.last_page
-    if (page.value > data.last_page) {
-      page.value = data.last_page
-      await load()
-    }
-  } catch (e) {
-    if (active && request === listRequest) error.value = apiMessage(e)
-  } finally {
-    if (active && request === listRequest) loading.value = false
-  }
-}
+const load = list.reload
 async function findAccounts(value, update, abort) {
   const request = ++searchRequest
   try {
@@ -147,7 +144,6 @@ async function change(id, attach) {
     if (!active) return
     account.value = null
     options.value = []
-    page.value = 1
     await load()
     if (active)
       $q.notify({ type: 'positive', message: ui('Rattachement mis à jour.') })

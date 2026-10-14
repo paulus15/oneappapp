@@ -25,11 +25,41 @@
         @click="markAll"
       />
     </div>
-    <q-banner v-if="error" class="workspace-alert" role="alert">{{
-      ui(error)
-    }}</q-banner>
-    <q-linear-progress v-if="loading" indeterminate />
-    <q-list bordered separator class="rounded-borders">
+    <EmptyState
+      v-if="error"
+      tone="error"
+      icon="cloud_off"
+      :title="ui('Notifications indisponibles')"
+      :text="ui('Vérifiez votre connexion puis réessayez.')"
+    >
+      <q-btn
+        unelevated
+        no-caps
+        color="primary"
+        icon="refresh"
+        :label="ui('Réessayer')"
+        @click="reload"
+      />
+    </EmptyState>
+    <div v-else-if="loading" class="q-gutter-y-sm" aria-busy="true">
+      <q-skeleton
+        v-for="n in 5"
+        :key="n"
+        height="64px"
+        class="rounded-borders"
+      />
+    </div>
+    <EmptyState
+      v-else-if="!items.length"
+      icon="notifications_none"
+      :title="ui('Aucune notification.')"
+      :text="
+        ui(
+          'Les décisions, réponses et alertes qui vous concernent apparaîtront ici.'
+        )
+      "
+    />
+    <q-list v-else bordered separator class="rounded-borders">
       <q-item
         v-for="n in items"
         :key="n.id"
@@ -49,18 +79,17 @@
           <q-item-label caption>{{ timeAgo(n.created_at) }}</q-item-label>
         </q-item-section>
       </q-item>
-      <q-item v-if="!loading && !items.length"
-        ><q-item-section>{{
-          ui('Aucune notification.')
-        }}</q-item-section></q-item
-      >
     </q-list>
-    <q-pagination
-      v-if="lastPage > 1"
-      v-model="page"
-      :max="lastPage"
-      class="q-mt-md"
-      @update:model-value="load"
+    <LoadMore
+      auto
+      v-if="!loading && !error"
+      :has-more="hasMore"
+      :loading="loadingMore"
+      :error="moreError"
+      :shown="items.length"
+      :total="total"
+      :page-size="20"
+      @load="loadMore"
     />
   </q-page>
 </template>
@@ -70,42 +99,40 @@ import { ui } from '@/i18n/text'
 import { onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { api } from '@/boot/axios'
-import { apiMessage } from '@/services/account'
+import EmptyState from '@/components/EmptyState.vue'
+import LoadMore from '@/components/LoadMore.vue'
+import { useLoadMore } from '@/composables/useLoadMore'
 import { useNotificationsStore } from '@/stores/notifications'
 import { timeAgo } from '@/utils/timeAgo'
 
 const store = useNotificationsStore(),
   router = useRouter()
-const items = ref([]),
-  loading = ref(true),
-  error = ref(''),
-  page = ref(1),
-  lastPage = ref(1)
-async function load() {
-  loading.value = true
-  error.value = ''
-  try {
-    const { data } = await api.get('/notifications', {
-      params: { page: page.value }
-    })
-    items.value = data.data
-    lastPage.value = data.last_page
-  } catch (e) {
-    error.value = apiMessage(e)
-  } finally {
-    loading.value = false
-  }
-}
+const {
+  items,
+  total,
+  hasMore,
+  loading,
+  loadingMore,
+  error,
+  moreError,
+  reload,
+  loadMore
+} = useLoadMore(
+  async page => (await api.get('/notifications', { params: { page } })).data
+)
 async function markAll() {
   await store.markRead()
-  await load()
+  const now = new Date().toISOString()
+  items.value.forEach(n => (n.read_at ||= now))
 }
 async function open(n) {
-  if (!n.read_at) await store.markRead([n.id])
+  if (!n.read_at) {
+    await store.markRead([n.id])
+    n.read_at = new Date().toISOString()
+  }
   if (n.path) router.push(n.path)
-  else await load()
 }
-onMounted(load)
+onMounted(reload)
 </script>
 <style scoped>
 .unread {

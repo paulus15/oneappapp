@@ -50,6 +50,7 @@ export const adminApi = {
   resolveReport: (id, data) => api.post(`/admin/reports/${id}/resolve`, data),
   reviews: params => api.get('/admin/reviews', { params }),
   moderateReview: (id, data) => api.post(`/admin/reviews/${id}/moderate`, data),
+  maintenance: data => api.put('/admin/maintenance', data),
   settings: () => api.get('/admin/settings'),
   updateSettings: data => api.put('/admin/settings', data),
   collections: () => api.get('/admin/collections'),

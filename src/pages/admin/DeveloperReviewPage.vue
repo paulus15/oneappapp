@@ -43,7 +43,20 @@
           :label="ui('Réessayer')"
           @click="load" /></template></q-banner
     ><q-linear-progress v-if="loading" indeterminate />
-    <p v-if="!loading && !profiles.length">{{
+    <EmptyState
+      v-if="list.error.value"
+      tone="error"
+      icon="cloud_off"
+      :title="ui('Chargement impossible')"
+      :text="ui('Les données n’ont pas pu être chargées.')"
+      ><q-btn
+        flat
+        no-caps
+        color="primary"
+        :label="ui('Réessayer')"
+        @click="load"
+    /></EmptyState>
+    <p v-if="!loading && !error && !list.error.value && !profiles.length">{{
       ui('Aucun profil à afficher.')
     }}</p>
     <div class="workspace-grid"
@@ -116,15 +129,22 @@
             "
             @click="decide(p, state)" /></div></q-card
     ></div>
-    <q-pagination
-      v-if="lastPage > 1"
-      v-model="page"
-      :max="lastPage"
-      @update:model-value="load"
+    <LoadMore
+      v-if="!loading && !list.error.value"
+      auto
+      :has-more="list.hasMore.value"
+      :loading="list.loadingMore.value"
+      :error="list.moreError.value"
+      :shown="profiles.length"
+      :total="list.total.value"
+      @load="list.loadMore"
     />
   </q-page>
 </template>
 <script setup>
+import LoadMore from '@/components/LoadMore.vue'
+import EmptyState from '@/components/EmptyState.vue'
+import { useLoadMore } from '@/composables/useLoadMore'
 import { currentLocale } from '@/i18n'
 import { ui } from '@/i18n/text'
 
@@ -134,13 +154,19 @@ import { identityLabels } from '@/utils/identity'
 import { onMounted, reactive, ref } from 'vue'
 import { useQuasar } from 'quasar'
 import { accountApi, apiMessage } from '@/services/account'
+const list = useLoadMore(async page => {
+  const { data } = await accountApi.developers(page, {
+    status: filters.status || undefined,
+    search: filters.search || undefined
+  })
+  return data
+})
+
 const q = useQuasar(),
-  profiles = ref([]),
-  loading = ref(true),
+  profiles = list.items,
+  loading = list.loading,
   busy = ref(false),
-  error = ref(''),
-  page = ref(1),
-  lastPage = ref(1)
+  error = ref('')
 const labels = {
   get draft() {
     return ui('Brouillon')
@@ -187,25 +213,13 @@ const statusOptions = Object.keys(labels).map(value => ({
   }
 }))
 function reload() {
-  page.value = 1
   return load()
 }
-async function load() {
-  loading.value = true
+const load = () => {
   error.value = ''
-  try {
-    const { data } = await accountApi.developers(page.value, {
-      status: filters.status || undefined,
-      search: filters.search || undefined
-    })
-    profiles.value = data.data
-    lastPage.value = data.last_page
-  } catch (e) {
-    error.value = apiMessage(e)
-  } finally {
-    loading.value = false
-  }
+  return list.reload()
 }
+
 function decide(profile, status) {
   q.dialog({
     title: actions[status],

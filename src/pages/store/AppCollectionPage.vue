@@ -5,10 +5,35 @@
       ><h1>{{ title }}</h1
       ><p v-if="description">{{ description }}</p></header
     >
-    <q-banner v-if="error" class="workspace-alert" role="alert">{{
-      ui(error)
-    }}</q-banner>
-    <div v-if="kind === 'category'" class="row q-col-gutter-sm q-mb-md">
+    <EmptyState
+      v-if="error"
+      tone="error"
+      :icon="notFound ? 'search_off' : 'cloud_off'"
+      :title="notFound ? ui('Page introuvable') : ui('Chargement impossible')"
+      :text="ui(error)"
+    >
+      <q-btn
+        v-if="!notFound"
+        unelevated
+        no-caps
+        color="primary"
+        icon="refresh"
+        :label="ui('Réessayer')"
+        @click="reload"
+      />
+      <q-btn
+        v-else
+        outline
+        no-caps
+        color="primary"
+        :label="ui('Retour à l’accueil')"
+        to="/"
+      />
+    </EmptyState>
+    <div
+      v-if="kind === 'category' && !error"
+      class="row q-col-gutter-sm q-mb-md"
+    >
       <div class="col-12 col-sm-6 col-md-4">
         <q-select
           v-model="sortBy"
@@ -21,14 +46,24 @@
         />
       </div>
     </div>
-    <AppGrid
-      :apps="apps"
-      :loading="loading"
-      :empty="ui('Aucune application publiée ici pour le moment.')"
-    />
-    <div v-if="lastPage > 1" class="row justify-center q-mt-md">
-      <q-pagination v-model="page" :max="lastPage" />
-    </div>
+    <template v-if="!error">
+      <AppGrid
+        :apps="apps"
+        :loading="loading"
+        :empty="ui('Aucune application publiée ici pour le moment.')"
+      />
+      <LoadMore
+        auto
+        v-if="!loading"
+        :has-more="hasMore"
+        :loading="loadingMore"
+        :error="moreError"
+        :shown="apps.length"
+        :total="total"
+        :page-size="12"
+        @load="loadMore"
+      />
+    </template>
     <AppFooter />
   </q-page>
 </template>
@@ -40,6 +75,9 @@ import { computed, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import AppFooter from '@/components/AppFooter.vue'
 import AppGrid from '@/components/AppGrid.vue'
+import EmptyState from '@/components/EmptyState.vue'
+import LoadMore from '@/components/LoadMore.vue'
+import { useLoadMore } from '@/composables/useLoadMore'
 import { catalogApi } from '@/services/catalog'
 import { apiMessage } from '@/services/account'
 
@@ -48,13 +86,10 @@ const route = useRoute()
 const kind = computed(() =>
   route.path.startsWith('/collections') ? 'collection' : 'category'
 )
-const apps = ref([]),
-  loading = ref(true),
-  error = ref(''),
+const error = ref(''),
+  notFound = ref(false),
   title = ref(''),
   description = ref(''),
-  page = ref(1),
-  lastPage = ref(1),
   sortBy = ref('downloads')
 const eyebrow = computed(() =>
   kind.value === 'collection' ? ui('Sélection') : ui('Catégorie')
@@ -97,47 +132,64 @@ usePageSeo(() => ({
   noindex: !!error.value
 }))
 
-async function load() {
-  loading.value = true
-  error.value = ''
-  try {
-    if (kind.value === 'collection') {
-      const { data } = await catalogApi.collection(route.params.slug)
-      title.value = data.title
-      description.value = data.description
-      apps.value = data.applications
-      lastPage.value = 1
-    } else {
-      const [{ data: category }, { data: list }] = await Promise.all([
-        catalogApi.category(route.params.slug),
-        catalogApi.apps({
-          category: route.params.slug,
-          sort_by: sortBy.value,
-          page: page.value
-        })
-      ])
-      title.value = category.name
-      description.value = category.description
-      apps.value = list.data
-      lastPage.value = list.last_page
+// Metadata travels with its page so late replies cannot change the active heading.
+const {
+  items: apps,
+  total,
+  hasMore,
+  loading,
+  loadingMore,
+  moreError,
+  error: loadError,
+  last,
+  reload,
+  loadMore
+} = useLoadMore(async page => {
+  if (kind.value === 'collection') {
+    const { data } = await catalogApi.collection(route.params.slug)
+    const applications = data.applications || []
+    return {
+      data: applications,
+      last_page: 1,
+      total: applications.length,
+      heading: data.title,
+      description: data.description
     }
-  } catch (e) {
-    error.value =
-      e.response?.status === 404
-        ? ui('Cette page n’existe pas.')
-        : apiMessage(e)
-    apps.value = []
-  } finally {
-    loading.value = false
   }
-}
+  const [header, list] = await Promise.all([
+    page === 1 ? catalogApi.category(route.params.slug) : null,
+    catalogApi.apps({
+      category: route.params.slug,
+      sort_by: sortBy.value,
+      page
+    })
+  ])
+  return {
+    ...list.data,
+    ...(header
+      ? { heading: header.data.name, description: header.data.description }
+      : {})
+  }
+})
+watch([last, loadError], () => {
+  notFound.value = loadError.value && last.value?.response?.status === 404
+  error.value = loadError.value
+    ? notFound.value
+      ? ui('Cette page n’existe pas.')
+      : apiMessage(last.value)
+    : ''
+  if (last.value?.heading !== undefined) {
+    title.value = last.value.heading
+    description.value = last.value.description
+  }
+})
 watch(
-  () => route.params.slug,
+  () => [route.path, sortBy.value],
   () => {
-    page.value = 1
-    load()
+    title.value = ''
+    description.value = ''
+    reload()
   },
   { immediate: true }
 )
-watch([page, sortBy], load)
 </script>

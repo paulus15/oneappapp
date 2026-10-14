@@ -23,10 +23,26 @@
       <q-tab name="decided" :label="t('requests.decided')" />
     </q-tabs>
     <q-linear-progress v-if="loading" indeterminate />
+    <EmptyState
+      v-if="list.error.value"
+      tone="error"
+      icon="cloud_off"
+      :title="ui('Chargement impossible')"
+      :text="ui('Les données n’ont pas pu être chargées.')"
+      ><q-btn
+        flat
+        no-caps
+        color="primary"
+        :label="ui('Réessayer')"
+        @click="load"
+    /></EmptyState>
     <q-banner v-if="error" class="workspace-alert" role="alert">{{
       error
     }}</q-banner>
-    <p v-if="!loading && !items.length" class="empty-queue">
+    <p
+      v-if="!loading && !error && !list.error.value && !items.length"
+      class="empty-queue"
+    >
       <q-icon name="inbox" size="40px" />
       <span>{{
         t(status === 'open' ? 'requests.emptyOpen' : 'requests.emptyDecided')
@@ -122,12 +138,25 @@
         </q-item-section>
       </q-item>
     </q-list>
-    <div v-if="lastPage > 1" class="row justify-center q-mt-md">
-      <q-pagination v-model="page" :max="lastPage" direction-links />
+    <div v-if="!loading" class="row justify-center q-mt-md">
+      <LoadMore
+        v-if="!loading && !list.error.value"
+        auto
+        :has-more="list.hasMore.value"
+        :loading="list.loadingMore.value"
+        :error="list.moreError.value"
+        :shown="items.length"
+        :total="list.total.value"
+        @load="list.loadMore"
+      />
     </div>
   </q-page>
 </template>
 <script setup>
+import { ui } from '@/i18n/text'
+import LoadMore from '@/components/LoadMore.vue'
+import EmptyState from '@/components/EmptyState.vue'
+import { useLoadMore } from '@/composables/useLoadMore'
 import { onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import AdminNav from '@/components/AdminNav.vue'
@@ -137,6 +166,14 @@ import { adminApi } from '@/services/admin'
 import { apiMessage } from '@/services/account'
 
 // Oldest request first: whoever waited longest is decided first.
+const list = useLoadMore(async page => {
+  const { data } = await adminApi.requests({
+    status: status.value,
+    page: page
+  })
+  return data
+})
+
 const { t, locale } = useI18n()
 const REQUEST_COLORS = {
   pending: 'blue-7',
@@ -147,10 +184,8 @@ const REQUEST_COLORS = {
   withdrawn: 'grey-7'
 }
 const status = ref('open'),
-  page = ref(1),
-  lastPage = ref(1),
-  items = ref([]),
-  loading = ref(true),
+  items = list.items,
+  loading = list.loading,
   error = ref('')
 const formatDate = value =>
   value ? new Date(value).toLocaleString(locale.value) : ''
@@ -162,27 +197,14 @@ function timeAgo(value) {
     : rtf.format(-Math.round(hours / 24), 'day')
 }
 
-async function load() {
-  loading.value = true
+const load = () => {
   error.value = ''
-  try {
-    const { data } = await adminApi.requests({
-      status: status.value,
-      page: page.value
-    })
-    items.value = data.data
-    lastPage.value = data.last_page
-  } catch (e) {
-    error.value = apiMessage(e)
-  } finally {
-    loading.value = false
-  }
+  return list.reload()
 }
+
 watch(status, () => {
-  page.value = 1
   load()
 })
-watch(page, load)
 onMounted(load)
 </script>
 <style scoped>

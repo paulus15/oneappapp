@@ -68,41 +68,45 @@
       t('store.apps.count', { n: total }, total)
     }}</p>
 
-    <div v-if="error" class="apps-state glass-panel" role="alert">
-      <q-icon name="cloud_off" />
-      <p>{{ t('store.apps.error') }}</p>
+    <EmptyState
+      v-if="error"
+      tone="error"
+      icon="cloud_off"
+      :title="ui('Catalogue indisponible')"
+      :text="t('store.apps.error')"
+    >
       <q-btn
         unelevated
         no-caps
         color="primary"
         icon="refresh"
         :label="t('common.retry')"
-        @click="fetchApps"
+        @click="reload"
       />
-    </div>
-    <AppGrid
-      v-else
-      :apps="apps"
-      :loading="loading"
-      :empty="
-        search.trim() || category
-          ? t('store.apps.emptyFiltered')
-          : t('store.apps.empty')
-      "
-      :empty-icon="search.trim() || category ? 'search_off' : 'apps'"
-    />
-
-    <div v-if="!loading && lastPage > 1" class="apps-pagination">
-      <q-pagination
-        :model-value="page"
-        :max="lastPage"
-        :max-pages="6"
-        direction-links
-        boundary-numbers
-        color="primary"
-        @update:model-value="setPage"
+    </EmptyState>
+    <template v-else>
+      <AppGrid
+        :apps="apps"
+        :loading="loading"
+        :empty="
+          search.trim() || category
+            ? t('store.apps.emptyFiltered')
+            : t('store.apps.empty')
+        "
+        :empty-icon="search.trim() || category ? 'search_off' : 'apps'"
       />
-    </div>
+      <LoadMore
+        auto
+        v-if="!loading"
+        :has-more="hasMore"
+        :loading="loadingMore"
+        :error="moreError"
+        :shown="apps.length"
+        :total="total"
+        :page-size="12"
+        @load="loadMore"
+      />
+    </template>
 
     <AppFooter />
   </q-page>
@@ -114,6 +118,9 @@ import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import AppFooter from '@/components/AppFooter.vue'
 import AppGrid from '@/components/AppGrid.vue'
+import EmptyState from '@/components/EmptyState.vue'
+import LoadMore from '@/components/LoadMore.vue'
+import { useLoadMore } from '@/composables/useLoadMore'
 import { catalogApi } from '@/services/catalog'
 import { safeColor } from '@/utils/cover'
 import { ui } from '@/i18n/text'
@@ -132,15 +139,9 @@ const MODES = {
 const mode = computed(() => MODES[route.path] || 'all')
 const category = computed(() => String(route.query.category || ''))
 const sortBy = computed(() => String(route.query.sort || 'latest'))
-const page = computed(() => Math.max(1, Number(route.query.page) || 1))
 
 const search = ref(String(route.query.search || ''))
-const apps = ref([]),
-  total = ref(0),
-  lastPage = ref(1),
-  loading = ref(true),
-  error = ref(false),
-  categories = ref([])
+const categories = ref([])
 
 const sortOptions = computed(() =>
   ['latest', 'downloads', 'rating', 'name'].map(value => ({
@@ -149,32 +150,26 @@ const sortOptions = computed(() =>
   }))
 )
 
-let request = 0
-async function fetchApps() {
-  const current = ++request
-  loading.value = true
-  error.value = false
-  try {
-    const params = { page: page.value }
-    if (mode.value === 'all') params.sort_by = sortBy.value
-    else params.filter = mode.value
-    if (category.value) params.category = category.value
-    const query = String(route.query.search || '').trim()
-    if (query) params.search = query
-    const { data } = await catalogApi.apps(params)
-    if (current !== request) return
-    apps.value = Array.isArray(data?.data) ? data.data : []
-    total.value = Number(data?.total ?? apps.value.length)
-    lastPage.value = Math.max(1, Number(data?.last_page) || 1)
-  } catch {
-    if (current !== request) return
-    apps.value = []
-    total.value = 0
-    error.value = true
-  } finally {
-    if (current === request) loading.value = false
-  }
-}
+// Server-side pages, shown as one list that grows with "Voir plus".
+const {
+  items: apps,
+  total,
+  hasMore,
+  loading,
+  loadingMore,
+  error,
+  moreError,
+  reload,
+  loadMore
+} = useLoadMore(async page => {
+  const params = { page }
+  if (mode.value === 'all') params.sort_by = sortBy.value
+  else params.filter = mode.value
+  if (category.value) params.category = category.value
+  const query = String(route.query.search || '').trim()
+  if (query) params.search = query
+  return (await catalogApi.apps(params)).data
+})
 
 function update(changes) {
   const query = { ...route.query, ...changes }
@@ -182,13 +177,10 @@ function update(changes) {
     if (query[key] === '' || query[key] === undefined) delete query[key]
   router.replace({ query })
 }
+// An old ?page= link simply starts from the first page.
 const setCategory = slug => update({ category: slug, page: undefined })
 const setSort = value =>
   update({ sort: value === 'latest' ? undefined : value, page: undefined })
-function setPage(value) {
-  update({ page: value > 1 ? value : undefined })
-  window.scrollTo({ top: 0 })
-}
 function applySearch() {
   clearTimeout(timer)
   update({ search: search.value.trim(), page: undefined })
@@ -208,14 +200,8 @@ watch(
   }
 )
 watch(
-  () => [
-    route.path,
-    route.query.search,
-    category.value,
-    sortBy.value,
-    page.value
-  ],
-  fetchApps,
+  () => [route.path, route.query.search, category.value, sortBy.value],
+  reload,
   { immediate: true }
 )
 
@@ -317,25 +303,6 @@ onMounted(async () => {
   margin: 0 0 10px;
   color: var(--muted);
   font-size: 13px;
-}
-.apps-state {
-  display: grid;
-  justify-items: center;
-  gap: 8px;
-  padding: 32px 16px;
-  color: var(--muted);
-  text-align: center;
-}
-.apps-state > .q-icon {
-  font-size: 36px;
-}
-.apps-state p {
-  margin: 0;
-}
-.apps-pagination {
-  display: flex;
-  justify-content: center;
-  margin-top: 18px;
 }
 @media (max-width: 599px) {
   .apps-toolbar {

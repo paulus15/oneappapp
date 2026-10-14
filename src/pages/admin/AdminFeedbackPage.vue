@@ -40,9 +40,24 @@
       error
     }}</q-banner>
     <q-linear-progress v-if="loading" indeterminate />
-    <p v-if="!loading && !items.length" class="text-muted">{{
-      ui('Aucun retour pour ce filtre.')
-    }}</p>
+    <EmptyState
+      v-if="list.error.value"
+      tone="error"
+      icon="cloud_off"
+      :title="ui('Chargement impossible')"
+      :text="ui('Les données n’ont pas pu être chargées.')"
+      ><q-btn
+        flat
+        no-caps
+        color="primary"
+        :label="ui('Réessayer')"
+        @click="load"
+    /></EmptyState>
+    <EmptyState
+      v-if="!loading && !error && !list.error.value && !items.length"
+      icon="inbox"
+      :title="ui('Aucun retour pour ce filtre.')"
+    />
     <div class="workspace-grid">
       <q-card
         v-for="item in items"
@@ -72,11 +87,15 @@
         </small>
       </q-card>
     </div>
-    <q-pagination
-      v-if="lastPage > 1"
-      v-model="page"
-      :max="lastPage"
-      class="q-mt-md"
+    <LoadMore
+      v-if="!loading && !list.error.value"
+      auto
+      :has-more="list.hasMore.value"
+      :loading="list.loadingMore.value"
+      :error="list.moreError.value"
+      :shown="items.length"
+      :total="list.total.value"
+      @load="list.loadMore"
     />
 
     <q-dialog v-model="dialog" :maximized="$q.screen.lt.sm">
@@ -138,6 +157,9 @@
   </q-page>
 </template>
 <script setup>
+import LoadMore from '@/components/LoadMore.vue'
+import EmptyState from '@/components/EmptyState.vue'
+import { useLoadMore } from '@/composables/useLoadMore'
 import { currentLocale } from '@/i18n'
 import { ui } from '@/i18n/text'
 
@@ -155,14 +177,21 @@ import {
 } from '@/services/suggestions'
 import { SUGGESTION_STATUSES } from '@/utils/suggestions'
 
+const list = useLoadMore(async page => {
+  const { data } = await suggestionsApi.platform({
+    page: page,
+    category: category.value || undefined,
+    status: status.value || undefined
+  })
+  return data
+})
+
 const $q = useQuasar(),
   route = useRoute()
-const items = ref([]),
+const items = list.items,
   counts = ref({}),
-  loading = ref(true),
+  loading = list.loading,
   error = ref(''),
-  page = ref(1),
-  lastPage = ref(1),
   category = ref(null),
   status = ref(null),
   dialog = ref(false),
@@ -188,24 +217,14 @@ const categoryLabel = item =>
   FEEDBACK_CATEGORY_LABELS[item.category] || FEEDBACK_CATEGORY_LABELS.other
 const authorName = item => item.author?.name || ui('Compte supprimé')
 
-async function load() {
-  loading.value = true
+const load = () => {
   error.value = ''
-  try {
-    const { data } = await suggestionsApi.platform({
-      page: page.value,
-      category: category.value || undefined,
-      status: status.value || undefined
-    })
-    items.value = data.data
-    counts.value = data.counts || {}
-    lastPage.value = data.meta?.last_page || 1
-  } catch (e) {
-    error.value = apiMessage(e)
-  } finally {
-    loading.value = false
-  }
+  return list.reload()
 }
+
+watch(list.last, data => {
+  if (data && !(data instanceof Error)) counts.value = data.counts || {}
+})
 
 // Two quick clicks: only the last opened item may fill the dialog (no reply to the wrong author).
 let openedId = null
@@ -252,10 +271,8 @@ async function save() {
 }
 
 watch([category, status], () => {
-  page.value = 1
   load()
 })
-watch(page, load)
 onMounted(async () => {
   await load()
   const id = Number(route.query.id)

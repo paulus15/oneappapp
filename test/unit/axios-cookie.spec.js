@@ -142,3 +142,38 @@ describe('first-visit country detection', () => {
     expect(detectVisitorCountry).not.toHaveBeenCalled()
   })
 })
+
+describe('maintenance responses', () => {
+  it('activates the maintenance screen only for an explicit maintenance response', async () => {
+    const { maintenance, setMaintenance } = await import('@/stores/maintenance')
+    setMaintenance({ enabled: false })
+    adapter.mockImplementation(async config => {
+      throw {
+        config,
+        response: { status: 503, data: { message: 'Unavailable' } }
+      }
+    })
+    await expect(api.get('/home')).rejects.toBeTruthy()
+    expect(maintenance.enabled).toBe(false)
+    adapter.mockImplementation(async config => {
+      throw {
+        config,
+        response: {
+          status: 503,
+          data: { code: 'maintenance', message: 'Mise à jour' }
+        }
+      }
+    })
+    await expect(api.get('/home')).rejects.toBeTruthy()
+    expect(maintenance.enabled).toBe(true)
+    expect(maintenance.message).toBe('Mise à jour')
+    adapter.mockImplementation(async config => ({
+      config,
+      data: { maintenance: { enabled: false } },
+      status: 200,
+      headers: {}
+    }))
+    await api.get('/platform')
+    expect(maintenance.enabled).toBe(false)
+  })
+})

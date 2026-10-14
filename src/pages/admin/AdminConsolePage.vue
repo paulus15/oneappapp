@@ -100,15 +100,27 @@
               </q-item-section>
             </q-item>
           </q-list>
-          <p v-if="!apps.length" class="q-mt-md">{{
-            ui('Aucune application pour ce filtre.')
-          }}</p>
-          <q-pagination
-            v-if="lastPage > 1"
-            v-model="page"
-            :max="lastPage"
+          <EmptyState
+            v-if="list.error.value"
+            tone="error"
+            icon="cloud_off"
+            :title="ui('Chargement impossible')"
+            ><q-btn flat :label="ui('Réessayer')" @click="fetchApps"
+          /></EmptyState>
+          <p
+            v-if="!loading && !list.error.value && !apps.length"
             class="q-mt-md"
-            @update:model-value="fetchApps"
+            >{{ ui('Aucune application pour ce filtre.') }}</p
+          >
+          <LoadMore
+            v-if="!loading"
+            auto
+            :has-more="list.hasMore.value"
+            :loading="list.loadingMore.value"
+            :error="list.moreError.value"
+            :shown="apps.length"
+            :total="list.total.value"
+            @load="list.loadMore"
           />
         </q-card>
       </div>
@@ -277,6 +289,9 @@
 </template>
 
 <script setup>
+import LoadMore from '@/components/LoadMore.vue'
+import EmptyState from '@/components/EmptyState.vue'
+import { useLoadMore } from '@/composables/useLoadMore'
 import InstallCountHelp from '@/components/InstallCountHelp.vue'
 import { currentLocale } from '@/i18n'
 import { ui } from '@/i18n/text'
@@ -300,10 +315,18 @@ import {
 const { t } = useI18n()
 const $q = useQuasar(),
   auth = useAuthStore()
-const apps = ref([]),
-  page = ref(1),
-  lastPage = ref(1),
-  loading = ref(true),
+const list = useLoadMore(
+  async page =>
+    (
+      await adminApi.apps({
+        page,
+        status: filters.status || undefined,
+        search: filters.search || undefined
+      })
+    ).data
+)
+const apps = list.items,
+  loading = list.loading,
   busy = ref(false),
   error = ref(''),
   selectedApp = ref(null),
@@ -321,25 +344,11 @@ const canManageCatalog = computed(() =>
   auth.user?.admin_permissions?.includes('catalog.manage')
 )
 
-async function fetchApps() {
-  loading.value = true
+const fetchApps = () => {
   error.value = ''
-  try {
-    const { data } = await adminApi.apps({
-      page: page.value,
-      status: filters.status || undefined,
-      search: filters.search || undefined
-    })
-    apps.value = data.data
-    lastPage.value = data.last_page
-  } catch (e) {
-    error.value = apiMessage(e)
-  } finally {
-    loading.value = false
-  }
+  return list.reload()
 }
 function reload() {
-  page.value = 1
   selectedApp.value = null
   return fetchApps()
 }

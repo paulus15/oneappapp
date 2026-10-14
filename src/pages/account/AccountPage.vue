@@ -70,9 +70,24 @@
         <MySuggestions v-else-if="tab === 'suggestions'" />
         <AccountPreferences v-else-if="tab === 'preferences'" />
         <section v-else-if="tab === 'favorites'">
-          <p v-if="!favorites.length && !error">{{
-            ui('Vous n’avez pas encore de favoris.')
-          }}</p>
+          <q-linear-progress v-if="favoriteList.loading.value" indeterminate />
+          <EmptyState
+            v-else-if="favoriteList.error.value"
+            tone="error"
+            icon="cloud_off"
+            :title="ui('Chargement impossible')"
+            ><q-btn flat :label="ui('Réessayer')" @click="loadFavorites"
+          /></EmptyState>
+          <EmptyState
+            v-else-if="!favorites.length"
+            icon="favorite_border"
+            :title="ui('Vous n’avez pas encore de favoris.')"
+            ><q-btn
+              flat
+              color="primary"
+              to="/applications"
+              :label="ui('Découvrir les applications')"
+          /></EmptyState>
           <div class="workspace-grid"
             ><q-card
               v-for="item in favorites"
@@ -94,11 +109,15 @@
                   :loading="removing === item.id"
                   @click="remove(item.id)" /></div></q-card
           ></div>
-          <q-pagination
-            v-if="lastPage > 1"
-            v-model="page"
-            :max="lastPage"
-            @update:model-value="loadFavorites"
+          <LoadMore
+            v-if="!favoriteList.loading.value"
+            auto
+            :has-more="favoriteList.hasMore.value"
+            :loading="favoriteList.loadingMore.value"
+            :error="favoriteList.moreError.value"
+            :shown="favorites.length"
+            :total="favoriteList.total.value"
+            @load="favoriteList.loadMore"
           />
         </section>
         <div v-else-if="tab === 'profile'" class="workspace-grid">
@@ -174,6 +193,9 @@
   </q-page>
 </template>
 <script setup>
+import LoadMore from '@/components/LoadMore.vue'
+import EmptyState from '@/components/EmptyState.vue'
+import { useLoadMore } from '@/composables/useLoadMore'
 import { useI18n } from 'vue-i18n'
 import { ui } from '@/i18n/text'
 
@@ -218,9 +240,10 @@ const loading = ref(true),
   tabFromQuery = () =>
     LINKABLE_TABS.includes(route.query.tab) ? route.query.tab : 'activity',
   tab = ref(tabFromQuery())
-const favorites = ref([]),
-  page = ref(1),
-  lastPage = ref(1)
+const favoriteList = useLoadMore(
+  async page => (await accountApi.favorites(page)).data
+)
+const favorites = favoriteList.items
 // The mobile bar opens "Favoris" then "Profil" on the same page: follow the URL.
 watch(
   () => route.query.tab,
@@ -229,15 +252,7 @@ watch(
 watch(developerView, () => {
   if (tab.value === 'library') tab.value = 'activity'
 })
-async function loadFavorites() {
-  try {
-    const { data } = await accountApi.favorites(page.value)
-    favorites.value = data.data
-    lastPage.value = data.last_page
-  } catch (e) {
-    error.value = apiMessage(e)
-  }
-}
+const loadFavorites = favoriteList.reload
 async function load() {
   loading.value = true
   error.value = ''

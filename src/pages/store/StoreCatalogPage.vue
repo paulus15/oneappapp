@@ -127,11 +127,29 @@
               }}</h2>
             </div>
           </header>
+          <EmptyState
+            v-if="searchList.error.value"
+            tone="error"
+            icon="cloud_off"
+            :title="ui('Chargement impossible')"
+            ><q-btn flat :label="ui('Réessayer')" @click="fetchApps"
+          /></EmptyState>
           <AppGrid
+            v-else
             :apps="rawApps"
             :loading="loading"
             :empty="t('store.search.empty')"
             empty-icon="search_off"
+          />
+          <LoadMore
+            v-if="!loading"
+            auto
+            :has-more="searchList.hasMore.value"
+            :loading="searchList.loadingMore.value"
+            :error="searchList.moreError.value"
+            :shown="rawApps.length"
+            :total="total"
+            @load="searchList.loadMore"
           />
         </section>
       </template>
@@ -301,6 +319,9 @@
 </template>
 
 <script setup>
+import LoadMore from '@/components/LoadMore.vue'
+import EmptyState from '@/components/EmptyState.vue'
+import { useLoadMore } from '@/composables/useLoadMore'
 import { computed, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
@@ -344,9 +365,16 @@ const categoryApps = ref([])
 const categoryLoading = ref(false)
 const categoryError = ref('')
 
-const rawApps = ref([])
-const total = ref(0)
-const loading = ref(false)
+const searchList = useLoadMore(async page => {
+  if (!activeSearch.value) return { data: [], last_page: 1, total: 0 }
+  const params = { page, sort_by: sortBy.value, search: activeSearch.value }
+  if (selectedPriceType.value) params.price_type = selectedPriceType.value
+  if (selectedPlatform.value) params.platform = selectedPlatform.value
+  return (await catalogApi.apps(params)).data
+})
+const rawApps = searchList.items,
+  total = searchList.total,
+  loading = searchList.loading
 const selectedPriceType = ref('')
 const selectedPlatform = ref('')
 const sortBy = ref('latest')
@@ -472,24 +500,7 @@ async function loadHome() {
   }
 }
 
-async function fetchApps() {
-  if (!activeSearch.value) return
-  loading.value = true
-  try {
-    const params = { sort_by: sortBy.value, search: activeSearch.value }
-    if (selectedPriceType.value) params.price_type = selectedPriceType.value
-    if (selectedPlatform.value) params.platform = selectedPlatform.value
-    const { data } = await catalogApi.apps(params)
-    rawApps.value = list(data?.data)
-    total.value = Number(data?.total ?? rawApps.value.length)
-  } catch (err) {
-    console.error('Error fetching applications', err)
-    rawApps.value = []
-    total.value = 0
-  } finally {
-    loading.value = false
-  }
-}
+const fetchApps = searchList.reload
 
 async function fetchCategory() {
   if (!activeCategory.value || activeSearch.value) return

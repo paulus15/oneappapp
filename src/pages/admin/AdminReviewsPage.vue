@@ -47,6 +47,19 @@
       ui(error)
     }}</q-banner>
     <q-linear-progress v-if="loading" indeterminate />
+    <EmptyState
+      v-if="list.error.value"
+      tone="error"
+      icon="cloud_off"
+      :title="ui('Chargement impossible')"
+      :text="ui('Les données n’ont pas pu être chargées.')"
+      ><q-btn
+        flat
+        no-caps
+        color="primary"
+        :label="ui('Réessayer')"
+        @click="load"
+    /></EmptyState>
     <q-list bordered separator class="rounded-borders">
       <q-item v-for="review in reviews" :key="review.id">
         <q-item-section>
@@ -81,22 +94,28 @@
           />
         </q-item-section>
       </q-item>
-      <q-item v-if="!loading && !reviews.length"
+      <q-item v-if="!loading && !error && !list.error.value && !reviews.length"
         ><q-item-section>{{
           ui('Aucun avis pour ce filtre.')
         }}</q-item-section></q-item
       >
     </q-list>
-    <q-pagination
-      v-if="lastPage > 1"
-      v-model="page"
-      :max="lastPage"
-      class="q-mt-md"
-      @update:model-value="load"
+    <LoadMore
+      v-if="!loading && !list.error.value"
+      auto
+      :has-more="list.hasMore.value"
+      :loading="list.loadingMore.value"
+      :error="list.moreError.value"
+      :shown="reviews.length"
+      :total="list.total.value"
+      @load="list.loadMore"
     />
   </q-page>
 </template>
 <script setup>
+import LoadMore from '@/components/LoadMore.vue'
+import EmptyState from '@/components/EmptyState.vue'
+import { useLoadMore } from '@/composables/useLoadMore'
 import { ui } from '@/i18n/text'
 
 import { onMounted, reactive, ref } from 'vue'
@@ -105,13 +124,21 @@ import AdminNav from '@/components/AdminNav.vue'
 import { adminApi } from '@/services/admin'
 import { apiMessage } from '@/services/account'
 
+const list = useLoadMore(async page => {
+  const { data } = await adminApi.reviews({
+    page: page,
+    search: filters.search || undefined,
+    status: filters.status || undefined,
+    reported: filters.reported ? 1 : undefined
+  })
+  return data
+})
+
 const $q = useQuasar()
-const reviews = ref([]),
-  loading = ref(true),
+const reviews = list.items,
+  loading = list.loading,
   busy = ref(false),
-  error = ref(''),
-  page = ref(1),
-  lastPage = ref(1)
+  error = ref('')
 const filters = reactive({ search: '', status: null, reported: false })
 const statusOptions = [
   {
@@ -127,26 +154,12 @@ const statusOptions = [
     }
   }
 ]
-async function load() {
-  loading.value = true
+const load = () => {
   error.value = ''
-  try {
-    const { data } = await adminApi.reviews({
-      page: page.value,
-      search: filters.search || undefined,
-      status: filters.status || undefined,
-      reported: filters.reported ? 1 : undefined
-    })
-    reviews.value = data.data
-    lastPage.value = data.last_page
-  } catch (e) {
-    error.value = apiMessage(e)
-  } finally {
-    loading.value = false
-  }
+  return list.reload()
 }
+
 function reload() {
-  page.value = 1
   return load()
 }
 function moderate(review) {

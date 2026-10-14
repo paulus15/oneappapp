@@ -9,12 +9,12 @@ export function resolveAccess(to, auth, { isMobile = false } = {}) {
     return { path: '/login', query: { redirect: to.fullPath } }
   // Developer tools are desktop/tablet only; on mobile a developer is a regular user.
   if (isMobile && isDeveloperArea(to.path)) return '/account'
-  if (to.meta.adminOnly && !auth.isAdmin) return '/account'
+  if (to.meta.adminOnly && !auth.isAdmin) return '/errors/403'
   if (
     to.meta.permission &&
     !auth.user?.admin_permissions?.includes(to.meta.permission)
   )
-    return '/admin'
+    return '/errors/403'
   if (to.meta.developerOnly && !auth.isDeveloper) return '/developer/activate'
   // Activation is done once; afterwards every "developer space" entry opens the profile.
   if (to.path === '/developer/activate' && auth.isDeveloper)

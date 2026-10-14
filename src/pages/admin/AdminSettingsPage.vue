@@ -10,6 +10,7 @@
       }}</p></header
     >
     <AdminNav />
+    <MaintenanceSettings class="settings-card" />
     <q-banner v-if="error" class="workspace-alert q-mb-md" role="alert">{{
       ui(error)
     }}</q-banner>
@@ -81,6 +82,7 @@ import { ui } from '@/i18n/text'
 
 import { computed, onMounted, ref } from 'vue'
 import { useQuasar } from 'quasar'
+import MaintenanceSettings from '@/components/MaintenanceSettings.vue'
 import AdminNav from '@/components/AdminNav.vue'
 import { adminApi } from '@/services/admin'
 import { apiMessage } from '@/services/account'
