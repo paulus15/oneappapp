@@ -31,6 +31,8 @@
           v-model="form.subject"
           outlined
           :options="subjects"
+          emit-value
+          map-options
           :label="ui('Sujet')"
         />
         <q-input
@@ -77,26 +79,32 @@
 <script setup>
 import { ui } from '@/i18n/text'
 
-import { reactive, ref } from 'vue'
+import { computed, reactive, ref } from 'vue'
+import { useRoute } from 'vue-router'
 import AppFooter from '@/components/AppFooter.vue'
 import { useAuthStore } from '@/stores/auth'
 import { catalogApi } from '@/services/catalog'
 import { apiMessage } from '@/services/account'
 
 const auth = useAuthStore()
-const subjects = [
-  ui('Question'),
-  ui('Développeur'),
-  ui('Signalement'),
-  ui('Données personnelles'),
-  ui('Autre')
+// The API expects the French value; the label follows the interface language.
+// "Modifier mon compte": country and e-mail are corrected by support only.
+const SUBJECTS = [
+  'Question',
+  'Développeur',
+  'Signalement',
+  'Données personnelles',
+  'Modifier mon compte',
+  'Autre'
 ]
+const subjects = computed(() =>
+  SUBJECTS.map(value => ({ value, label: ui(value) }))
+)
+const requested = String(useRoute().query.subject || '')
 const form = reactive({
   name: auth.user?.name || '',
   email: auth.user?.email || '',
-  get subject() {
-    return ui('Question')
-  },
+  subject: SUBJECTS.includes(requested) ? requested : 'Question',
   message: '',
   website: ''
 })

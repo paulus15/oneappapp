@@ -36,6 +36,9 @@ export const adminApi = {
   users: params => api.get('/admin/users', { params }),
   user: id => api.get(`/admin/users/${id}`),
   userStatus: (id, data) => api.post(`/admin/users/${id}/status`, data),
+  // Users cannot change these themselves: support corrects them on request.
+  userCountry: (id, data) => api.put(`/admin/users/${id}/country`, data),
+  userEmail: (id, data) => api.post(`/admin/users/${id}/email`, data),
   userPermissions: (id, data) =>
     api.put(`/admin/users/${id}/permissions`, data),
   auditLogs: params => api.get('/admin/audit-logs', { params }),

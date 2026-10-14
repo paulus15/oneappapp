@@ -142,6 +142,61 @@
             />
           </div>
         </q-card-section>
+        <!-- Users cannot change their country or e-mail: support corrects them on request. -->
+        <q-card-section
+          v-if="
+            !detail.user.anonymized_at &&
+            detail.user.status !== 'deactivated' &&
+            detail.user.id !== auth.user?.id
+          "
+        >
+          <h3>{{ ui('Corriger le compte') }}</h3>
+          <p class="text-caption text-muted">{{
+            ui(
+              'À la demande de l’utilisateur uniquement. Le motif est conservé dans le journal et l’utilisateur est prévenu.'
+            )
+          }}</p>
+          <div class="correction-row">
+            <CountrySelect
+              v-model="correction.country_id"
+              :label="ui('Nouveau pays')"
+            />
+            <q-btn
+              outline
+              no-caps
+              color="primary"
+              :label="ui('Corriger le pays')"
+              :disable="
+                busy ||
+                !correction.country_id ||
+                correction.country_id === detail.user.country?.id
+              "
+              @click="correctCountry"
+            />
+          </div>
+          <div class="correction-row">
+            <q-input
+              v-model="correction.email"
+              type="email"
+              outlined
+              dense
+              :label="ui('Nouvelle adresse e-mail')"
+            />
+            <q-btn
+              outline
+              no-caps
+              color="primary"
+              :label="ui('Envoyer le lien de confirmation')"
+              :disable="busy || !/^\S+@\S+\.\S+$/.test(correction.email)"
+              @click="correctEmail"
+            />
+          </div>
+          <p class="text-caption text-muted">{{
+            ui(
+              'La nouvelle adresse ne remplace l’ancienne qu’une fois le lien ouvert par son titulaire (48 heures). L’adresse actuelle est prévenue immédiatement.'
+            )
+          }}</p>
+        </q-card-section>
         <q-card-section v-if="canEditPermissions">
           <h3>{{ ui('Accès administrateur') }}</h3>
           <q-toggle
@@ -194,6 +249,7 @@ import { computed, onMounted, reactive, ref } from 'vue'
 import { useQuasar } from 'quasar'
 import { useRoute } from 'vue-router'
 import AdminNav from '@/components/AdminNav.vue'
+import CountrySelect from '@/components/CountrySelect.vue'
 import { adminApi, PERMISSION_LABELS } from '@/services/admin'
 import { apiMessage } from '@/services/account'
 import { useAuthStore } from '@/stores/auth'
@@ -404,6 +460,35 @@ async function act(action, message) {
     busy.value = false
   }
 }
+const correction = reactive({ country_id: null, email: '' })
+async function correctCountry() {
+  const reason = await askReason(ui('Corriger le pays du compte'))
+  if (!reason) return
+  await act(
+    () =>
+      adminApi.userCountry(detail.value.user.id, {
+        country_id: correction.country_id,
+        reason
+      }),
+    ui('Pays corrigé. L’utilisateur est prévenu.')
+  )
+  correction.country_id = null
+}
+async function correctEmail() {
+  const reason = await askReason(ui('Changer l’adresse e-mail du compte'))
+  if (!reason) return
+  await act(
+    () =>
+      adminApi.userEmail(detail.value.user.id, {
+        email: correction.email.trim(),
+        reason
+      }),
+    ui(
+      'Lien envoyé à la nouvelle adresse. Elle remplacera l’ancienne une fois confirmée.'
+    )
+  )
+  correction.email = ''
+}
 async function setStatus(status) {
   const reason = await askReason(
     status === 'suspended'
@@ -459,5 +544,17 @@ dt {
 dd {
   margin: 0;
   overflow-wrap: anywhere;
+}
+.correction-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px;
+  align-items: center;
+  margin-bottom: 10px;
+}
+@media (max-width: 599px) {
+  .correction-row {
+    grid-template-columns: 1fr;
+  }
 }
 </style>

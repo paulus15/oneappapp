@@ -1,12 +1,18 @@
 <template>
   <!-- Store-style tile: large icon, name, category and rating (only when reviews exist). -->
   <router-link :to="card.to" class="store-tile" :aria-label="label">
-    <span class="tile-icon" :style="{ '--tile-color': card.color }">
-      <AppIcon
-        :src="card.iconUrl"
-        :alt="''"
-        :fallback-icon="card.icon || 'apps'"
-      />
+    <!-- The backdrop is the logo itself, enlarged and blurred: each tile takes its app's own colours. -->
+    <span class="tile-icon" :class="{ 'has-logo': card.iconUrl }">
+      <span v-if="card.iconUrl" class="tile-glow" aria-hidden="true"
+        ><AppIcon :src="card.iconUrl" alt=""
+      /></span>
+      <span class="tile-logo">
+        <AppIcon
+          :src="card.iconUrl"
+          :alt="''"
+          :fallback-icon="card.icon || 'apps'"
+        />
+      </span>
     </span>
     <strong class="tile-name">{{ card.name }}</strong>
     <small v-if="card.category" class="tile-category">{{
@@ -62,25 +68,105 @@ const label = computed(() =>
   outline: 3px solid color-mix(in srgb, var(--pwa-primary) 45%, transparent);
   outline-offset: 2px;
 }
+/* Frosted square: a soft neutral base, the blurred logo glowing behind, the real logo on top. */
 .tile-icon {
+  position: relative;
   width: 100%;
   aspect-ratio: 1;
   max-width: 96px;
   display: grid;
   place-items: center;
   overflow: hidden;
+  isolation: isolate;
   margin-bottom: 6px;
-  color: #fff;
-  font-size: 34px;
-  background: var(--tile-color, var(--pwa-primary));
-  border-radius: 22%;
-  box-shadow: 0 6px 16px rgba(4, 18, 51, 0.16);
+  background: linear-gradient(
+    145deg,
+    color-mix(in srgb, var(--pwa-primary) 10%, var(--surface)),
+    color-mix(in srgb, var(--pwa-secondary) 8%, var(--surface))
+  );
+  border: 1px solid color-mix(in srgb, var(--text) 8%, transparent);
+  border-radius: 24%;
+  box-shadow:
+    0 8px 22px rgba(4, 18, 51, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.35);
+  transition:
+    transform 0.3s ease,
+    box-shadow 0.3s ease;
 }
-.tile-icon :deep(.app-icon-fallback) {
+.tile-glow {
+  position: absolute;
+  inset: -30%;
+  z-index: 0;
+  opacity: 0.55;
+  filter: blur(18px) saturate(1.6);
+  transform: scale(1.1);
+  pointer-events: none;
+}
+.tile-glow :deep(.app-icon-image) {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+/* A broken logo shows no fallback glyph in the glow, only the soft base. */
+.tile-glow :deep(.app-icon-fallback) {
+  display: none;
+}
+/* Glass sheen over the glow, so every colour stays gentle. */
+.tile-icon.has-logo::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background: linear-gradient(
+    160deg,
+    rgba(255, 255, 255, 0.35),
+    rgba(255, 255, 255, 0.05) 55%
+  );
+  pointer-events: none;
+}
+.tile-logo {
+  position: relative;
+  z-index: 2;
+  width: 62%;
+  aspect-ratio: 1;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  color: var(--pwa-primary);
+  font-size: 30px;
+  border-radius: 24%;
+  box-shadow: 0 6px 14px rgba(4, 18, 51, 0.22);
+  transition: transform 0.3s ease;
+}
+/* No logo: the category glyph in brand blue on a light tint, readable in both themes. */
+.tile-logo :deep(.app-icon-fallback) {
   display: grid;
   place-items: center;
   width: 100%;
   height: 100%;
+  color: var(--pwa-primary);
+  background: color-mix(in srgb, var(--pwa-primary) 14%, var(--surface));
+}
+.tile-logo :deep(.app-icon-fallback .q-icon) {
+  color: inherit;
+  font-size: 30px;
+}
+.store-tile:hover .tile-icon {
+  box-shadow:
+    0 12px 28px rgba(4, 18, 51, 0.16),
+    inset 0 1px 0 rgba(255, 255, 255, 0.35);
+}
+.store-tile:hover .tile-logo {
+  transform: translateY(-2px) scale(1.04);
+}
+/* Dark theme: the sheen would grey the glow; keep it faint. */
+.body--dark .tile-icon.has-logo::after,
+.theme-dark .tile-icon.has-logo::after {
+  background: linear-gradient(
+    160deg,
+    rgba(255, 255, 255, 0.12),
+    transparent 60%
+  );
 }
 .tile-name,
 .tile-category {
@@ -111,7 +197,9 @@ const label = computed(() =>
   font-size: 14px;
 }
 @media (prefers-reduced-motion: reduce) {
-  .store-tile {
+  .store-tile,
+  .tile-icon,
+  .tile-logo {
     transition: none;
   }
 }

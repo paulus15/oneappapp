@@ -236,6 +236,11 @@ const routes = [
         component: () => import('@/pages/auth/VerifyEmailPage.vue')
       },
       {
+        // Link sent by support to a new address (see AccountCorrection on the API).
+        path: 'confirm-email',
+        component: () => import('@/pages/auth/ConfirmEmailPage.vue')
+      },
+      {
         path: 'login',
         component: () => import('@/pages/auth/LoginPage.vue'),
         meta: { guestOnly: true }

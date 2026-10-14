@@ -133,6 +133,16 @@
                   ui('L’adresse e-mail du compte ne peut pas être modifiée.')
                 "
               />
+              <p class="text-caption">
+                {{ ui('Une erreur sur votre pays ou votre adresse ?') }}
+                <router-link
+                  :to="{
+                    path: '/contact',
+                    query: { subject: 'Modifier mon compte' }
+                  }"
+                  >{{ ui('Demander une correction au support') }}</router-link
+                >
+              </p>
               <q-btn
                 type="submit"
                 no-caps
