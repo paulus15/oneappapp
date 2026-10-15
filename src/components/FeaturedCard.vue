@@ -1,5 +1,5 @@
 <template>
-  <router-link :to="card.to" class="featured-card">
+  <router-link :to="listingTo(card.to)" class="featured-card">
     <div class="featured-cover">
       <CoverImage
         :cover="card.cover"
@@ -48,6 +48,7 @@ import AppIcon from '@/components/AppIcon.vue'
 import CoverImage from '@/components/CoverImage.vue'
 import HostingBadge from '@/components/HostingBadge.vue'
 import { toCard } from '@/utils/appCard'
+import { useListingLink } from '@/composables/useListingSource'
 import { ui } from '@/i18n/text'
 
 // "À la une": the whole card is one link; the CTA is a visual cue, not a second stop.
@@ -57,6 +58,7 @@ const props = defineProps({
 })
 const { t } = useI18n()
 const card = computed(() => toCard(props.app))
+const listingTo = useListingLink()
 </script>
 <style scoped>
 .featured-card {

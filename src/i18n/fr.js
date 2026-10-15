@@ -9,8 +9,23 @@ export default {
       'Appliquer « {change} » au retour sélectionné ? | Appliquer « {change} » aux {n} retours sélectionnés ?',
     attachments: '{n} fichier joint | {n} fichiers joints'
   },
+  beta: {
+    spots: 'Complet | {n} place restante | {n} places restantes',
+    feedback: 'Aucun retour | {n} retour | {n} retours',
+    applied: 'Aucune candidature | {n} candidature | {n} candidatures',
+    accepted:
+      'Aucun testeur accepté | {n} testeur accepté | {n} testeurs acceptés',
+    newFeedback: 'Aucun nouveau | {n} nouveau | {n} nouveaux',
+    images: '{n} capture jointe | {n} capture jointe | {n} captures jointes'
+  },
   growth: {
     visits: '{n} visite | {n} visites'
+  },
+  analytics: {
+    reviews:
+      'Aucun avis reçu sur la période | {n} avis reçu sur la période | {n} avis reçus sur la période',
+    partial:
+      'Période incomplète (coupée par les dates choisies) : {list} | Périodes incomplètes (coupées par les dates choisies) : {list}'
   },
   lab: {
     info: '{n} info | {n} info | {n} infos',

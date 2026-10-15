@@ -65,6 +65,16 @@ export const adminLinks = [
     permission: 'reports.handle'
   },
   {
+    to: '/admin/beta',
+    get label() {
+      return ui('Tests bêta')
+    },
+    icon: 'biotech',
+    permission: 'apps.moderate',
+    // Shown only when the platform tool is on.
+    tool: 'beta'
+  },
+  {
     to: '/admin/reviews',
     get label() {
       return ui('Avis')

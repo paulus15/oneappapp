@@ -1,5 +1,5 @@
 <template>
-  <router-link :to="app.to" class="glass-panel app-card">
+  <router-link :to="listingTo(app.to)" class="glass-panel app-card">
     <div class="app-icon" :style="{ background: app.color }">
       <AppIcon
         :src="app.iconUrl"
@@ -30,7 +30,9 @@ import { ui } from '@/i18n/text'
 import AppIcon from '@/components/AppIcon.vue'
 import HostingBadge from '@/components/HostingBadge.vue'
 import { currentLocale } from '@/i18n'
+import { useListingLink } from '@/composables/useListingSource'
 defineProps({ app: { type: Object, required: true } })
+const listingTo = useListingLink()
 const priceLabel = value =>
   new Intl.NumberFormat(currentLocale(), {
     style: 'currency',

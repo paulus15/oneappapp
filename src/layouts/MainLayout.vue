@@ -124,6 +124,12 @@
             >{{ t(`nav.${item.key}`) }}</router-link
           >
           <router-link to="/developers">{{ ui('Développeurs') }}</router-link>
+          <router-link
+            v-if="tools.beta"
+            to="/beta"
+            :class="{ active: route.path.startsWith('/beta') }"
+            >{{ ui('Devenir testeur') }}</router-link
+          >
         </nav>
 
         <div class="header-actions">
@@ -250,6 +256,34 @@
               <q-badge rounded :label="item.badge" class="nav-badge" />
             </q-item-section>
           </q-item>
+          <!-- PWA Beta Testing, only when the platform tool is on. -->
+          <template v-if="tools.beta">
+            <q-item
+              clickable
+              v-ripple
+              to="/beta"
+              active-class="nav-active"
+              @click="handleNavigation"
+            >
+              <q-item-section avatar>
+                <span class="nav-icon"><q-icon name="biotech" /></span>
+              </q-item-section>
+              <q-item-section>{{ ui('Devenir testeur') }}</q-item-section>
+            </q-item>
+            <q-item
+              v-if="authStore.isAuthenticated"
+              clickable
+              v-ripple
+              to="/account/beta"
+              active-class="nav-active"
+              @click="handleNavigation"
+            >
+              <q-item-section avatar>
+                <span class="nav-icon"><q-icon name="fact_check" /></span>
+              </q-item-section>
+              <q-item-section>{{ ui('Mes tests') }}</q-item-section>
+            </q-item>
+          </template>
         </q-list>
 
         <template v-if="authStore.isAdmin">
@@ -429,11 +463,13 @@ import { useAuthStore } from '@/stores/auth'
 import { api } from '@/boot/axios'
 import { useI18n } from 'vue-i18n'
 import { LOCALES, setLocale } from '@/i18n'
+import { usePlatform } from '@/composables/usePlatform'
 
 const $q = useQuasar()
 const route = useRoute()
 const router = useRouter()
 const authStore = useAuthStore()
+const { tools } = usePlatform()
 const leftDrawerOpen = ref(false)
 const search = ref('')
 const { isDark, toggleTheme } = useTheme()

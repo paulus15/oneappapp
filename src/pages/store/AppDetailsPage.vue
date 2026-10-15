@@ -487,6 +487,12 @@ import {
   rememberCampaign
 } from '@/utils/growth'
 import { useAuthStore } from '@/stores/auth'
+import { provideListingSource } from '@/composables/useListingSource'
+import {
+  SOURCE_QUERY_KEY,
+  arrivalSnapshot,
+  listingSourceFor
+} from '@/utils/analytics'
 
 const { t, te, locale } = useI18n()
 const { isMobile } = useWorkspaceAccess()
@@ -680,13 +686,21 @@ const info = computed(() => {
 // this app only (session storage), then removed from the address bar without a reload.
 let pendingCampaign = null
 const visitedCampaigns = new Set()
-function captureCampaign() {
+// Removes ?c= and ?src= from the address bar, keeping any other parameter.
+function cleanAddress() {
   const query = route.query || {}
-  if (!Object.hasOwn(query, 'c')) return
-  const { c: token, ...rest } = query
+  if (!Object.hasOwn(query, 'c') && !Object.hasOwn(query, SOURCE_QUERY_KEY))
+    return
+  const { c: _token, [SOURCE_QUERY_KEY]: _source, ...rest } = query
   Promise.resolve(
     router.replace({ path: route.path, query: rest, hash: route.hash })
   ).catch(() => {})
+}
+function captureCampaign() {
+  const query = route.query || {}
+  if (!Object.hasOwn(query, 'c')) return
+  const token = query.c
+  cleanAddress()
   const routeId = String(route.params.id || '')
   if (!routeId || !isCampaignToken(token) || visitedCampaigns.has(token)) return
   visitedCampaigns.add(token)
@@ -727,24 +741,40 @@ function settleCampaignWithin(appId, ms = 1500) {
   ]).finally(() => clearTimeout(timer))
 }
 
-// Optional request body carrying the campaign of this app, if any.
-const campaignBody = appId => {
+// Where the visitor came from (PWA Analytics Pro), read once per listing opened: the store
+// section that linked here, another site, or a direct access. App cards shown on this page
+// (similar apps) tag their own links.
+provideListingSource('similar')
+let arrival = null
+function captureArrival() {
+  arrival = arrivalSnapshot(route.query)
+  if (!Object.hasOwn(route.query || {}, 'c')) cleanAddress()
+}
+// Always the arrival source; a campaign token travels alongside and the API gives it
+// precedence. Remembered per app, so a detour (sign-in page…) keeps the first arrival.
+const sourceBody = appId => listingSourceFor(appId, arrival)
+
+// Body of "Ouvrir": the campaign of this app, if any, and the source of the visit.
+// `context` is computed before waiting for the campaign check (the page may change).
+const activationBody = (appId, context) => {
   const campaign = campaignFor(appId)
-  return campaign ? [{ campaign }] : []
+  return { ...(campaign ? { campaign } : {}), ...context }
 }
 
 async function recordAttributedView(appId) {
+  const context = sourceBody(appId)
   try {
     await settleCampaign(appId)
   } catch {
     // Attribution is best effort; the view is still recorded.
   }
   communityApi
-    .recordView(appId, campaignFor(appId) || undefined)
+    .recordView(appId, campaignFor(appId) || undefined, context)
     .catch(() => {})
 }
 
 async function fetchAppDetails() {
+  captureArrival()
   captureCampaign()
   loading.value = true
   error.value = ''
@@ -947,10 +977,12 @@ async function recordWebInstall() {
     localStorage.setItem(`pwa-installed-${app.value.id}`, '1')
   } catch {}
   try {
-    await settleCampaignWithin(app.value.id)
+    const appId = app.value.id
+    const context = sourceBody(appId)
+    await settleCampaignWithin(appId)
     const { data } = await api.post(
-      `/apps/${app.value.id}/activate`,
-      ...campaignBody(app.value.id)
+      `/apps/${appId}/activate`,
+      activationBody(appId, context)
     )
     app.value.activations_count = data.activations_count
     const device = deviceIdentity()
@@ -975,10 +1007,12 @@ async function openApp() {
   const target = window.open('about:blank', '_blank')
   if (target) target.opener = null
   try {
-    await settleCampaignWithin(app.value.id)
+    const appId = app.value.id
+    const context = sourceBody(appId)
+    await settleCampaignWithin(appId)
     const { data } = await api.post(
-      `/apps/${app.value.id}/activate`,
-      ...campaignBody(app.value.id)
+      `/apps/${appId}/activate`,
+      activationBody(appId, context)
     )
     const url = new URL(data.url)
     if (url.protocol !== 'https:')

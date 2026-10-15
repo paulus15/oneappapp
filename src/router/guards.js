@@ -2,11 +2,12 @@
 export const isDeveloperArea = path =>
   path === '/developer' || path.startsWith('/developer/')
 
-// The API remains authoritative; this avoids exposing disabled tool screens.
+// The API remains authoritative; this avoids exposing disabled tool screens. Pages outside
+// the developer space name their own way out (meta.toolFallback).
 export function resolveToolAccess(to, platform) {
   return !to.meta.tool || platform?.tools?.[to.meta.tool] === true
     ? true
-    : '/developer/lab'
+    : to.meta.toolFallback || '/developer/lab'
 }
 
 // With the Feedback Hub on, the former inbox (and its notification links

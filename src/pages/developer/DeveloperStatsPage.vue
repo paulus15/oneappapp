@@ -154,7 +154,7 @@ const metrics = [
   {
     key: 'opens',
     get label() {
-      return ui('Ouvertures mesurées')
+      return ui('Ouvertures mesurées par le SDK')
     }
   },
   {
@@ -169,9 +169,14 @@ const kpis = computed(() => {
   return [
     {
       get label() {
-        return ui('Activations')
+        return ui('Premiers clics sur « Ouvrir » (par compte)')
       },
-      value: t.activations || 0
+      value: t.activations || 0,
+      get hint() {
+        return ui(
+          'Un seul clic compté par compte. Les statistiques avancées en comptent un par compte et par jour.'
+        )
+      }
     },
     {
       get label() {
@@ -181,7 +186,7 @@ const kpis = computed(() => {
     },
     {
       get label() {
-        return ui('Ouvertures')
+        return ui('Ouvertures mesurées par le SDK')
       },
       value: t.opens
     },
@@ -256,7 +261,7 @@ const appColumns = [
   {
     name: 'opens',
     get label() {
-      return ui('Ouvertures')
+      return ui('Ouvertures SDK')
     },
     field: 'opens',
     sortable: true
@@ -264,7 +269,7 @@ const appColumns = [
   {
     name: 'installs',
     get label() {
-      return ui('Installations')
+      return ui('Installations déclarées')
     },
     field: 'installs',
     sortable: true

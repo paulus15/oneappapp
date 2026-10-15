@@ -16,6 +16,16 @@ const routes = [
         meta: { requiresAuth: true }
       },
       {
+        // PWA Beta Testing: the tester's campaigns ("Mes tests").
+        path: 'account/beta',
+        component: () => import('@/pages/account/MyBetaTestsPage.vue'),
+        meta: {
+          requiresAuth: true,
+          tool: 'beta',
+          toolFallback: '/account'
+        }
+      },
+      {
         path: 'developer/activate',
         component: () => import('@/pages/developer/DeveloperProfilePage.vue'),
         meta: { requiresAuth: true }
@@ -116,6 +126,17 @@ const routes = [
         path: 'apps/:id',
         component: () => import('@/pages/store/AppDetailsPage.vue')
       },
+      // PWA Beta Testing: public catalogue ("Devenir testeur") and campaign page.
+      {
+        path: 'beta',
+        component: () => import('@/pages/store/BetaCatalogPage.vue'),
+        meta: { tool: 'beta', toolFallback: '/' }
+      },
+      {
+        path: 'beta/:id(\\d+)',
+        component: () => import('@/pages/store/BetaCampaignPage.vue'),
+        meta: { tool: 'beta', toolFallback: '/' }
+      },
       {
         path: 'admin',
         component: () => import('@/pages/admin/AdminDashboardPage.vue'),
@@ -200,6 +221,17 @@ const routes = [
           requiresAuth: true,
           adminOnly: true,
           permission: 'reports.handle'
+        }
+      },
+      {
+        path: 'admin/beta',
+        component: () => import('@/pages/admin/AdminBetaPage.vue'),
+        meta: {
+          requiresAuth: true,
+          adminOnly: true,
+          permission: 'apps.moderate',
+          tool: 'beta',
+          toolFallback: '/admin'
         }
       },
       {
@@ -305,6 +337,31 @@ const routes = [
         path: 'feedback/:id(\\d+)',
         component: () => import('@/pages/developer/FeedbackDetailPage.vue'),
         meta: { requiresAuth: true, developerOnly: true, tool: 'feedback_hub' }
+      },
+      {
+        path: 'analytics',
+        component: () => import('@/pages/developer/AnalyticsPage.vue'),
+        meta: { requiresAuth: true, developerOnly: true, tool: 'analytics_pro' }
+      },
+      {
+        path: 'beta',
+        component: () => import('@/pages/developer/BetaPage.vue'),
+        meta: { requiresAuth: true, developerOnly: true, tool: 'beta' }
+      },
+      {
+        path: 'beta/new',
+        component: () => import('@/pages/developer/BetaCampaignFormPage.vue'),
+        meta: { requiresAuth: true, developerOnly: true, tool: 'beta' }
+      },
+      {
+        path: 'beta/:id(\\d+)/edit',
+        component: () => import('@/pages/developer/BetaCampaignFormPage.vue'),
+        meta: { requiresAuth: true, developerOnly: true, tool: 'beta' }
+      },
+      {
+        path: 'beta/:id(\\d+)',
+        component: () => import('@/pages/developer/BetaCampaignPage.vue'),
+        meta: { requiresAuth: true, developerOnly: true, tool: 'beta' }
       },
       {
         path: 'profile',

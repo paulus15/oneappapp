@@ -333,6 +333,7 @@ import CountryChoice from '@/components/CountryChoice.vue'
 import CategoryChips from '@/components/store/CategoryChips.vue'
 import StoreAppTile from '@/components/store/StoreAppTile.vue'
 import { useWorkspaceAccess } from '@/composables/useWorkspaceAccess'
+import { provideListingSource } from '@/composables/useListingSource'
 import { ui } from '@/i18n/text'
 import { catalogApi } from '@/services/catalog'
 
@@ -341,6 +342,8 @@ const { isMobile } = useWorkspaceAccess()
 const route = useRoute()
 const router = useRouter()
 const activeSearch = computed(() => String(route.query.search || '').trim())
+// Statistics: a listing opened from here came from the search results or the home page.
+provideListingSource(() => (activeSearch.value ? 'search' : 'home'))
 
 const home = ref(null)
 const homeLoading = ref(true)

@@ -121,6 +121,7 @@ import AppGrid from '@/components/AppGrid.vue'
 import EmptyState from '@/components/EmptyState.vue'
 import LoadMore from '@/components/LoadMore.vue'
 import { useLoadMore } from '@/composables/useLoadMore'
+import { provideListingSource } from '@/composables/useListingSource'
 import { catalogApi } from '@/services/catalog'
 import { safeColor } from '@/utils/cover'
 import { ui } from '@/i18n/text'
@@ -139,6 +140,12 @@ const MODES = {
 const mode = computed(() => MODES[route.path] || 'all')
 const category = computed(() => String(route.query.category || ''))
 const sortBy = computed(() => String(route.query.sort || 'latest'))
+// Statistics: the former home lists stay "home"; the catalogue is a search once filtered.
+provideListingSource(() => {
+  if (mode.value !== 'all') return 'home'
+  if (String(route.query.search || '').trim()) return 'search'
+  return category.value ? 'category' : 'other'
+})
 
 const search = ref(String(route.query.search || ''))
 const categories = ref([])

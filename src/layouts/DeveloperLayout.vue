@@ -233,6 +233,15 @@ const workspaceNavigation = computed(() => [
     badgeColor: requestsSummary.value?.to_fix ? 'orange-8' : 'indigo-6'
   },
   { label: ui('Statistiques'), icon: 'insights', to: '/developer/stats' },
+  ...(tools.value.analytics_pro
+    ? [
+        {
+          label: ui('Statistiques avancées'),
+          icon: 'query_stats',
+          to: '/developer/analytics'
+        }
+      ]
+    : []),
   { label: t('devnav.measure'), icon: 'sensors', to: '/developer/measure' },
   { label: ui('Avis et retours'), icon: 'reviews', to: '/developer/reviews' },
   // The Feedback Hub replaces the former inbox (which then redirects to it).
@@ -246,7 +255,16 @@ const workspaceNavigation = computed(() => [
         label: ui('Suggestions'),
         icon: 'lightbulb',
         to: '/developer/suggestions'
-      }
+      },
+  ...(tools.value.beta
+    ? [
+        {
+          label: ui('Tests bêta'),
+          icon: 'biotech',
+          to: '/developer/beta'
+        }
+      ]
+    : [])
   // Volet Revenus masqué en attendant l’activation de la monétisation.
   // {
   //   label: ui('Revenus'),

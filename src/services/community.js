@@ -11,10 +11,12 @@ export const communityApi = {
   report: data => api.post('/reports', data),
   myReports: page => api.get('/account/reports', { params: { page } }),
   // `campaign`: token of the share link that brought the visitor, for this app only.
-  recordView: (id, campaign) =>
-    campaign
-      ? api.post(`/apps/${id}/view`, { campaign })
-      : api.post(`/apps/${id}/view`),
+  // `context`: { source, referrer_host? } of the visit (PWA Analytics Pro), see utils/analytics.
+  recordView: (id, campaign, context = {}) =>
+    api.post(`/apps/${id}/view`, {
+      ...(campaign ? { campaign } : {}),
+      ...context
+    }),
   preferences: () => api.get('/account/preferences'),
   savePreferences: data => api.put('/account/preferences', data),
   recent: () => api.get('/account/recent'),

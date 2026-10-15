@@ -27,13 +27,16 @@ import { ui } from '@/i18n/text'
 import { computed } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 import { adminLinks } from '@/router/adminLinks'
+import { usePlatform } from '@/composables/usePlatform'
 
 const auth = useAuthStore()
+const { tools } = usePlatform()
 const links = computed(() =>
   adminLinks.filter(
     link =>
-      !link.permission ||
-      auth.user?.admin_permissions?.includes(link.permission)
+      (!link.tool || tools.value[link.tool] === true) &&
+      (!link.permission ||
+        auth.user?.admin_permissions?.includes(link.permission))
   )
 )
 </script>
