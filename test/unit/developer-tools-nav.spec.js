@@ -10,7 +10,7 @@ import DeveloperToolsNav from '@/components/DeveloperToolsNav.vue'
 
 describe('developer tools navigation', () => {
   it('keeps diagnostics available and exposes only enabled, implemented tools', async () => {
-    state.tools = ref({ feedback_hub: false, monitor: false, growth: true })
+    state.tools = ref({ feedback_hub: false, monitor: false, growth: false })
     const wrapper = mount(DeveloperToolsNav, {
       global: {
         stubs: {
@@ -30,8 +30,7 @@ describe('developer tools navigation', () => {
     ])
     expect(wrapper.find('a').attributes('aria-current')).toBe('page')
     expect(wrapper.text()).not.toContain('PWA Monitor')
-    // Growth is flagged on but has no page yet: it stays hidden.
-    expect(wrapper.text()).not.toContain('PWA Growth')
+    expect(wrapper.text()).not.toContain('Promouvoir mon application')
     state.tools.value.monitor = true
     await wrapper.vm.$nextTick()
     expect(wrapper.findAll('a').map(link => link.attributes('href'))).toEqual([
@@ -40,5 +39,15 @@ describe('developer tools navigation', () => {
       '/developer/suggestions'
     ])
     expect(wrapper.text()).toContain('PWA Monitor')
+    // Growth comes right after Monitor once its flag is on.
+    state.tools.value.growth = true
+    await wrapper.vm.$nextTick()
+    expect(wrapper.findAll('a').map(link => link.attributes('href'))).toEqual([
+      '/developer/lab',
+      '/developer/monitor',
+      '/developer/growth',
+      '/developer/suggestions'
+    ])
+    expect(wrapper.text()).toContain('Promouvoir mon application')
   })
 })

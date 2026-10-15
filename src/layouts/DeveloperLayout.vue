@@ -215,6 +215,15 @@ const workspaceNavigation = computed(() => [
         }
       ]
     : []),
+  ...(tools.value.growth
+    ? [
+        {
+          label: ui('Promouvoir mon application'),
+          icon: 'campaign',
+          to: '/developer/growth'
+        }
+      ]
+    : []),
   { label: t('devnav.apps'), icon: 'apps', to: '/developer/apps' },
   {
     label: t('devnav.requests'),

@@ -1,4 +1,7 @@
 export default {
+  growth: {
+    visits: '{n} visit | {n} visits'
+  },
   store: {
     nav: {
       primary: 'Main navigation'

@@ -280,6 +280,16 @@ const routes = [
         meta: { requiresAuth: true, developerOnly: true, tool: 'monitor' }
       },
       {
+        path: 'growth',
+        component: () => import('@/pages/developer/GrowthPage.vue'),
+        meta: { requiresAuth: true, developerOnly: true, tool: 'growth' }
+      },
+      {
+        path: 'growth/campaigns/:id',
+        component: () => import('@/pages/developer/GrowthCampaignPage.vue'),
+        meta: { requiresAuth: true, developerOnly: true, tool: 'growth' }
+      },
+      {
         path: 'profile',
         component: () => import('@/pages/developer/DeveloperProfilePage.vue'),
         meta: { requiresAuth: true, developerOnly: true }

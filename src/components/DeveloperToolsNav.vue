@@ -45,6 +45,18 @@ const availableTools = computed(() => [
         }
       ]
     : []),
+  ...(tools.value.growth
+    ? [
+        {
+          title: ui('Promouvoir mon application'),
+          description: ui(
+            'Créer des liens de partage, des badges et un visuel.'
+          ),
+          icon: 'campaign',
+          to: '/developer/growth'
+        }
+      ]
+    : []),
   ...(tools.value.feedback_hub
     ? [
         {
