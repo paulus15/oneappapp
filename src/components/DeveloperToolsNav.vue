@@ -60,12 +60,12 @@ const availableTools = computed(() => [
   ...(tools.value.feedback_hub
     ? [
         {
-          title: ui('Feedback Hub'),
+          title: ui('Retours utilisateurs'),
           description: ui(
-            'Traiter les suggestions privées de vos utilisateurs.'
+            'Trier et suivre les retours privés de vos utilisateurs.'
           ),
           icon: 'forum',
-          to: '/developer/suggestions'
+          to: '/developer/feedback'
         }
       ]
     : [])

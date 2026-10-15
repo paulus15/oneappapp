@@ -11,7 +11,11 @@ import {
 
 import routes from './routes.js'
 import { useAuthStore } from '@/stores/auth'
-import { resolveAccess, resolveToolAccess } from './guards.js'
+import {
+  resolveAccess,
+  resolveLegacySuggestions,
+  resolveToolAccess
+} from './guards.js'
 import { loadPlatform } from '@/composables/usePlatform'
 
 /*
@@ -53,6 +57,8 @@ export default defineRouter((/* { store, ssrContext } */) => {
     const access = resolveAccess(to, auth)
     if (access !== true) return access
     if (to.meta.tool) return resolveToolAccess(to, await loadPlatform())
+    if (to.meta.legacySuggestions)
+      return resolveLegacySuggestions(to, await loadPlatform())
     return true
   })
 

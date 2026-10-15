@@ -26,9 +26,11 @@ describe('developer tools navigation', () => {
     await wrapper.vm.$nextTick()
     expect(wrapper.findAll('a').map(link => link.attributes('href'))).toEqual([
       '/developer/lab',
-      '/developer/suggestions'
+      '/developer/feedback'
     ])
     expect(wrapper.find('a').attributes('aria-current')).toBe('page')
+    expect(wrapper.text()).toContain('Retours utilisateurs')
+    expect(wrapper.text()).not.toContain('Feedback Hub')
     expect(wrapper.text()).not.toContain('PWA Monitor')
     expect(wrapper.text()).not.toContain('Promouvoir mon application')
     state.tools.value.monitor = true
@@ -36,7 +38,7 @@ describe('developer tools navigation', () => {
     expect(wrapper.findAll('a').map(link => link.attributes('href'))).toEqual([
       '/developer/lab',
       '/developer/monitor',
-      '/developer/suggestions'
+      '/developer/feedback'
     ])
     expect(wrapper.text()).toContain('PWA Monitor')
     // Growth comes right after Monitor once its flag is on.
@@ -46,7 +48,7 @@ describe('developer tools navigation', () => {
       '/developer/lab',
       '/developer/monitor',
       '/developer/growth',
-      '/developer/suggestions'
+      '/developer/feedback'
     ])
     expect(wrapper.text()).toContain('Promouvoir mon application')
   })

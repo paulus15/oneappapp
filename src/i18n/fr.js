@@ -1,4 +1,14 @@
 export default {
+  feedback: {
+    duplicates: '{n} doublon | {n} doublons',
+    selected: '{n} retour sélectionné | {n} retours sélectionnés',
+    updated: '{n} retour modifié | {n} retours modifiés',
+    propagated: '(+{n} doublon mis à jour) | (+{n} doublons mis à jour)',
+    unchanged: '{n} avait déjà cette valeur. | {n} avaient déjà cette valeur.',
+    confirm:
+      'Appliquer « {change} » au retour sélectionné ? | Appliquer « {change} » aux {n} retours sélectionnés ?',
+    attachments: '{n} fichier joint | {n} fichiers joints'
+  },
   growth: {
     visits: '{n} visite | {n} visites'
   },

@@ -290,6 +290,16 @@ const routes = [
         meta: { requiresAuth: true, developerOnly: true, tool: 'growth' }
       },
       {
+        path: 'feedback',
+        component: () => import('@/pages/developer/FeedbackPage.vue'),
+        meta: { requiresAuth: true, developerOnly: true, tool: 'feedback_hub' }
+      },
+      {
+        path: 'feedback/:id(\\d+)',
+        component: () => import('@/pages/developer/FeedbackDetailPage.vue'),
+        meta: { requiresAuth: true, developerOnly: true, tool: 'feedback_hub' }
+      },
+      {
         path: 'profile',
         component: () => import('@/pages/developer/DeveloperProfilePage.vue'),
         meta: { requiresAuth: true, developerOnly: true }
@@ -330,7 +340,12 @@ const routes = [
         path: 'suggestions',
         component: () =>
           import('@/pages/developer/DeveloperSuggestionsPage.vue'),
-        meta: { requiresAuth: true, developerOnly: true }
+        // Redirected to /developer/feedback when the Feedback Hub is on.
+        meta: {
+          requiresAuth: true,
+          developerOnly: true,
+          legacySuggestions: true
+        }
       },
       {
         path: 'lab',

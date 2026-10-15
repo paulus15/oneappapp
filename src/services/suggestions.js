@@ -29,6 +29,9 @@ export const SUGGESTION_STATUS_LABELS = {
   get planned() {
     return ui('Prévue')
   },
+  get in_progress() {
+    return ui('En cours')
+  },
   get done() {
     return ui('Réalisée')
   },
@@ -53,6 +56,7 @@ export const SUGGESTION_STATUS_COLORS = {
   new: 'primary',
   read: 'grey-7',
   planned: 'orange-8',
+  in_progress: 'teal-7',
   done: 'positive',
   declined: 'negative'
 }

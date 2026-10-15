@@ -1,4 +1,14 @@
 export default {
+  feedback: {
+    duplicates: '{n} duplicate | {n} duplicates',
+    selected: '{n} feedback selected | {n} feedbacks selected',
+    updated: '{n} feedback changed | {n} feedbacks changed',
+    propagated: '(+{n} duplicate updated) | (+{n} duplicates updated)',
+    unchanged: '{n} already had this value. | {n} already had this value.',
+    confirm:
+      'Apply “{change}” to the selected feedback? | Apply “{change}” to the {n} selected feedbacks?',
+    attachments: '{n} attached file | {n} attached files'
+  },
   growth: {
     visits: '{n} visit | {n} visits'
   },
