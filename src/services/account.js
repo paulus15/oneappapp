@@ -22,6 +22,9 @@ export const accountApi = {
     api.get('/admin/developers', { params: { page, ...filters } }),
   reviewDeveloper: (id, data) =>
     api.post(`/admin/developers/${id}/review`, data),
+  // A reviewer sends a draft profile the developer left unsent (same checks, reason kept).
+  submitDeveloper: (id, data) =>
+    api.post(`/admin/developers/${id}/submit`, data),
   source: (id, data) => api.put(`/apps/${id}/source`, data),
   checkUrl: id => api.post(`/apps/${id}/check-url`),
   submitApp: (id, data = {}) => api.post(`/apps/${id}/submit`, data),

@@ -119,6 +119,14 @@
         ><DeveloperDocuments :profile-id="p.id" admin /><div
           class="workspace-actions"
           ><q-btn
+            v-if="['draft', 'rejected'].includes(p.status)"
+            unelevated
+            no-caps
+            color="primary"
+            icon="send"
+            :label="ui('Soumettre pour le développeur')"
+            :disable="busy || !!p.missing_fields?.length"
+            @click="submitFor(p)" /><q-btn
             v-for="state in transitions[p.status]"
             :key="state"
             outline
@@ -218,6 +226,39 @@ function reload() {
 const load = () => {
   error.value = ''
   return list.reload()
+}
+
+// The developer completed everything but never sent it: the reviewer sends it, with a reason.
+function submitFor(profile) {
+  q.dialog({
+    title: ui('Soumettre pour le développeur'),
+    get message() {
+      return ui(
+        'Le profil passera en vérification comme si le développeur l’avait envoyé. Indiquez le motif (par exemple sa demande).'
+      )
+    },
+    prompt: { model: '', type: 'textarea', isValid: v => v.trim().length >= 3 },
+    cancel: true,
+    persistent: true
+  }).onOk(async reason => {
+    busy.value = true
+    try {
+      await accountApi.submitDeveloper(profile.id, { reason })
+      await load()
+      q.notify({
+        type: 'positive',
+        get message() {
+          return ui(
+            'Profil envoyé en vérification. Le développeur est prévenu.'
+          )
+        }
+      })
+    } catch (e) {
+      error.value = apiMessage(e)
+    } finally {
+      busy.value = false
+    }
+  })
 }
 
 function decide(profile, status) {
