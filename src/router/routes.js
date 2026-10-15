@@ -265,6 +265,13 @@ const routes = [
     ]
   },
 
+  // Lab Pro print view (Exporter en PDF): outside the developer layout, no navigation.
+  {
+    path: '/developer/lab/:id(\\d+)/print',
+    component: () => import('@/pages/developer/LabPrintPage.vue'),
+    meta: { requiresAuth: true, developerOnly: true, tool: 'lab_pro' }
+  },
+
   {
     path: '/developer',
     component: () => import('@/layouts/DeveloperLayout.vue'),

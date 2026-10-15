@@ -12,6 +12,15 @@ export default {
   growth: {
     visits: '{n} visit | {n} visits'
   },
+  lab: {
+    info: '{n} info | {n} info | {n} info',
+    shown: 'No item shown | {n} item shown | {n} items shown',
+    passed: '{n} passed | {n} passed | {n} passed',
+    toFix: '{n} to fix | {n} to fix | {n} to fix',
+    unmeasured: '{n} not measured | {n} not measured | {n} not measured',
+    selected:
+      'No analysis selected | {n} of 2 analyses selected | {n} of 2 analyses selected'
+  },
   store: {
     nav: {
       primary: 'Main navigation'
