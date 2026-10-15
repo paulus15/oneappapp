@@ -10,7 +10,7 @@ import DeveloperToolsNav from '@/components/DeveloperToolsNav.vue'
 
 describe('developer tools navigation', () => {
   it('keeps diagnostics available and exposes only enabled, implemented tools', async () => {
-    state.tools = ref({ feedback_hub: false, monitor: true, growth: true })
+    state.tools = ref({ feedback_hub: false, monitor: false, growth: true })
     const wrapper = mount(DeveloperToolsNav, {
       global: {
         stubs: {
@@ -30,6 +30,15 @@ describe('developer tools navigation', () => {
     ])
     expect(wrapper.find('a').attributes('aria-current')).toBe('page')
     expect(wrapper.text()).not.toContain('PWA Monitor')
+    // Growth is flagged on but has no page yet: it stays hidden.
     expect(wrapper.text()).not.toContain('PWA Growth')
+    state.tools.value.monitor = true
+    await wrapper.vm.$nextTick()
+    expect(wrapper.findAll('a').map(link => link.attributes('href'))).toEqual([
+      '/developer/lab',
+      '/developer/monitor',
+      '/developer/suggestions'
+    ])
+    expect(wrapper.text()).toContain('PWA Monitor')
   })
 })

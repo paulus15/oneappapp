@@ -1,5 +1,9 @@
 import { describe, expect, it } from 'vitest'
-import { resolveAccess, unauthorizedRedirect } from '@/router/guards'
+import {
+  resolveAccess,
+  resolveToolAccess,
+  unauthorizedRedirect
+} from '@/router/guards'
 
 const route = (path, meta = {}) => ({ path, fullPath: path, meta })
 const guest = { isAuthenticated: false, isAdmin: false, isDeveloper: false }
@@ -122,5 +126,34 @@ describe('unauthorizedRedirect', () => {
       unauthorizedRedirect(route('/login', { guestOnly: true }))
     ).toBeNull()
     expect(unauthorizedRedirect(undefined)).toBeNull()
+  })
+})
+
+describe('resolveToolAccess', () => {
+  const monitor = route('/developer/monitor', {
+    requiresAuth: true,
+    developerOnly: true,
+    tool: 'monitor'
+  })
+  it('opens a tool page only when its platform flag is explicitly on', () => {
+    expect(resolveToolAccess(monitor, { tools: { monitor: true } })).toBe(true)
+    for (const platform of [
+      { tools: { monitor: false } },
+      { tools: { monitor: 'true' } },
+      { tools: {} },
+      null
+    ])
+      expect(resolveToolAccess(monitor, platform)).toBe('/developer/lab')
+  })
+  it('leaves pages without a tool untouched', () => {
+    expect(resolveToolAccess(route('/developer/stats'), null)).toBe(true)
+  })
+  it('protects the overview and the detail routes of the monitor', async () => {
+    const { default: routes } = await import('@/router/routes')
+    const developer = routes.find(r => r.path === '/developer')
+    const paths = developer.children
+      .filter(child => child.meta?.tool === 'monitor')
+      .map(child => child.path)
+    expect(paths).toEqual(['monitor', 'monitor/:id'])
   })
 })

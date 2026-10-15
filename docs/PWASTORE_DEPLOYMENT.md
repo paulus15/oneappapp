@@ -93,7 +93,7 @@ Les e-mails partent par la file `database`. Un worker doit tourner en permanence
 
 ```ini
 [program:pwastore-worker]
-command=php /var/www/oneapp/artisan queue:work database --sleep=3 --tries=3 --max-time=3600
+command=php /var/www/oneapp/artisan queue:work database --queue=default,monitor --sleep=3 --tries=3 --max-time=3600
 autostart=true
 autorestart=true
 user=www-data
@@ -153,7 +153,7 @@ Tester une restauration complète sur un environnement de préproduction au moin
 - [ ] `PWA_CORS_ORIGINS` limité à l’adresse du frontend ; `PWA_FRONTEND_URL` et `PWA_PUBLIC_API_URL` renseignés.
 - [ ] `PWA_BUILD_UPLOADS=false` tant que l’hébergement des builds n’est pas prêt (voir `PWASTORE_BUILD_HOSTING.md`).
 - [ ] Mot de passe SMTP changé ; envoi d’un code d’inscription reçu.
-- [ ] `php artisan schedule:list` liste les 7 tâches ; le worker tourne (`queue:work`).
+- [ ] `php artisan schedule:list` liste les 8 tâches (dont `pwa:monitor-dispatch`) ; le worker tourne (`queue:work --queue=default,monitor` : les e-mails passent avant les contrôles du Monitor).
 - [ ] Les comptes administrateurs ont des permissions limitées à leur rôle (back-office → Utilisateurs).
 - [ ] Les textes légaux (CGU, confidentialité, règles de publication) ont été validés par un juriste et les parties « À compléter » renseignées (exploitant, hébergeur, prestataire d’e-mails, bases légales, formalité ARTCI).
 - [ ] `composer audit` et `npm audit` sans vulnérabilité.

@@ -275,7 +275,7 @@ const routes = [
         meta: { requiresAuth: true, developerOnly: true, tool: 'monitor' }
       },
       {
-        path: 'monitor/apps/:id',
+        path: 'monitor/:id',
         component: () => import('@/pages/developer/MonitorAppPage.vue'),
         meta: { requiresAuth: true, developerOnly: true, tool: 'monitor' }
       },

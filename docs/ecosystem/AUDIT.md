@@ -4,16 +4,16 @@ Audit des dépôts `oneappapp` (Quasar/Vue) et `oneapp` (Laravel 13/PHP 8.4), br
 
 ## Matrice de départ
 
-| Fonctionnalité | Backend | Frontend | État | Action |
-|---|---|---|---|---|
-| Monitoring | `UrlMonitor`, `ExternalPwaChecker`, `UrlCheck`, `pwa:check-external` toutes les 6 heures | Contrôles dans le dossier application | Partiel | Étendre le moteur sécurisé et l’historique ; jobs différés, incidents confirmés, paramètres et page Monitor |
-| Analytics | `DeveloperStats`, `AnalyticsEvent`, vues quotidiennes, installations déclarées, SDK et références signées d’ouverture | `DeveloperStatsPage`, graphiques, périodes/application | Présent, extensible | Préserver les définitions, ajouter attribution et agrégats de campagne puis analytics avancé |
-| Labo PWA | `PwaLab`, `LabAnalysis`, `/lab/analyses` | `PwaLabPage`, rapport et historique | Présent | Entrée centrale, pagination et erreurs, comparaisons puis diagnostics approfondis |
-| Beta Testing | Aucun domaine campagne de test identifié | Aucune page | Absent | Nouveau domaine protégé ; ne pas réutiliser la publication pour contourner la modération |
-| Growth | Références SDK et vues existantes, aucune campagne promotionnelle | Aucun générateur de campagne/QR/badge | Absent | Campagnes à identifiants aléatoires, attribution contrôlée, outils de promotion |
-| Feedback Hub | `Suggestion`, pièces jointes privées, policy, statuts/réponses | Suggestions développeur et utilisateur, avis publics séparés | Partiel | Étendre les suggestions : priorité, catégorie, version, doublons et historique |
-| DevOps | Auth Sanctum utilisateur, workflows de déploiement plateforme | Pas d’interface intégrations | Plateforme seulement | Jetons applicatifs limités, webhooks signés et documentation sans publication automatique |
-| Assistant IA | Aucun fournisseur/assistant métier identifié | Aucun assistant | Absent | Intégration facultative après validation des diagnostics, avec quotas et filtrage des données |
+| Fonctionnalité | Backend                                                                                                               | Frontend                                                     | État                 | Action                                                                                                      |
+| -------------- | --------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------ | -------------------- | ----------------------------------------------------------------------------------------------------------- |
+| Monitoring     | `UrlMonitor`, `ExternalPwaChecker`, `UrlCheck`, `pwa:check-external` toutes les 6 heures                              | Contrôles dans le dossier application                        | Partiel              | Étendre le moteur sécurisé et l’historique ; jobs différés, incidents confirmés, paramètres et page Monitor |
+| Analytics      | `DeveloperStats`, `AnalyticsEvent`, vues quotidiennes, installations déclarées, SDK et références signées d’ouverture | `DeveloperStatsPage`, graphiques, périodes/application       | Présent, extensible  | Préserver les définitions, ajouter attribution et agrégats de campagne puis analytics avancé                |
+| Labo PWA       | `PwaLab`, `LabAnalysis`, `/lab/analyses`                                                                              | `PwaLabPage`, rapport et historique                          | Présent              | Entrée centrale, pagination et erreurs, comparaisons puis diagnostics approfondis                           |
+| Beta Testing   | Aucun domaine campagne de test identifié                                                                              | Aucune page                                                  | Absent               | Nouveau domaine protégé ; ne pas réutiliser la publication pour contourner la modération                    |
+| Growth         | Références SDK et vues existantes, aucune campagne promotionnelle                                                     | Aucun générateur de campagne/QR/badge                        | Absent               | Campagnes à identifiants aléatoires, attribution contrôlée, outils de promotion                             |
+| Feedback Hub   | `Suggestion`, pièces jointes privées, policy, statuts/réponses                                                        | Suggestions développeur et utilisateur, avis publics séparés | Partiel              | Étendre les suggestions : priorité, catégorie, version, doublons et historique                              |
+| DevOps         | Auth Sanctum utilisateur, workflows de déploiement plateforme                                                         | Pas d’interface intégrations                                 | Plateforme seulement | Jetons applicatifs limités, webhooks signés et documentation sans publication automatique                   |
+| Assistant IA   | Aucun fournisseur/assistant métier identifié                                                                          | Aucun assistant                                              | Absent               | Intégration facultative après validation des diagnostics, avec quotas et filtrage des données               |
 
 ## Invariants inspectés
 

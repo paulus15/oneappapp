@@ -45,3 +45,27 @@ ${css}</style>${card('light')}${card('dark')}`
     }
   })
 })
+
+describe('TrendChart gaps', () => {
+  it('keeps unmeasured days as gaps and shows the unit', () => {
+    const wrapper = mount(TrendChart, {
+      props: {
+        title: 'Temps de réponse',
+        summary: '210 ms',
+        unit: ' ms',
+        points: [
+          { day: '2026-10-01', value: 200 },
+          { day: '2026-10-02', value: 220 },
+          { day: '2026-10-03', value: null },
+          { day: '2026-10-04', value: 210 },
+          { day: '2026-10-05', value: 230 }
+        ]
+      }
+    })
+    expect(wrapper.find('.total').text()).toBe('210 ms')
+    expect(wrapper.find('path.line').attributes('d').match(/M/g)).toHaveLength(
+      2
+    )
+    expect(wrapper.find('.axis-max').text()).toBe('230 ms')
+  })
+})

@@ -34,7 +34,16 @@ const availableTools = computed(() => [
     to: '/developer/lab'
   },
   ...(tools.value.monitor
-    ? [{ title: ui('PWA Monitor'), description: ui('Surveiller la disponibilité et suivre les incidents.'), icon: 'monitor_heart', to: '/developer/monitor' }]
+    ? [
+        {
+          title: ui('PWA Monitor'),
+          description: ui(
+            'Surveiller la disponibilité et suivre les incidents.'
+          ),
+          icon: 'monitor_heart',
+          to: '/developer/monitor'
+        }
+      ]
     : []),
   ...(tools.value.feedback_hub
     ? [
