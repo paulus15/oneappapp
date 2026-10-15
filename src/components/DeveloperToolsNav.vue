@@ -68,6 +68,18 @@ const availableTools = computed(() => [
           to: '/developer/feedback'
         }
       ]
+    : []),
+  ...(tools.value.beta
+    ? [
+        {
+          title: ui('Tests bêta'),
+          description: ui(
+            'Recruter des testeurs et recevoir leurs retours privés.'
+          ),
+          icon: 'biotech',
+          to: '/developer/beta'
+        }
+      ]
     : [])
 ])
 </script>

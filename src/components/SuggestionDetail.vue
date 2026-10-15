@@ -62,8 +62,12 @@ import { suggestionsApi } from '@/services/suggestions'
 import { formatFileSize, sanitizeRichText } from '@/utils/suggestions'
 
 const props = defineProps({
-  suggestion: { type: Object, required: true }
+  suggestion: { type: Object, required: true },
+  // (id, attachmentId) => blob response; other private files (beta feedback) reuse this view.
+  fetchAttachment: { type: Function, default: null }
 })
+const fetchFile = (id, attachmentId) =>
+  (props.fetchAttachment || suggestionsApi.attachment)(id, attachmentId)
 const previews = reactive({}),
   downloading = ref(null),
   error = ref('')
@@ -82,10 +86,7 @@ async function loadPreviews() {
   for (const file of props.suggestion.attachments || []) {
     if (!file.is_image) continue
     try {
-      const { data } = await suggestionsApi.attachment(
-        props.suggestion.id,
-        file.id
-      )
+      const { data } = await fetchFile(props.suggestion.id, file.id)
       previews[file.id] = URL.createObjectURL(data)
     } catch {
       // The download button stays available.
@@ -97,10 +98,7 @@ async function download(file) {
   downloading.value = file.id
   error.value = ''
   try {
-    const { data } = await suggestionsApi.attachment(
-      props.suggestion.id,
-      file.id
-    )
+    const { data } = await fetchFile(props.suggestion.id, file.id)
     const url = URL.createObjectURL(data),
       link = document.createElement('a')
     link.href = url

@@ -9,6 +9,15 @@ export default {
       'Apply “{change}” to the selected feedback? | Apply “{change}” to the {n} selected feedbacks?',
     attachments: '{n} attached file | {n} attached files'
   },
+  beta: {
+    spots: 'Full | {n} spot left | {n} spots left',
+    feedback: 'No feedback | {n} feedback | {n} feedbacks',
+    applied: 'No application | {n} application | {n} applications',
+    accepted: 'No tester accepted | {n} tester accepted | {n} testers accepted',
+    newFeedback: 'None new | {n} new | {n} new',
+    images:
+      '{n} screenshot attached | {n} screenshot attached | {n} screenshots attached'
+  },
   growth: {
     visits: '{n} visit | {n} visits'
   },

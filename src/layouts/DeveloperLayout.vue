@@ -246,7 +246,16 @@ const workspaceNavigation = computed(() => [
         label: ui('Suggestions'),
         icon: 'lightbulb',
         to: '/developer/suggestions'
-      }
+      },
+  ...(tools.value.beta
+    ? [
+        {
+          label: ui('Tests bêta'),
+          icon: 'biotech',
+          to: '/developer/beta'
+        }
+      ]
+    : [])
   // Volet Revenus masqué en attendant l’activation de la monétisation.
   // {
   //   label: ui('Revenus'),

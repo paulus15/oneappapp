@@ -64,4 +64,18 @@ describe('developer layout navigation', () => {
     })
     expect(items.some(item => item.to === '/developer/suggestions')).toBe(false)
   })
+
+  it('adds "Tests bêta" after the feedback entry only when the flag is on', async () => {
+    state.tools = ref({ feedback_hub: true, beta: false })
+    expect(
+      (await navTargets()).some(item => item.to === '/developer/beta')
+    ).toBe(false)
+    state.tools = ref({ feedback_hub: true, beta: true })
+    const items = await navTargets()
+    const feedback = items.findIndex(item => item.to === '/developer/feedback')
+    expect(items[feedback + 1]).toEqual({
+      to: '/developer/beta',
+      text: 'Tests bêta'
+    })
+  })
 })
