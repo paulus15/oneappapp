@@ -11,7 +11,8 @@ import {
 
 import routes from './routes.js'
 import { useAuthStore } from '@/stores/auth'
-import { isDeveloperArea, resolveAccess } from './guards.js'
+import { resolveAccess, resolveToolAccess } from './guards.js'
+import { loadPlatform } from '@/composables/usePlatform'
 
 /*
  * If not building with SSR mode, you can
@@ -39,14 +40,6 @@ export default defineRouter((/* { store, ssrContext } */) => {
     history: createHistory(import.meta.env.QUASAR_VUE_ROUTER_BASE)
   })
 
-  const mobileView =
-    typeof window !== 'undefined'
-      ? window.matchMedia('(max-width: 767px)')
-      : null
-  mobileView?.addEventListener('change', event => {
-    if (event.matches && isDeveloperArea(Router.currentRoute.value.path))
-      Router.replace('/account')
-  })
   Router.beforeEach(async to => {
     const auth = useAuthStore()
     if (!auth.hydrated) {
@@ -57,7 +50,10 @@ export default defineRouter((/* { store, ssrContext } */) => {
         if (to.meta.requiresAuth && to.path !== '/account') return '/account'
       }
     }
-    return resolveAccess(to, auth, { isMobile: !!mobileView?.matches })
+    const access = resolveAccess(to, auth)
+    if (access !== true) return access
+    if (to.meta.tool) return resolveToolAccess(to, await loadPlatform())
+    return true
   })
 
   Router.onError((_error, to) => {

@@ -1,5 +1,9 @@
 import { describe, expect, it } from 'vitest'
-import { resolveAccess, unauthorizedRedirect } from '@/router/guards'
+import {
+  resolveAccess,
+  resolveToolAccess,
+  unauthorizedRedirect
+} from '@/router/guards'
 
 const route = (path, meta = {}) => ({ path, fullPath: path, meta })
 const guest = { isAuthenticated: false, isAdmin: false, isDeveloper: false }
@@ -51,12 +55,19 @@ describe('resolveAccess', () => {
     expect(resolveAccess(activate, developer)).toBe('/developer/profile')
   })
 
-  it('hides every developer page on mobile, even for developers', () => {
+  it('keeps developer capabilities and activation available on mobile', () => {
     const page = route('/developer', {
       requiresAuth: true,
       developerOnly: true
     })
-    expect(resolveAccess(page, developer, { isMobile: true })).toBe('/account')
+    expect(resolveAccess(page, developer, { isMobile: true })).toBe(true)
+    expect(resolveAccess(page, user, { isMobile: true })).toBe(
+      '/developer/activate'
+    )
+    expect(resolveAccess(page, guest, { isMobile: true })).toEqual({
+      path: '/login',
+      query: { redirect: '/developer' }
+    })
     expect(
       resolveAccess(
         route('/developer/activate', { requiresAuth: true }),
@@ -65,7 +76,7 @@ describe('resolveAccess', () => {
           isMobile: true
         }
       )
-    ).toBe('/account')
+    ).toBe(true)
   })
 
   it('checks the granular permission of admin pages', () => {
@@ -115,5 +126,34 @@ describe('unauthorizedRedirect', () => {
       unauthorizedRedirect(route('/login', { guestOnly: true }))
     ).toBeNull()
     expect(unauthorizedRedirect(undefined)).toBeNull()
+  })
+})
+
+describe('resolveToolAccess', () => {
+  const monitor = route('/developer/monitor', {
+    requiresAuth: true,
+    developerOnly: true,
+    tool: 'monitor'
+  })
+  it('opens a tool page only when its platform flag is explicitly on', () => {
+    expect(resolveToolAccess(monitor, { tools: { monitor: true } })).toBe(true)
+    for (const platform of [
+      { tools: { monitor: false } },
+      { tools: { monitor: 'true' } },
+      { tools: {} },
+      null
+    ])
+      expect(resolveToolAccess(monitor, platform)).toBe('/developer/lab')
+  })
+  it('leaves pages without a tool untouched', () => {
+    expect(resolveToolAccess(route('/developer/stats'), null)).toBe(true)
+  })
+  it('protects the overview and the detail routes of the monitor', async () => {
+    const { default: routes } = await import('@/router/routes')
+    const developer = routes.find(r => r.path === '/developer')
+    const paths = developer.children
+      .filter(child => child.meta?.tool === 'monitor')
+      .map(child => child.path)
+    expect(paths).toEqual(['monitor', 'monitor/:id'])
   })
 })

@@ -270,6 +270,16 @@ const routes = [
     component: () => import('@/layouts/DeveloperLayout.vue'),
     children: [
       {
+        path: 'monitor',
+        component: () => import('@/pages/developer/MonitorPage.vue'),
+        meta: { requiresAuth: true, developerOnly: true, tool: 'monitor' }
+      },
+      {
+        path: 'monitor/:id',
+        component: () => import('@/pages/developer/MonitorAppPage.vue'),
+        meta: { requiresAuth: true, developerOnly: true, tool: 'monitor' }
+      },
+      {
         path: 'profile',
         component: () => import('@/pages/developer/DeveloperProfilePage.vue'),
         meta: { requiresAuth: true, developerOnly: true }

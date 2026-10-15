@@ -6,7 +6,7 @@
 <script setup>
 import { computed, onErrorCaptured, onMounted, watch } from 'vue'
 import { ref } from 'vue'
-import { api } from '@/boot/axios'
+import { loadPlatform } from '@/composables/usePlatform'
 import { useRoute } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { maintenance } from '@/stores/maintenance'
@@ -24,7 +24,7 @@ const blocked = computed(
     )
 )
 onMounted(() => {
-  api.get('/platform', { skipCountryDetection: true }).catch(() => {})
+  void loadPlatform()
 })
 onErrorCaptured(() => {
   failed.value = true

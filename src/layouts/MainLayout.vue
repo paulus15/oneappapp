@@ -266,14 +266,8 @@
           </router-link>
         </template>
 
-        <p v-if="!isMobile" class="drawer-label">{{
-          ui('Espace développeur')
-        }}</p>
-        <router-link
-          v-if="!isMobile"
-          to="/developer/profile"
-          class="developer-entry"
-        >
+        <p class="drawer-label">{{ ui('Espace développeur') }}</p>
+        <router-link to="/developer/profile" class="developer-entry">
           <span class="developer-entry-icon"><q-icon name="terminal" /></span>
           <span class="developer-entry-copy">
             <strong>{{ ui('Espace développeur') }}</strong>
@@ -359,7 +353,7 @@
         <!-- Everything below sits at the bottom of the menu. -->
         <div class="drawer-spacer" />
 
-        <div v-if="!isMobile" class="publish-card">
+        <div class="publish-card">
           <span class="publish-glow" />
           <span class="publish-icon"><q-icon name="rocket_launch" /></span>
           <strong>{{ ui('Publiez votre application') }}</strong>
@@ -426,8 +420,6 @@ import NotificationBell from '@/components/NotificationBell.vue'
 import CountryChoice from '@/components/CountryChoice.vue'
 import SuggestionButton from '@/components/SuggestionButton.vue'
 import CountryMissingBanner from '@/components/CountryMissingBanner.vue'
-import { useWorkspaceAccess } from '@/composables/useWorkspaceAccess'
-const { isMobile } = useWorkspaceAccess()
 import BrandLogo from '@/components/BrandLogo.vue'
 import { useTheme } from '@/composables/useTheme'
 import { onBeforeUnmount, onMounted, ref, watch, computed } from 'vue'

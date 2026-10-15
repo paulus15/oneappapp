@@ -1,4 +1,10 @@
 {
+  "Labo PWA": "PWA Lab",
+  "Outils du Labo PWA": "PWA Lab tools",
+  "Diagnostic PWA": "PWA diagnostics",
+  "Analyser votre application et retrouver vos diagnostics.": "Analyze your app and revisit your diagnostics.",
+  "Feedback Hub": "Feedback Hub",
+  "Traiter les suggestions privées de vos utilisateurs.": "Manage private suggestions from your users.",
   "Préférences": "Preferences",
   "Mémoriser les applications que je consulte": "Remember the apps I view",
   "Désactivé par défaut. Si vous le désactivez, l’historique est effacé.": "Off by default. Turning this off clears your history.",

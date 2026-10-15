@@ -174,9 +174,11 @@ import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { accountApi } from '@/services/account'
 import { useRouter } from 'vue-router'
+import { usePlatform } from '@/composables/usePlatform'
 import { useAuthStore } from '@/stores/auth'
 
 const router = useRouter()
+const { tools } = usePlatform()
 const authStore = useAuthStore()
 const leftDrawerOpen = ref(false)
 const { t } = useI18n()
@@ -203,6 +205,16 @@ const workspaceNavigation = computed(() => [
     to: '/developer/profile'
   },
   { label: ui('Vue d’ensemble'), icon: 'space_dashboard', to: '/developer' },
+  { label: ui('Labo PWA'), icon: 'science', to: '/developer/lab' },
+  ...(tools.value.monitor
+    ? [
+        {
+          label: ui('PWA Monitor'),
+          icon: 'monitor_heart',
+          to: '/developer/monitor'
+        }
+      ]
+    : []),
   { label: t('devnav.apps'), icon: 'apps', to: '/developer/apps' },
   {
     label: t('devnav.requests'),
@@ -215,11 +227,10 @@ const workspaceNavigation = computed(() => [
   { label: t('devnav.measure'), icon: 'sensors', to: '/developer/measure' },
   { label: ui('Avis et retours'), icon: 'reviews', to: '/developer/reviews' },
   {
-    label: ui('Suggestions'),
+    label: tools.value.feedback_hub ? ui('Feedback Hub') : ui('Suggestions'),
     icon: 'lightbulb',
     to: '/developer/suggestions'
-  },
-  { label: ui('PWA Lab'), icon: 'science', to: '/developer/lab' }
+  }
   // Volet Revenus masqué en attendant l’activation de la monétisation.
   // {
   //   label: ui('Revenus'),

@@ -14,7 +14,6 @@
       }}</p
       ><div class="workspace-actions">
         <q-btn
-          v-if="!isMobile"
           color="primary"
           no-caps
           unelevated
@@ -23,12 +22,7 @@
         />
         <q-btn flat no-caps :label="ui('Découvrir le Store')" to="/" />
       </div>
-      <q-banner v-if="isMobile" class="workspace-alert q-mt-md">{{
-        ui(
-          'Le portail développeur s’utilise sur ordinateur ou tablette. Sur mobile, votre compte fonctionne comme un compte utilisateur.'
-        )
-      }}</q-banner></header
-    >
+    </header>
 
     <section class="workspace-section">
       <h2>{{ ui('Comment ça marche') }}</h2>
@@ -113,10 +107,8 @@ import { useI18n } from 'vue-i18n'
 import { usePlatform } from '@/composables/usePlatform'
 import AppFooter from '@/components/AppFooter.vue'
 import { useAuthStore } from '@/stores/auth'
-import { useWorkspaceAccess } from '@/composables/useWorkspaceAccess'
 
 const auth = useAuthStore()
-const { isMobile } = useWorkspaceAccess()
 const { t } = useI18n()
 const { platform } = usePlatform()
 const buildUploads = computed(() => !!platform.value?.build_uploads)

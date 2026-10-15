@@ -2,7 +2,9 @@
   <figure class="trend">
     <figcaption>
       <span class="title">{{ title }}</span>
-      <strong class="total">{{ total.toLocaleString(currentLocale()) }}</strong>
+      <strong class="total">{{
+        summary ?? total.toLocaleString(currentLocale())
+      }}</strong>
     </figcaption>
     <div
       ref="plot"
@@ -14,7 +16,12 @@
         :viewBox="`0 0 ${W} ${H}`"
         preserveAspectRatio="none"
         role="img"
-        :aria-label="ui('{p0} : {p1} sur la période', { p0: title, p1: total })"
+        :aria-label="
+          ui('{p0} : {p1} sur la période', {
+            p0: title,
+            p1: summary ?? total
+          })
+        "
       >
         <line
           v-for="t in ticks"
@@ -38,7 +45,7 @@
         />
       </svg>
       <span
-        v-if="active !== null"
+        v-if="active !== null && hasValue(points[active])"
         class="dot"
         :style="{
           left: `${(x(active) / W) * 100}%`,
@@ -54,9 +61,11 @@
         role="status"
       >
         <span>{{ dayLabel(points[active].day) }}</span>
-        <strong>{{ points[active].value }}</strong>
+        <strong>{{
+          hasValue(points[active]) ? `${points[active].value}${unit}` : '—'
+        }}</strong>
       </div>
-      <span class="axis-max">{{ max }}</span>
+      <span class="axis-max">{{ max }}{{ unit }}</span>
     </div>
     <div class="axis-x">
       <span>{{ dayLabel(points[0]?.day) }}</span>
@@ -73,26 +82,61 @@ import { computed, ref } from 'vue'
 // Single-series trend: one hue, no legend (the title names the series).
 const props = defineProps({
   title: { type: String, required: true },
-  points: { type: Array, required: true } // [{ day: 'YYYY-MM-DD', value }]
+  // [{ day: 'YYYY-MM-DD', value }]; a null value is drawn as a gap.
+  points: { type: Array, required: true },
+  // Replaces the sum when adding values makes no sense (averages, ratios).
+  summary: { type: String, default: null },
+  // Appended to tooltip and axis values, e.g. ' ms'.
+  unit: { type: String, default: '' }
 })
 const W = 300,
   H = 90,
   PAD = 6
 const plot = ref(null),
   active = ref(null)
-const total = computed(() => props.points.reduce((s, p) => s + p.value, 0))
-const max = computed(() => Math.max(1, ...props.points.map(p => p.value)))
+const hasValue = point =>
+  point?.value !== null &&
+  point?.value !== undefined &&
+  Number.isFinite(Number(point.value))
+const total = computed(() =>
+  props.points.reduce((s, p) => s + (hasValue(p) ? p.value : 0), 0)
+)
+const max = computed(() =>
+  Math.max(1, ...props.points.filter(hasValue).map(p => p.value))
+)
 const ticks = computed(() => [max.value / 2, max.value])
 const x = i =>
   props.points.length < 2 ? W / 2 : (i / (props.points.length - 1)) * W
 const y = v => H - PAD - (v / max.value) * (H - PAD * 2)
-const line = computed(() =>
-  props.points.map((p, i) => `${i ? 'L' : 'M'}${x(i)},${y(p.value)}`).join(' ')
-)
+// Consecutive measured points; missing days split the line instead of being joined.
+const runs = computed(() => {
+  const result = []
+  let run = []
+  props.points.forEach((p, i) => {
+    if (hasValue(p)) run.push(i)
+    else if (run.length) {
+      result.push(run)
+      run = []
+    }
+  })
+  if (run.length) result.push(run)
+  return result
+})
+const path = run =>
+  run.length === 1
+    ? // An isolated day stays visible as a short round-capped stroke.
+      `M${x(run[0]) - 1},${y(props.points[run[0]].value)} L${x(run[0]) + 1},${y(props.points[run[0]].value)}`
+    : run
+        .map((i, n) => `${n ? 'L' : 'M'}${x(i)},${y(props.points[i].value)}`)
+        .join(' ')
+const line = computed(() => runs.value.map(path).join(' '))
 const area = computed(() =>
-  props.points.length
-    ? `${line.value} L${x(props.points.length - 1)},${H} L${x(0)},${H} Z`
-    : ''
+  runs.value
+    .filter(run => run.length > 1)
+    .map(
+      run => `${path(run)} L${x(run[run.length - 1])},${H} L${x(run[0])},${H} Z`
+    )
+    .join(' ')
 )
 const dayLabel = day =>
   day
