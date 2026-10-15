@@ -68,4 +68,31 @@ describe('TrendChart gaps', () => {
     )
     expect(wrapper.find('.axis-max').text()).toBe('230 ms')
   })
+
+  it('names a bucket and flags a partial one in the tooltip', async () => {
+    const wrapper = mount(TrendChart, {
+      props: {
+        title: 'Consultations',
+        points: [
+          {
+            day: '2026-09-14',
+            value: 3,
+            label: '16 – 20 sept.',
+            partial: true
+          },
+          { day: '2026-09-21', value: 5, label: '21 – 27 sept.' }
+        ]
+      }
+    })
+    const plot = wrapper.find('.plot')
+    plot.element.getBoundingClientRect = () => ({ left: 0, width: 100 })
+    await plot.trigger('pointermove', { clientX: 0 })
+    expect(wrapper.find('.tooltip').text()).toContain(
+      '16 – 20 sept. (partielle)'
+    )
+    expect(wrapper.find('.tooltip').classes()).toContain('partial')
+    await plot.trigger('pointermove', { clientX: 100 })
+    expect(wrapper.find('.tooltip').text()).toContain('21 – 27 sept.')
+    expect(wrapper.find('.tooltip').text()).not.toContain('partielle')
+  })
 })

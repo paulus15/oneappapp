@@ -339,6 +339,11 @@ const routes = [
         meta: { requiresAuth: true, developerOnly: true, tool: 'feedback_hub' }
       },
       {
+        path: 'analytics',
+        component: () => import('@/pages/developer/AnalyticsPage.vue'),
+        meta: { requiresAuth: true, developerOnly: true, tool: 'analytics_pro' }
+      },
+      {
         path: 'beta',
         component: () => import('@/pages/developer/BetaPage.vue'),
         meta: { requiresAuth: true, developerOnly: true, tool: 'beta' }

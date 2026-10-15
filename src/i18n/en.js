@@ -21,6 +21,12 @@ export default {
   growth: {
     visits: '{n} visit | {n} visits'
   },
+  analytics: {
+    reviews:
+      'No reviews received in the period | {n} review received in the period | {n} reviews received in the period',
+    partial:
+      'Partial period (cut by the chosen dates): {list} | Partial periods (cut by the chosen dates): {list}'
+  },
   lab: {
     info: '{n} info | {n} info | {n} info',
     shown: 'No item shown | {n} item shown | {n} items shown',

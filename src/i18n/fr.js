@@ -21,6 +21,12 @@ export default {
   growth: {
     visits: '{n} visite | {n} visites'
   },
+  analytics: {
+    reviews:
+      'Aucun avis reçu sur la période | {n} avis reçu sur la période | {n} avis reçus sur la période',
+    partial:
+      'Période incomplète (coupée par les dates choisies) : {list} | Périodes incomplètes (coupées par les dates choisies) : {list}'
+  },
   lab: {
     info: '{n} info | {n} info | {n} infos',
     shown: 'Aucun point affiché | {n} point affiché | {n} points affichés',

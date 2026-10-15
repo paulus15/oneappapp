@@ -1,6 +1,6 @@
 <template>
   <!-- Store-style tile: large icon, name, category and rating (only when reviews exist). -->
-  <router-link :to="card.to" class="store-tile" :aria-label="label">
+  <router-link :to="listingTo(card.to)" class="store-tile" :aria-label="label">
     <!-- The backdrop is the logo itself, enlarged and blurred: each tile takes its app's own colours. -->
     <span class="tile-icon" :class="{ 'has-logo': card.iconUrl }">
       <span v-if="card.iconUrl" class="tile-glow" aria-hidden="true"
@@ -28,9 +28,11 @@ import { computed } from 'vue'
 import AppIcon from '@/components/AppIcon.vue'
 import { ui } from '@/i18n/text'
 import { toCard } from '@/utils/appCard'
+import { useListingLink } from '@/composables/useListingSource'
 
 const props = defineProps({ app: { type: Object, required: true } })
 const card = computed(() => toCard(props.app))
+const listingTo = useListingLink()
 const label = computed(() =>
   [
     card.value.name,

@@ -47,6 +47,7 @@
       <span
         v-if="active !== null && hasValue(points[active])"
         class="dot"
+        :class="{ partial: points[active].partial }"
         :style="{
           left: `${(x(active) / W) * 100}%`,
           top: `${(y(points[active].value) / H) * 100}%`
@@ -58,9 +59,13 @@
         :style="{
           left: `${Math.min(Math.max((x(active) / W) * 100, 12), 88)}%`
         }"
+        :class="{ partial: points[active].partial }"
         role="status"
       >
-        <span>{{ dayLabel(points[active].day) }}</span>
+        <span
+          >{{ points[active].label || dayLabel(points[active].day)
+          }}{{ points[active].partial ? ` ${ui('(partielle)')}` : '' }}</span
+        >
         <strong>{{
           hasValue(points[active]) ? `${points[active].value}${unit}` : '—'
         }}</strong>
@@ -68,8 +73,8 @@
       <span class="axis-max">{{ max }}{{ unit }}</span>
     </div>
     <div class="axis-x">
-      <span>{{ dayLabel(points[0]?.day) }}</span>
-      <span>{{ dayLabel(points[points.length - 1]?.day) }}</span>
+      <span>{{ points[0]?.label || dayLabel(points[0]?.day) }}</span>
+      <span>{{ points.at(-1)?.label || dayLabel(points.at(-1)?.day) }}</span>
     </div>
   </figure>
 </template>
@@ -82,7 +87,8 @@ import { computed, ref } from 'vue'
 // Single-series trend: one hue, no legend (the title names the series).
 const props = defineProps({
   title: { type: String, required: true },
-  // [{ day: 'YYYY-MM-DD', value }]; a null value is drawn as a gap.
+  // [{ day: 'YYYY-MM-DD', value, label?, partial? }]; a null value is drawn as a gap.
+  // `label` replaces the day in the tooltip (e.g. a week), `partial` flags an incomplete bucket.
   points: { type: Array, required: true },
   // Replaces the sum when adding values makes no sense (averages, ratios).
   summary: { type: String, default: null },
@@ -234,6 +240,10 @@ svg {
 }
 .tooltip span {
   color: var(--muted);
+}
+.tooltip.partial strong,
+.dot.partial {
+  opacity: 0.6;
 }
 .axis-max {
   position: absolute;

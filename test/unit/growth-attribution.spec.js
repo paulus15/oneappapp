@@ -95,10 +95,13 @@ describe('share-link attribution on the listing', () => {
       hash: ''
     })
     expect(sessionStorage.getItem('pwa-campaign-17')).toBe(TOKEN)
-    expect(mocks.recordView).toHaveBeenCalledWith(17, TOKEN)
+    expect(mocks.recordView).toHaveBeenCalledWith(17, TOKEN, {
+      source: 'direct'
+    })
     await wrapper.vm.launchApp()
     expect(mocks.post).toHaveBeenCalledWith('/apps/17/activate', {
-      campaign: TOKEN
+      campaign: TOKEN,
+      source: 'direct'
     })
     expect(visits()).toHaveLength(1)
   })
@@ -107,9 +110,13 @@ describe('share-link attribution on the listing', () => {
     sessionStorage.setItem('pwa-campaign-17', TOKEN)
     setRoute(18)
     await mountPage()
-    expect(mocks.recordView).toHaveBeenCalledWith(18, undefined)
+    expect(mocks.recordView).toHaveBeenCalledWith(18, undefined, {
+      source: 'direct'
+    })
     await wrapper.vm.launchApp()
-    expect(mocks.post).toHaveBeenCalledWith('/apps/18/activate')
+    expect(mocks.post).toHaveBeenCalledWith('/apps/18/activate', {
+      source: 'direct'
+    })
     expect(visits()).toHaveLength(0)
   })
 
@@ -119,7 +126,9 @@ describe('share-link attribution on the listing', () => {
     await mountPage()
     expect(visits()).toHaveLength(1)
     expect(sessionStorage.getItem('pwa-campaign-17')).toBe(null)
-    expect(mocks.recordView).toHaveBeenCalledWith(17, undefined)
+    expect(mocks.recordView).toHaveBeenCalledWith(17, undefined, {
+      source: 'direct'
+    })
   })
 
   it('accepts a 204 answer without body (bots)', async () => {
@@ -134,7 +143,9 @@ describe('share-link attribution on the listing', () => {
     await mountPage()
     expect(wrapper.vm.app.name).toBe('App 17')
     expect(visits()).toHaveLength(1)
-    expect(mocks.recordView).toHaveBeenCalledWith(17, TOKEN)
+    expect(mocks.recordView).toHaveBeenCalledWith(17, TOKEN, {
+      source: 'direct'
+    })
   })
 
   it('attributes a quick click on Ouvrir made while the visit is checked', async () => {
@@ -157,9 +168,12 @@ describe('share-link attribution on the listing', () => {
     answer({ data: { application_id: 17 } })
     await launching
     expect(mocks.post).toHaveBeenCalledWith('/apps/17/activate', {
-      campaign: TOKEN
+      campaign: TOKEN,
+      source: 'direct'
     })
-    expect(mocks.recordView).toHaveBeenCalledWith(17, TOKEN)
+    expect(mocks.recordView).toHaveBeenCalledWith(17, TOKEN, {
+      source: 'direct'
+    })
   })
 
   it('never blocks Ouvrir more than a moment on a slow visit', async () => {
@@ -180,7 +194,9 @@ describe('share-link attribution on the listing', () => {
     } finally {
       vi.useRealTimers()
     }
-    expect(mocks.post).toHaveBeenCalledWith('/apps/17/activate')
+    expect(mocks.post).toHaveBeenCalledWith('/apps/17/activate', {
+      source: 'direct'
+    })
   })
 
   it('captures a new token for the same app without reloading it', async () => {
@@ -217,10 +233,14 @@ describe('share-link attribution on the listing', () => {
     await flushPromises()
     answer({ data: { application_id: 17 } })
     await flushPromises()
-    expect(mocks.recordView).toHaveBeenCalledWith(18, undefined)
+    expect(mocks.recordView).toHaveBeenCalledWith(18, undefined, {
+      source: 'direct'
+    })
     expect(sessionStorage.getItem('pwa-campaign-18')).toBe(null)
     await wrapper.vm.launchApp()
-    expect(mocks.post).toHaveBeenCalledWith('/apps/18/activate')
+    expect(mocks.post).toHaveBeenCalledWith('/apps/18/activate', {
+      source: 'direct'
+    })
   })
 
   it('ignores an invalid token but still cleans the address', async () => {
@@ -233,7 +253,9 @@ describe('share-link attribution on the listing', () => {
       hash: ''
     })
     expect(sessionStorage.getItem('pwa-campaign-17')).toBe(null)
-    expect(mocks.recordView).toHaveBeenCalledWith(17, undefined)
+    expect(mocks.recordView).toHaveBeenCalledWith(17, undefined, {
+      source: 'direct'
+    })
   })
 
   it('keeps the page working when the visit is refused', async () => {
@@ -247,8 +269,134 @@ describe('share-link attribution on the listing', () => {
     setRoute(17, { c: TOKEN })
     await mountPage()
     expect(wrapper.vm.app.name).toBe('App 17')
-    expect(mocks.recordView).toHaveBeenCalledWith(17, undefined)
+    expect(mocks.recordView).toHaveBeenCalledWith(17, undefined, {
+      source: 'direct'
+    })
     await wrapper.vm.launchApp()
-    expect(mocks.post).toHaveBeenCalledWith('/apps/17/activate')
+    expect(mocks.post).toHaveBeenCalledWith('/apps/17/activate', {
+      source: 'direct'
+    })
+  })
+})
+
+describe('listing source sent with the view and "Ouvrir"', () => {
+  afterEach(() => {
+    window.history.replaceState(null, '')
+    Object.defineProperty(document, 'referrer', {
+      value: '',
+      configurable: true
+    })
+  })
+
+  it('sends the store section kept in the history entry', async () => {
+    window.history.replaceState({ back: '/', listingSource: 'search' }, '')
+    setRoute(17)
+    await mountPage()
+    expect(mocks.recordView).toHaveBeenCalledWith(17, undefined, {
+      source: 'search'
+    })
+    await wrapper.vm.launchApp()
+    expect(mocks.post).toHaveBeenCalledWith('/apps/17/activate', {
+      source: 'search'
+    })
+    expect(mocks.replace).not.toHaveBeenCalled()
+  })
+
+  it('sends only the hostname of an external referrer, and only there', async () => {
+    Object.defineProperty(document, 'referrer', {
+      value: 'https://blog.example.org/article?id=3',
+      configurable: true
+    })
+    setRoute(17)
+    await mountPage()
+    expect(mocks.recordView).toHaveBeenCalledWith(17, undefined, {
+      source: 'external',
+      referrer_host: 'blog.example.org'
+    })
+    await wrapper.vm.launchApp()
+    expect(mocks.post).toHaveBeenCalledWith('/apps/17/activate', {
+      source: 'external',
+      referrer_host: 'blog.example.org'
+    })
+  })
+
+  it('accepts ?src= as a fallback and removes it from the address', async () => {
+    setRoute(17, { src: 'collection', from: 'store' })
+    await mountPage()
+    expect(mocks.replace).toHaveBeenCalledWith({
+      path: '/apps/17',
+      query: { from: 'store' },
+      hash: ''
+    })
+    expect(mocks.recordView).toHaveBeenCalledWith(17, undefined, {
+      source: 'collection'
+    })
+  })
+
+  it('counts a store page opened in a new tab as "other", not direct', async () => {
+    Object.defineProperty(document, 'referrer', {
+      value: `${window.location.origin}/categories/jeux`,
+      configurable: true
+    })
+    setRoute(17)
+    await mountPage()
+    expect(mocks.recordView).toHaveBeenCalledWith(17, undefined, {
+      source: 'other'
+    })
+  })
+
+  it('keeps the first source of this app after a sign-in round trip', async () => {
+    window.history.replaceState({ back: '/', listingSource: 'search' }, '')
+    setRoute(17)
+    await mountPage()
+    expect(sessionStorage.getItem('pwa-source-17')).toBe(
+      JSON.stringify({ source: 'search' })
+    )
+    wrapper.unmount()
+    // Back from /login (the router pushes the listing again, without a section).
+    window.history.replaceState({ back: '/login?redirect=/apps/17' }, '')
+    mocks.recordView.mockClear()
+    mocks.post.mockClear()
+    await mountPage()
+    expect(mocks.recordView).toHaveBeenCalledWith(17, undefined, {
+      source: 'search'
+    })
+    await wrapper.vm.launchApp()
+    expect(mocks.post).toHaveBeenCalledWith('/apps/17/activate', {
+      source: 'search'
+    })
+    // Another app never inherits it.
+    wrapper.unmount()
+    setRoute(18)
+    await mountPage()
+    expect(mocks.recordView).toHaveBeenCalledWith(18, undefined, {
+      source: 'other'
+    })
+  })
+
+  it('sends the arrival source with a campaign token, never "campaign" itself', async () => {
+    window.history.replaceState({ back: '/', listingSource: 'home' }, '')
+    setRoute(17, { c: TOKEN })
+    await mountPage()
+    expect(mocks.recordView).toHaveBeenCalledWith(17, TOKEN, {
+      source: 'home'
+    })
+    await wrapper.vm.launchApp()
+    expect(mocks.post).toHaveBeenCalledWith('/apps/17/activate', {
+      campaign: TOKEN,
+      source: 'home'
+    })
+  })
+
+  it('tags a similar app opened from this listing', async () => {
+    window.history.replaceState(
+      { back: '/apps/17', listingSource: 'similar' },
+      ''
+    )
+    setRoute(18)
+    await mountPage()
+    expect(mocks.recordView).toHaveBeenCalledWith(18, undefined, {
+      source: 'similar'
+    })
   })
 })

@@ -78,6 +78,7 @@ import AppGrid from '@/components/AppGrid.vue'
 import EmptyState from '@/components/EmptyState.vue'
 import LoadMore from '@/components/LoadMore.vue'
 import { useLoadMore } from '@/composables/useLoadMore'
+import { provideListingSource } from '@/composables/useListingSource'
 import { catalogApi } from '@/services/catalog'
 import { apiMessage } from '@/services/account'
 
@@ -86,6 +87,7 @@ const route = useRoute()
 const kind = computed(() =>
   route.path.startsWith('/collections') ? 'collection' : 'category'
 )
+provideListingSource(kind)
 const error = ref(''),
   notFound = ref(false),
   title = ref(''),

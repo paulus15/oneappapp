@@ -70,7 +70,9 @@ describe('account-only app activation', () => {
     })
     await mountPage()
     await wrapper.vm.launchApp()
-    expect(mocks.post).toHaveBeenCalledWith('/apps/17/activate')
+    expect(mocks.post).toHaveBeenCalledWith('/apps/17/activate', {
+      source: 'direct'
+    })
     expect(target.location.replace).toHaveBeenCalledWith('https://example.com/')
   })
   it('closes the temporary tab and returns to sign-in if the session has expired', async () => {

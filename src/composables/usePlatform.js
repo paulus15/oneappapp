@@ -11,6 +11,7 @@ export const DEFAULT_TOOLS = Object.freeze({
   feedback_hub: false,
   lab_pro: false,
   beta: false,
+  analytics_pro: false,
   integrations: false,
   assistant: false
 })

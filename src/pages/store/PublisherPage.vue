@@ -52,8 +52,10 @@ import AppGrid from '@/components/AppGrid.vue'
 import { catalogApi } from '@/services/catalog'
 import { apiMessage } from '@/services/account'
 import { safeExternalUrl } from '@/utils/listing'
+import { provideListingSource } from '@/composables/useListingSource'
 
 const route = useRoute()
+provideListingSource('developer_page')
 const profile = ref(null),
   applications = ref([]),
   loading = ref(true),
