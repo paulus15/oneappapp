@@ -2,6 +2,13 @@
 export const isDeveloperArea = path =>
   path === '/developer' || path.startsWith('/developer/')
 
+// The API remains authoritative; this avoids exposing disabled tool screens.
+export function resolveToolAccess(to, platform) {
+  return !to.meta.tool || platform?.tools?.[to.meta.tool] === true
+    ? true
+    : '/developer/lab'
+}
+
 // Pure navigation rules, kept free of router/Quasar imports so they can be unit tested.
 export function resolveAccess(to, auth) {
   if (to.meta.guestOnly && auth.isAuthenticated) return '/account'

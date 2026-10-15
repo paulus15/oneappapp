@@ -11,7 +11,8 @@ import {
 
 import routes from './routes.js'
 import { useAuthStore } from '@/stores/auth'
-import { resolveAccess } from './guards.js'
+import { resolveAccess, resolveToolAccess } from './guards.js'
+import { loadPlatform } from '@/composables/usePlatform'
 
 /*
  * If not building with SSR mode, you can
@@ -49,7 +50,10 @@ export default defineRouter((/* { store, ssrContext } */) => {
         if (to.meta.requiresAuth && to.path !== '/account') return '/account'
       }
     }
-    return resolveAccess(to, auth)
+    const access = resolveAccess(to, auth)
+    if (access !== true) return access
+    if (to.meta.tool) return resolveToolAccess(to, await loadPlatform())
+    return true
   })
 
   Router.onError((_error, to) => {

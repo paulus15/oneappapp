@@ -206,6 +206,7 @@ const workspaceNavigation = computed(() => [
   },
   { label: ui('Vue d’ensemble'), icon: 'space_dashboard', to: '/developer' },
   { label: ui('Labo PWA'), icon: 'science', to: '/developer/lab' },
+  ...(tools.value.monitor ? [{ label: ui('PWA Monitor'), icon: 'monitor_heart', to: '/developer/monitor' }] : []),
   { label: t('devnav.apps'), icon: 'apps', to: '/developer/apps' },
   {
     label: t('devnav.requests'),
