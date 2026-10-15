@@ -7,11 +7,7 @@ export function useWorkspaceAccess() {
   const isMobile = computed(() => q.screen.width < 768)
   return {
     isMobile,
-    developerView: computed(
-      () =>
-        !isMobile.value &&
-        auth.isDeveloper &&
-        (!!auth.user?.developer_profile || auth.user?.role === 'developer')
-    )
+    // Server capabilities govern access on every screen size.
+    developerView: computed(() => auth.isDeveloper)
   }
 }

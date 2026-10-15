@@ -1,4 +1,10 @@
 {
+  "Labo PWA": "PWA Lab",
+  "Outils du Labo PWA": "PWA Lab tools",
+  "Diagnostic PWA": "PWA diagnostics",
+  "Analyser votre application et retrouver vos diagnostics.": "Analyze your app and revisit your diagnostics.",
+  "Feedback Hub": "Feedback Hub",
+  "Traiter les suggestions privées de vos utilisateurs.": "Manage private suggestions from your users.",
   "Préférences": "Preferences",
   "Mémoriser les applications que je consulte": "Remember the apps I view",
   "Désactivé par défaut. Si vous le désactivez, l’historique est effacé.": "Off by default. Turning this off clears your history.",
@@ -1300,5 +1306,8 @@
   "{shown} sur {total}": "{shown} of {total}",
   "La suite n’a pas pu être chargée. Réessayez.": "More items could not be loaded. Please try again.",
   "Vous avez tout vu ({total}).": "You’ve seen everything ({total}).",
-  "Les avis des utilisateurs apparaîtront ici.": "User reviews will appear here."
+  "Les avis des utilisateurs apparaîtront ici.": "User reviews will appear here.",
+  "Soumettre pour le développeur": "Submit for the developer",
+  "Le profil passera en vérification comme si le développeur l’avait envoyé. Indiquez le motif (par exemple sa demande).": "The profile will go to verification as if the developer had sent it. Give the reason (for example their request).",
+  "Profil envoyé en vérification. Le développeur est prévenu.": "Profile sent to verification. The developer has been notified."
 }

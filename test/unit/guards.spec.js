@@ -51,12 +51,19 @@ describe('resolveAccess', () => {
     expect(resolveAccess(activate, developer)).toBe('/developer/profile')
   })
 
-  it('hides every developer page on mobile, even for developers', () => {
+  it('keeps developer capabilities and activation available on mobile', () => {
     const page = route('/developer', {
       requiresAuth: true,
       developerOnly: true
     })
-    expect(resolveAccess(page, developer, { isMobile: true })).toBe('/account')
+    expect(resolveAccess(page, developer, { isMobile: true })).toBe(true)
+    expect(resolveAccess(page, user, { isMobile: true })).toBe(
+      '/developer/activate'
+    )
+    expect(resolveAccess(page, guest, { isMobile: true })).toEqual({
+      path: '/login',
+      query: { redirect: '/developer' }
+    })
     expect(
       resolveAccess(
         route('/developer/activate', { requiresAuth: true }),
@@ -65,7 +72,7 @@ describe('resolveAccess', () => {
           isMobile: true
         }
       )
-    ).toBe('/account')
+    ).toBe(true)
   })
 
   it('checks the granular permission of admin pages', () => {

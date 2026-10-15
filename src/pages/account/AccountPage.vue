@@ -173,7 +173,7 @@
           </q-card>
           <AccountSecurity />
           <q-card
-            v-if="!auth.isDeveloper && !isMobile"
+            v-if="!auth.isDeveloper"
             flat
             bordered
             class="workspace-card developer-invite"
@@ -224,7 +224,7 @@ const { t } = useI18n()
 const auth = useAuthStore(),
   q = useQuasar(),
   router = useRouter(),
-  { isMobile, developerView } = useWorkspaceAccess()
+  { developerView } = useWorkspaceAccess()
 const form = reactive({
   name: '',
   email: '',

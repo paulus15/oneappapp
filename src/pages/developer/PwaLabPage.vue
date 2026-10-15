@@ -2,13 +2,14 @@
   <q-page class="workspace-page">
     <header class="workspace-heading"
       ><span class="eyebrow">{{ ui('Portail développeur') }}</span
-      ><h1>{{ ui('PWA Lab') }}</h1
+      ><h1>{{ ui('Labo PWA') }}</h1
       ><p>{{
         ui(
           'Diagnostic technique d’une PWA à partir de son adresse : accès, métadonnées, manifeste, critères d’installation, responsive et indicateurs d’accessibilité et de performance. Aucun script n’est exécuté.'
         )
       }}</p></header
     >
+    <DeveloperToolsNav />
     <q-card flat bordered class="workspace-card q-mb-md">
       <q-form class="lab-form" @submit="run">
         <q-input
@@ -129,6 +130,7 @@
   </q-page>
 </template>
 <script setup>
+import DeveloperToolsNav from '@/components/DeveloperToolsNav.vue'
 import { currentLocale } from '@/i18n'
 import { ui } from '@/i18n/text'
 
