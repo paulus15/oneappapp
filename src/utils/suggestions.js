@@ -29,6 +29,7 @@ export const SUGGESTION_STATUSES = [
   'new',
   'read',
   'planned',
+  'in_progress',
   'done',
   'declined'
 ]

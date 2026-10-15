@@ -10,7 +10,11 @@ export const communityApi = {
   myReviews: page => api.get('/account/reviews', { params: { page } }),
   report: data => api.post('/reports', data),
   myReports: page => api.get('/account/reports', { params: { page } }),
-  recordView: id => api.post(`/apps/${id}/view`),
+  // `campaign`: token of the share link that brought the visitor, for this app only.
+  recordView: (id, campaign) =>
+    campaign
+      ? api.post(`/apps/${id}/view`, { campaign })
+      : api.post(`/apps/${id}/view`),
   preferences: () => api.get('/account/preferences'),
   savePreferences: data => api.put('/account/preferences', data),
   recent: () => api.get('/account/recent'),

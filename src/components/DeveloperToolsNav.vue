@@ -45,15 +45,27 @@ const availableTools = computed(() => [
         }
       ]
     : []),
+  ...(tools.value.growth
+    ? [
+        {
+          title: ui('Promouvoir mon application'),
+          description: ui(
+            'Créer des liens de partage, des badges et un visuel.'
+          ),
+          icon: 'campaign',
+          to: '/developer/growth'
+        }
+      ]
+    : []),
   ...(tools.value.feedback_hub
     ? [
         {
-          title: ui('Feedback Hub'),
+          title: ui('Retours utilisateurs'),
           description: ui(
-            'Traiter les suggestions privées de vos utilisateurs.'
+            'Trier et suivre les retours privés de vos utilisateurs.'
           ),
           icon: 'forum',
-          to: '/developer/suggestions'
+          to: '/developer/feedback'
         }
       ]
     : [])

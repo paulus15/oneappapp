@@ -215,6 +215,15 @@ const workspaceNavigation = computed(() => [
         }
       ]
     : []),
+  ...(tools.value.growth
+    ? [
+        {
+          label: ui('Promouvoir mon application'),
+          icon: 'campaign',
+          to: '/developer/growth'
+        }
+      ]
+    : []),
   { label: t('devnav.apps'), icon: 'apps', to: '/developer/apps' },
   {
     label: t('devnav.requests'),
@@ -226,11 +235,18 @@ const workspaceNavigation = computed(() => [
   { label: ui('Statistiques'), icon: 'insights', to: '/developer/stats' },
   { label: t('devnav.measure'), icon: 'sensors', to: '/developer/measure' },
   { label: ui('Avis et retours'), icon: 'reviews', to: '/developer/reviews' },
-  {
-    label: tools.value.feedback_hub ? ui('Feedback Hub') : ui('Suggestions'),
-    icon: 'lightbulb',
-    to: '/developer/suggestions'
-  }
+  // The Feedback Hub replaces the former inbox (which then redirects to it).
+  tools.value.feedback_hub
+    ? {
+        label: ui('Retours utilisateurs'),
+        icon: 'forum',
+        to: '/developer/feedback'
+      }
+    : {
+        label: ui('Suggestions'),
+        icon: 'lightbulb',
+        to: '/developer/suggestions'
+      }
   // Volet Revenus masqué en attendant l’activation de la monétisation.
   // {
   //   label: ui('Revenus'),

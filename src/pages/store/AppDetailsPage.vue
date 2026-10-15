@@ -469,6 +469,7 @@ import { permissionInfo } from '@/utils/appPermissions'
 import { canWebInstall, webInstall } from '@/utils/webInstall'
 import { catalogApi } from '@/services/catalog'
 import { communityApi } from '@/services/community'
+import { campaignApi } from '@/services/growth'
 import { toCard } from '@/utils/appCard'
 import { deviceIdentity, devicePlatform } from '@/utils/device'
 import {
@@ -479,6 +480,12 @@ import {
   safeExternalUrl
 } from '@/utils/listing'
 import { resolveMediaUrl } from '@/utils/media'
+import {
+  campaignFor,
+  forgetCampaign,
+  isCampaignToken,
+  rememberCampaign
+} from '@/utils/growth'
 import { useAuthStore } from '@/stores/auth'
 
 const { t, te, locale } = useI18n()
@@ -669,7 +676,76 @@ const info = computed(() => {
   return rows
 })
 
+// Share-link attribution (?c=<token>): the visit is counted once, the token is kept for
+// this app only (session storage), then removed from the address bar without a reload.
+let pendingCampaign = null
+const visitedCampaigns = new Set()
+function captureCampaign() {
+  const query = route.query || {}
+  if (!Object.hasOwn(query, 'c')) return
+  const { c: token, ...rest } = query
+  Promise.resolve(
+    router.replace({ path: route.path, query: rest, hash: route.hash })
+  ).catch(() => {})
+  const routeId = String(route.params.id || '')
+  if (!routeId || !isCampaignToken(token) || visitedCampaigns.has(token)) return
+  visitedCampaigns.add(token)
+  pendingCampaign = {
+    routeId,
+    token,
+    settled: null,
+    visit: campaignApi
+      .visit(token)
+      .then(({ data }) => ({ ok: true, appId: data?.application_id }))
+      .catch(e => ({ ok: e?.response?.status !== 404 }))
+  }
+}
+
+// Keeps the token only when the server confirms it belongs to the app shown here.
+// Shared by the view and the "Ouvrir" requests: the check runs once per token.
+function settleCampaign(appId) {
+  const pending = pendingCampaign
+  if (!pending || pending.routeId !== String(route.params.id || ''))
+    return Promise.resolve()
+  pending.settled ||= pending.visit.then(result => {
+    const sameApp =
+      result.appId === undefined ||
+      result.appId === null ||
+      String(result.appId) === String(appId)
+    if (result.ok && sameApp) rememberCampaign(appId, pending.token)
+    else if (campaignFor(appId) === pending.token) forgetCampaign(appId)
+  })
+  return pending.settled
+}
+
+// "Ouvrir" waits for a visit still in flight, but never more than a moment.
+function settleCampaignWithin(appId, ms = 1500) {
+  let timer
+  return Promise.race([
+    settleCampaign(appId).catch(() => {}),
+    new Promise(resolve => (timer = setTimeout(resolve, ms)))
+  ]).finally(() => clearTimeout(timer))
+}
+
+// Optional request body carrying the campaign of this app, if any.
+const campaignBody = appId => {
+  const campaign = campaignFor(appId)
+  return campaign ? [{ campaign }] : []
+}
+
+async function recordAttributedView(appId) {
+  try {
+    await settleCampaign(appId)
+  } catch {
+    // Attribution is best effort; the view is still recorded.
+  }
+  communityApi
+    .recordView(appId, campaignFor(appId) || undefined)
+    .catch(() => {})
+}
+
 async function fetchAppDetails() {
+  captureCampaign()
   loading.value = true
   error.value = ''
   unavailable.value = false
@@ -690,7 +766,7 @@ async function fetchAppDetails() {
     }
     similar.value = []
     if (app.value.status === 'published') {
-      communityApi.recordView(app.value.id).catch(() => {})
+      void recordAttributedView(app.value.id)
       catalogApi
         .similar(app.value.id)
         .then(({ data }) => (similar.value = Array.isArray(data) ? data : []))
@@ -871,7 +947,11 @@ async function recordWebInstall() {
     localStorage.setItem(`pwa-installed-${app.value.id}`, '1')
   } catch {}
   try {
-    const { data } = await api.post(`/apps/${app.value.id}/activate`)
+    await settleCampaignWithin(app.value.id)
+    const { data } = await api.post(
+      `/apps/${app.value.id}/activate`,
+      ...campaignBody(app.value.id)
+    )
     app.value.activations_count = data.activations_count
     const device = deviceIdentity()
     if (device)
@@ -895,7 +975,11 @@ async function openApp() {
   const target = window.open('about:blank', '_blank')
   if (target) target.opener = null
   try {
-    const { data } = await api.post(`/apps/${app.value.id}/activate`)
+    await settleCampaignWithin(app.value.id)
+    const { data } = await api.post(
+      `/apps/${app.value.id}/activate`,
+      ...campaignBody(app.value.id)
+    )
     const url = new URL(data.url)
     if (url.protocol !== 'https:')
       throw new Error(t('store.details.unsafeLaunch'))
@@ -992,9 +1076,17 @@ onBeforeUnmount(() => {
   window.removeEventListener('focus', checkInstallOnFocus)
 })
 watch(
-  () => route.params.id,
-  (id, previous) => {
-    if (id && id !== previous) fetchAppDetails()
+  () => [route.params.id, route.query?.c],
+  ([id, token], [previous]) => {
+    if (id && id !== previous) {
+      // A visit still checking for the previous app must not carry over.
+      pendingCampaign = null
+      fetchAppDetails()
+    } else if (token !== undefined) {
+      // Same app, new share link (?c= changed without leaving the page).
+      captureCampaign()
+      if (app.value?.id) void settleCampaign(app.value.id)
+    }
   }
 )
 </script>

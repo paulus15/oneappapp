@@ -9,6 +9,16 @@ export function resolveToolAccess(to, platform) {
     : '/developer/lab'
 }
 
+// With the Feedback Hub on, the former inbox (and its notification links
+// /developer/suggestions?id=X) opens the new pages; with it off, nothing changes.
+export function resolveLegacySuggestions(to, platform) {
+  if (platform?.tools?.feedback_hub !== true) return true
+  const id = Number(to.query?.id)
+  return Number.isInteger(id) && id > 0
+    ? `/developer/feedback/${id}`
+    : '/developer/feedback'
+}
+
 // Pure navigation rules, kept free of router/Quasar imports so they can be unit tested.
 export function resolveAccess(to, auth) {
   if (to.meta.guestOnly && auth.isAuthenticated) return '/account'

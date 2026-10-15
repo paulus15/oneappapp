@@ -1,0 +1,67 @@
+import { flushPromises, shallowMount } from '@vue/test-utils'
+import { ref } from 'vue'
+import { describe, expect, it, vi } from 'vitest'
+
+const { state } = vi.hoisted(() => ({ state: {} }))
+vi.mock('@/composables/usePlatform', () => ({ usePlatform: () => state }))
+vi.mock('vue-router', () => ({
+  useRouter: () => ({ push: vi.fn() }),
+  useRoute: () => ({ path: '/developer' })
+}))
+vi.mock('@/services/account', () => ({
+  accountApi: {
+    developerRequests: () => Promise.resolve({ data: { summary: null } })
+  }
+}))
+vi.mock('@/stores/auth', () => ({
+  useAuthStore: () => ({ userName: 'Dev', user: {}, logout: vi.fn() })
+}))
+vi.mock('@/composables/useTheme', () => ({
+  useTheme: () => ({ isDark: ref(false), toggleTheme: vi.fn() })
+}))
+vi.mock('vue-i18n', async load => ({
+  ...(await load()),
+  useI18n: () => ({ t: key => key })
+}))
+vi.mock('@/components/NotificationBell.vue', () => ({ default: {} }))
+vi.mock('@/components/LanguageSwitcher.vue', () => ({ default: {} }))
+vi.mock('@/components/BrandLogo.vue', () => ({ default: {} }))
+import DeveloperLayout from '@/layouts/DeveloperLayout.vue'
+
+async function navTargets() {
+  const wrapper = shallowMount(DeveloperLayout, {
+    global: {
+      renderStubDefaultSlot: true,
+      stubs: { RouterView: { template: '<div />' } },
+      config: { warnHandler() {} }
+    }
+  })
+  await flushPromises()
+  const items = wrapper
+    .findAll('q-item')
+    .map(item => ({ to: item.attributes('to'), text: item.text() }))
+  wrapper.unmount()
+  return items
+}
+
+describe('developer layout navigation', () => {
+  it('keeps the Suggestions entry when the Feedback Hub is off', async () => {
+    state.tools = ref({ feedback_hub: false })
+    const items = await navTargets()
+    expect(items).toContainEqual({
+      to: '/developer/suggestions',
+      text: 'Suggestions'
+    })
+    expect(items.some(item => item.to === '/developer/feedback')).toBe(false)
+  })
+
+  it('shows "Retours utilisateurs" instead of Suggestions when it is on', async () => {
+    state.tools = ref({ feedback_hub: true })
+    const items = await navTargets()
+    expect(items).toContainEqual({
+      to: '/developer/feedback',
+      text: 'Retours utilisateurs'
+    })
+    expect(items.some(item => item.to === '/developer/suggestions')).toBe(false)
+  })
+})

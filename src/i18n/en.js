@@ -1,4 +1,26 @@
 export default {
+  feedback: {
+    duplicates: '{n} duplicate | {n} duplicates',
+    selected: '{n} feedback selected | {n} feedbacks selected',
+    updated: '{n} feedback changed | {n} feedbacks changed',
+    propagated: '(+{n} duplicate updated) | (+{n} duplicates updated)',
+    unchanged: '{n} already had this value. | {n} already had this value.',
+    confirm:
+      'Apply “{change}” to the selected feedback? | Apply “{change}” to the {n} selected feedbacks?',
+    attachments: '{n} attached file | {n} attached files'
+  },
+  growth: {
+    visits: '{n} visit | {n} visits'
+  },
+  lab: {
+    info: '{n} info | {n} info | {n} info',
+    shown: 'No item shown | {n} item shown | {n} items shown',
+    passed: '{n} passed | {n} passed | {n} passed',
+    toFix: '{n} to fix | {n} to fix | {n} to fix',
+    unmeasured: '{n} not measured | {n} not measured | {n} not measured',
+    selected:
+      'No analysis selected | {n} of 2 analyses selected | {n} of 2 analyses selected'
+  },
   store: {
     nav: {
       primary: 'Main navigation'

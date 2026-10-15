@@ -1,0 +1,106 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`PWA Lab with lab_pro off > renders and requests exactly as the original Lab > history 1`] = `
+"<q-page class="workspace-page">
+  <header class="workspace-heading"><span class="eyebrow">Portail développeur</span>
+    <h1>Labo PWA</h1>
+    <p>Diagnostic technique d’une PWA à partir de son adresse : accès, métadonnées, manifeste, critères d’installation, responsive et indicateurs d’accessibilité et de performance. Aucun script n’est exécuté.</p>
+  </header>
+  <developer-tools-nav-stub></developer-tools-nav-stub>
+  <q-card flat="" bordered="" class="workspace-card q-mb-md">
+    <q-form class="lab-form">
+      <q-input modelvalue="" outlined="" type="url" label="Adresse HTTPS de la PWA" placeholder="https://mon-app.exemple.com/" rules="v => /^https:\\/\\//.test(v || '') || $setup.ui('Adresse HTTPS requise')" class="col"></q-input>
+      <q-btn type="submit" color="primary" no-caps="" unelevated="" icon="science" label="Analyser" loading="false"></q-btn>
+    </q-form>
+    <!--v-if-->
+  </q-card>
+  <!--v-if-->
+  <section class="workspace-section">
+    <h2>Historique</h2>
+    <q-list bordered="" separator="" class="rounded-borders">
+      <q-item clickable="" active="false">
+        <q-item-section>
+          <q-item-label lines="1">https://old.example.com/</q-item-label>
+          <q-item-label caption="">01/10/2026 10:00:00</q-item-label>
+        </q-item-section>
+        <q-item-section side="">
+          <q-badge color="primary">60/100</q-badge>
+        </q-item-section>
+      </q-item>
+    </q-list>
+  </section>
+</q-page>"
+`;
+
+exports[`PWA Lab with lab_pro off > renders and requests exactly as the original Lab > report 1`] = `
+"<q-page class="workspace-page">
+  <header class="workspace-heading"><span class="eyebrow">Portail développeur</span>
+    <h1>Labo PWA</h1>
+    <p>Diagnostic technique d’une PWA à partir de son adresse : accès, métadonnées, manifeste, critères d’installation, responsive et indicateurs d’accessibilité et de performance. Aucun script n’est exécuté.</p>
+  </header>
+  <developer-tools-nav-stub></developer-tools-nav-stub>
+  <q-card flat="" bordered="" class="workspace-card q-mb-md">
+    <q-form class="lab-form">
+      <q-input modelvalue="" outlined="" type="url" label="Adresse HTTPS de la PWA" placeholder="https://mon-app.exemple.com/" rules="v => /^https:\\/\\//.test(v || '') || $setup.ui('Adresse HTTPS requise')" class="col"></q-input>
+      <q-btn type="submit" color="primary" no-caps="" unelevated="" icon="science" label="Analyser" loading="false"></q-btn>
+    </q-form>
+    <!--v-if-->
+  </q-card>
+  <div class="summary">
+    <div class="workspace-card score"><span>Score technique</span><strong>72<small>/100</small></strong>
+      <q-linear-progress color="primary" rounded="" size="8px" value="0.72"></q-linear-progress>
+    </div>
+    <div class="workspace-card install">
+      <q-icon name="install_mobile" color="positive" size="28px"></q-icon>
+      <div><strong>Installation possible</strong>
+        <p>Critères réunis.</p>
+      </div>
+    </div>
+  </div>
+  <p class="text-caption text-muted">Analyse statique sans navigateur.</p>
+  <section class="workspace-section">
+    <h2>Accès</h2>
+    <q-list bordered="" separator="" class="rounded-borders">
+      <q-item>
+        <q-item-section avatar="">
+          <q-icon name="check_circle" color="positive" aria-label="conforme"></q-icon>
+        </q-item-section>
+        <q-item-section>
+          <q-item-label>HTTPS <span class="sr-only">— conforme</span></q-item-label>
+          <q-item-label caption="">Servi en HTTPS.</q-item-label>
+          <!--v-if-->
+        </q-item-section>
+      </q-item>
+    </q-list>
+  </section>
+  <section class="workspace-section">
+    <h2>Installation</h2>
+    <q-list bordered="" separator="" class="rounded-borders">
+      <q-item>
+        <q-item-section avatar="">
+          <q-icon name="error_outline" color="warning" aria-label="à améliorer"></q-icon>
+        </q-item-section>
+        <q-item-section>
+          <q-item-label>Manifeste <span class="sr-only">— à améliorer</span></q-item-label>
+          <q-item-label caption="">Icône 512 absente.</q-item-label>
+          <q-item-label class="advice">→ Ajoutez une icône 512 px.</q-item-label>
+        </q-item-section>
+      </q-item>
+    </q-list>
+  </section>
+  <section class="workspace-section">
+    <h2>Historique</h2>
+    <q-list bordered="" separator="" class="rounded-borders">
+      <q-item clickable="" active="false">
+        <q-item-section>
+          <q-item-label lines="1">https://old.example.com/</q-item-label>
+          <q-item-label caption="">01/10/2026 10:00:00</q-item-label>
+        </q-item-section>
+        <q-item-section side="">
+          <q-badge color="primary">60/100</q-badge>
+        </q-item-section>
+      </q-item>
+    </q-list>
+  </section>
+</q-page>"
+`;

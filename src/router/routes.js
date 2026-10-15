@@ -265,6 +265,13 @@ const routes = [
     ]
   },
 
+  // Lab Pro print view (Exporter en PDF): outside the developer layout, no navigation.
+  {
+    path: '/developer/lab/:id(\\d+)/print',
+    component: () => import('@/pages/developer/LabPrintPage.vue'),
+    meta: { requiresAuth: true, developerOnly: true, tool: 'lab_pro' }
+  },
+
   {
     path: '/developer',
     component: () => import('@/layouts/DeveloperLayout.vue'),
@@ -278,6 +285,26 @@ const routes = [
         path: 'monitor/:id',
         component: () => import('@/pages/developer/MonitorAppPage.vue'),
         meta: { requiresAuth: true, developerOnly: true, tool: 'monitor' }
+      },
+      {
+        path: 'growth',
+        component: () => import('@/pages/developer/GrowthPage.vue'),
+        meta: { requiresAuth: true, developerOnly: true, tool: 'growth' }
+      },
+      {
+        path: 'growth/campaigns/:id',
+        component: () => import('@/pages/developer/GrowthCampaignPage.vue'),
+        meta: { requiresAuth: true, developerOnly: true, tool: 'growth' }
+      },
+      {
+        path: 'feedback',
+        component: () => import('@/pages/developer/FeedbackPage.vue'),
+        meta: { requiresAuth: true, developerOnly: true, tool: 'feedback_hub' }
+      },
+      {
+        path: 'feedback/:id(\\d+)',
+        component: () => import('@/pages/developer/FeedbackDetailPage.vue'),
+        meta: { requiresAuth: true, developerOnly: true, tool: 'feedback_hub' }
       },
       {
         path: 'profile',
@@ -320,7 +347,12 @@ const routes = [
         path: 'suggestions',
         component: () =>
           import('@/pages/developer/DeveloperSuggestionsPage.vue'),
-        meta: { requiresAuth: true, developerOnly: true }
+        // Redirected to /developer/feedback when the Feedback Hub is on.
+        meta: {
+          requiresAuth: true,
+          developerOnly: true,
+          legacySuggestions: true
+        }
       },
       {
         path: 'lab',
