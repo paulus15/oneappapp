@@ -177,6 +177,26 @@
         }}
       </q-banner>
 
+      <q-banner
+        v-if="totals.banner"
+        class="workspace-alert totals-since"
+        role="status"
+      >
+        <template #avatar
+          ><q-icon name="history" aria-hidden="true"
+        /></template>
+        {{
+          totals.banner === 'since'
+            ? ui(
+                'Visites totales et visiteurs uniques mesurés depuis le {date} : les jours précédents ne sont pas comptés.',
+                { date: formatDay(totals.since) }
+              )
+            : ui(
+                'Visites totales et visiteurs uniques pas encore mesurés : ces compteurs démarreront avec les prochaines visites.'
+              )
+        }}
+      </q-banner>
+
       <EmptyState
         v-if="empty"
         icon="query_stats"
@@ -189,25 +209,40 @@
       />
 
       <template v-else>
-        <section class="kpis" :aria-label="ui('Indicateurs')">
-          <article
-            v-for="card in kpis"
-            :key="card.key"
-            class="workspace-card kpi"
-            :data-kpi="card.key"
+        <section class="kpi-groups" :aria-label="ui('Indicateurs')">
+          <div
+            v-for="group in kpiGroups"
+            :key="group.key"
+            class="kpi-group"
+            :data-group="group.key"
+            role="group"
+            :aria-labelledby="`kpi-group-${group.key}`"
           >
-            <h2 class="kpi-label">{{ card.label }}</h2>
-            <strong class="kpi-value">{{ card.value }}</strong>
-            <span
-              v-if="card.delta"
-              class="delta"
-              :class="`delta-${card.delta.tone}`"
-              :title="card.delta.label"
-              ><span aria-hidden="true">{{ card.delta.text }}</span
-              ><span class="sr-only">{{ card.delta.label }}</span></span
-            >
-            <small class="kpi-note">{{ card.note }}</small>
-          </article>
+            <h2 :id="`kpi-group-${group.key}`" class="kpi-group-title">{{
+              group.label
+            }}</h2>
+            <div class="kpis">
+              <article
+                v-for="card in group.cards"
+                :key="card.key"
+                class="workspace-card kpi"
+                :class="{ secondary: card.secondary }"
+                :data-kpi="card.key"
+              >
+                <h3 class="kpi-label">{{ card.label }}</h3>
+                <strong class="kpi-value">{{ card.value }}</strong>
+                <span
+                  v-if="card.delta"
+                  class="delta"
+                  :class="`delta-${card.delta.tone}`"
+                  :title="card.delta.label"
+                  ><span aria-hidden="true">{{ card.delta.text }}</span
+                  ><span class="sr-only">{{ card.delta.label }}</span></span
+                >
+                <small class="kpi-note">{{ card.note }}</small>
+              </article>
+            </div>
+          </div>
           <p class="kpi-help muted" :class="{ 'no-compare': !comparable }">{{
             comparable
               ? ui(
@@ -337,44 +372,176 @@
           </section>
 
           <section
-            class="workspace-card table-card"
+            class="workspace-card table-card countries"
             aria-labelledby="countries-title"
           >
             <h2 id="countries-title">{{ ui('Pays des visiteurs') }}</h2>
-            <p class="note">{{
-              ui(
-                'Pays déclaré ou choisi par le visiteur sur le store, pas une géolocalisation.'
-              )
-            }}</p>
-            <table v-if="overview.countries?.length" class="data-table">
-              <thead>
-                <tr>
-                  <th scope="col">{{ ui('Pays') }}</th>
-                  <th scope="col">{{ ui('Consultations') }}</th>
-                  <th scope="col">{{ ui('Clics « Ouvrir »') }}</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr
-                  v-for="row in overview.countries"
-                  :key="row.code || (row.other ? '__other' : '__none')"
-                  class="country-row"
+            <div
+              v-if="hasNetworkCountries"
+              class="pills country-views"
+              role="group"
+              :aria-label="ui('Origine du pays')"
+            >
+              <button
+                v-for="option in countryViews"
+                :key="option.value"
+                type="button"
+                class="pill country-view"
+                :data-view="option.value"
+                :aria-pressed="countryView === option.value"
+                @click="countryChoice = option.value"
+                >{{ option.label }}</button
+              >
+            </div>
+            <template v-if="countryView !== 'declared'">
+              <p class="note network-note">{{
+                ui(
+                  'Estimé d’après l’adresse IP au moment de la visite ; l’adresse IP n’est jamais enregistrée.'
+                )
+              }}</p>
+              <q-banner
+                v-if="overview.network_country_source === 'none'"
+                class="workspace-alert network-none"
+                role="status"
+              >
+                <template #avatar
+                  ><q-icon name="info" aria-hidden="true"
+                /></template>
+                {{
+                  ui(
+                    'Estimation non configurée : lancez « php artisan pwa:geoip-update » sur le serveur.'
+                  )
+                }}
+              </q-banner>
+              <template v-if="countryView === 'cities'">
+                <table
+                  v-if="overview.network_cities.length"
+                  class="data-table network-cities"
                 >
-                  <th scope="row" :data-label="ui('Pays')">{{
-                    countryRowLabel(row, countryLabel)
-                  }}</th>
-                  <td :data-label="ui('Consultations')">{{
-                    formatCount(row.views)
-                  }}</td>
-                  <td :data-label="ui('Clics « Ouvrir »')">{{
-                    formatCount(row.activations)
-                  }}</td>
-                </tr>
-              </tbody>
-            </table>
-            <p v-else class="muted">{{
-              ui('Aucun pays déclaré pour le moment.')
-            }}</p>
+                  <thead>
+                    <tr>
+                      <th scope="col">{{ ui('Ville') }}</th>
+                      <th scope="col">{{ ui('Pays') }}</th>
+                      <th scope="col">{{ ui('Visites') }}</th>
+                      <th scope="col">{{ ui('Visiteurs uniques') }}</th>
+                      <th scope="col">{{ ui('Clics « Ouvrir » (tous)') }}</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr
+                      v-for="(row, index) in overview.network_cities"
+                      :key="`${row.country || ''}|${row.city || ''}|${row.other ? 1 : 0}|${index}`"
+                      class="network-city-row"
+                    >
+                      <th scope="row" :data-label="ui('Ville')">{{
+                        networkCityLabel(row)
+                      }}</th>
+                      <td :data-label="ui('Pays')">{{
+                        row.country ? countryLabel(row.country) : '—'
+                      }}</td>
+                      <td :data-label="ui('Visites')">{{
+                        formatCount(row.visits_total)
+                      }}</td>
+                      <td :data-label="ui('Visiteurs uniques')">{{
+                        formatCount(row.unique_visitors)
+                      }}</td>
+                      <td :data-label="ui('Clics « Ouvrir » (tous)')">{{
+                        formatCount(row.opens_total)
+                      }}</td>
+                    </tr>
+                  </tbody>
+                </table>
+                <p v-else class="muted">{{
+                  ui('Aucune visite sur cette période.')
+                }}</p>
+              </template>
+              <table
+                v-else-if="overview.network_countries.length"
+                class="data-table network-countries"
+              >
+                <thead>
+                  <tr>
+                    <th scope="col">{{ ui('Pays') }}</th>
+                    <th scope="col">{{ ui('Visites') }}</th>
+                    <th scope="col">{{ ui('Visiteurs uniques') }}</th>
+                    <th scope="col">{{ ui('Clics « Ouvrir » (tous)') }}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr
+                    v-for="row in overview.network_countries"
+                    :key="row.code || (row.other ? '__other' : '__none')"
+                    class="network-country-row"
+                  >
+                    <th scope="row" :data-label="ui('Pays')">{{
+                      networkCountryRowLabel(row, countryLabel)
+                    }}</th>
+                    <td :data-label="ui('Visites')">{{
+                      formatCount(row.visits_total)
+                    }}</td>
+                    <td :data-label="ui('Visiteurs uniques')">{{
+                      formatCount(row.unique_visitors)
+                    }}</td>
+                    <td :data-label="ui('Clics « Ouvrir » (tous)')">{{
+                      formatCount(row.opens_total)
+                    }}</td>
+                  </tr>
+                </tbody>
+              </table>
+              <p v-else class="muted">{{
+                ui('Aucune visite sur cette période.')
+              }}</p>
+              <p class="note network-multi">{{
+                ui('Un visiteur venu de deux pays apparaît dans chacun.')
+              }}</p>
+              <!-- Required by the IP-to-location database licence. -->
+              <p v-if="geoAttribution" class="note geo-attribution">
+                <a
+                  v-if="geoAttribution.url"
+                  :href="geoAttribution.url"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  >{{ geoAttribution.text }}</a
+                >
+                <span v-else>{{ geoAttribution.text }}</span>
+              </p>
+            </template>
+            <template v-else>
+              <p class="note declared-note">{{
+                ui(
+                  'Pays déclaré ou choisi par le visiteur sur le store, pas une géolocalisation.'
+                )
+              }}</p>
+              <table v-if="overview.countries?.length" class="data-table">
+                <thead>
+                  <tr>
+                    <th scope="col">{{ ui('Pays') }}</th>
+                    <th scope="col">{{ ui('Consultations') }}</th>
+                    <th scope="col">{{ ui('Clics « Ouvrir »') }}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr
+                    v-for="row in overview.countries"
+                    :key="row.code || (row.other ? '__other' : '__none')"
+                    class="country-row"
+                  >
+                    <th scope="row" :data-label="ui('Pays')">{{
+                      countryRowLabel(row, countryLabel)
+                    }}</th>
+                    <td :data-label="ui('Consultations')">{{
+                      formatCount(row.views)
+                    }}</td>
+                    <td :data-label="ui('Clics « Ouvrir »')">{{
+                      formatCount(row.activations)
+                    }}</td>
+                  </tr>
+                </tbody>
+              </table>
+              <p v-else class="muted">{{
+                ui('Aucun pays déclaré pour le moment.')
+              }}</p>
+            </template>
           </section>
         </div>
 
@@ -524,8 +691,10 @@ import { analyticsApi } from '@/services/analytics'
 import {
   GRANULARITIES,
   PERIOD_PRESETS,
+  KPI_GROUPS,
   analyticsKpis,
   analyticsParams,
+  defaultCountryView,
   blobErrorData,
   exportFilename,
   formatCount,
@@ -538,7 +707,11 @@ import {
   seriesPoints,
   bucketLabel,
   countryRowLabel,
-  sourceLabel
+  geoAttributionLink,
+  networkCityLabel,
+  networkCountryRowLabel,
+  sourceLabel,
+  totalsCoverage
 } from '@/utils/analytics'
 import { countryLabel } from '@/utils/countries'
 import { downloadBlob, sourceInfo as campaignSource } from '@/utils/growth'
@@ -713,10 +886,31 @@ const empty = computed(() => isEmptyOverview(overview.value))
 const comparable = computed(
   () => overview.value?.kpis?.previous_complete !== false
 )
+const totals = computed(() =>
+  totalsCoverage(
+    overview.value && {
+      ...overview.value,
+      range: overview.value.range || range.value
+    }
+  )
+)
 const kpis = computed(() =>
   analyticsKpis(overview.value?.kpis, {
-    uniqueVisitorsNote: overview.value?.unique_visitors_note
+    uniqueVisitorsNote: overview.value?.unique_visitors_note,
+    totalsComparable: totals.value.comparable
   })
+)
+const KPI_GROUP_LABELS = {
+  visits: () => ui('Visites'),
+  opens: () => ui('Clics « Ouvrir »'),
+  rating: () => ui('Avis')
+}
+const kpiGroups = computed(() =>
+  KPI_GROUPS.map(key => ({
+    key,
+    label: KPI_GROUP_LABELS[key](),
+    cards: kpis.value.filter(card => card.group === key)
+  })).filter(group => group.cards.length)
 )
 const showDataSince = computed(() => {
   const since = overview.value?.data_since
@@ -725,8 +919,23 @@ const showDataSince = computed(() => {
 })
 
 /* Charts ---------------------------------------------------------------- */
+// Recent APIs count every visit and "Ouvrir" click, and unique people per bucket; older
+// ones only the per-day figures.
+const hasSeriesTotals = computed(() =>
+  (overview.value?.series || []).some(row => row && 'visits_total' in row)
+)
 const extraOptions = computed(() => [
-  { key: 'unique_visitors', label: ui('Visiteurs uniques') },
+  ...(hasSeriesTotals.value
+    ? [
+        { key: 'visits_total', label: ui('Visites (toutes)') },
+        { key: 'unique_visitors_bucket', label: ui('Visiteurs uniques') },
+        { key: 'opens_total', label: ui('Clics « Ouvrir » (tous)') },
+        {
+          key: 'unique_openers_bucket',
+          label: ui('Personnes ayant cliqué « Ouvrir »')
+        }
+      ]
+    : [{ key: 'unique_visitors', label: ui('Visiteurs uniques') }]),
   { key: 'sdk_opens', label: ui('Ouvertures SDK') },
   { key: 'declared_installs', label: ui('Installations déclarées') }
 ])
@@ -752,18 +961,55 @@ const chartCaption = computed(() => {
   const partial = (overview.value?.series || []).filter(
     row => row.partial === true
   )
-  return partial.length
-    ? `${unit} ${i18n.global.t(
-        'analytics.partial',
-        { n: partial.length, list: partial.map(bucketLabel).join(', ') },
-        partial.length
-      )}`
-    : unit
+  const shown = charts.value.map(chart => chart.key)
+  // One note per unique series shown, both when both are on.
+  const unique = [
+    shown.includes('unique_visitors_bucket') &&
+      ui(
+        'Visiteurs uniques comptés une fois par période affichée (jour, semaine ou mois).'
+      ),
+    shown.includes('unique_openers_bucket') &&
+      ui(
+        'Personnes ayant cliqué « Ouvrir » comptées une fois par période affichée (jour, semaine ou mois).'
+      )
+  ]
+    .filter(Boolean)
+    .join(' ')
+  return [
+    unit,
+    unique,
+    partial.length
+      ? i18n.global.t(
+          'analytics.partial',
+          { n: partial.length, list: partial.map(bucketLabel).join(', ') },
+          partial.length
+        )
+      : ''
+  ]
+    .filter(Boolean)
+    .join(' ')
 })
 const seriesTable = ref(false)
 const seriesColumns = computed(() => [
+  ...(hasSeriesTotals.value
+    ? [
+        { key: 'visits_total', label: ui('Visites (toutes)') },
+        { key: 'unique_visitors_bucket', label: ui('Visiteurs uniques') }
+      ]
+    : []),
   { key: 'views', label: ui('Consultations') },
-  { key: 'unique_visitors', label: ui('Visiteurs uniques') },
+  ...(hasSeriesTotals.value
+    ? []
+    : [{ key: 'unique_visitors', label: ui('Visiteurs uniques') }]),
+  ...(hasSeriesTotals.value
+    ? [
+        { key: 'opens_total', label: ui('Clics « Ouvrir » (tous)') },
+        {
+          key: 'unique_openers_bucket',
+          label: ui('Personnes ayant cliqué « Ouvrir »')
+        }
+      ]
+    : []),
   { key: 'activations', label: ui('Clics « Ouvrir »') },
   { key: 'sdk_opens', label: ui('Ouvertures SDK') },
   { key: 'declared_installs', label: ui('Installations déclarées') }
@@ -787,11 +1033,45 @@ const sources = computed(() => {
   }))
 })
 
+/* Countries ------------------------------------------------------------- */
+// Country of connection (estimated by the server from the IP address) or declared one.
+const hasNetworkCountries = computed(() =>
+  Array.isArray(overview.value?.network_countries)
+)
+const hasNetworkCities = computed(() =>
+  Array.isArray(overview.value?.network_cities)
+)
+const countryViews = computed(() => [
+  { value: 'network', label: ui('Pays de connexion (estimé)') },
+  ...(hasNetworkCities.value
+    ? [{ value: 'cities', label: ui('Villes de connexion (estimé)') }]
+    : []),
+  { value: 'declared', label: ui('Pays déclaré') }
+])
+const geoAttribution = computed(() =>
+  geoAttributionLink(overview.value?.geo_attribution)
+)
+// The visitor's choice, kept across filters; until then the default for the answer.
+const countryChoice = ref(null)
+const countryView = computed(() => {
+  if (!hasNetworkCountries.value) return 'declared'
+  const choice = countryChoice.value
+  if (choice === 'cities' && !hasNetworkCities.value)
+    return defaultCountryView(overview.value)
+  return choice || defaultCountryView(overview.value)
+})
+
 /* CSV export ------------------------------------------------------------ */
 const exportItems = computed(() => [
   { dataset: 'series', label: ui('Évolution') },
   { dataset: 'sources', label: ui('Provenances') },
-  { dataset: 'countries', label: ui('Pays') },
+  { dataset: 'countries', label: ui('Pays déclaré') },
+  ...(hasNetworkCountries.value
+    ? [{ dataset: 'network_countries', label: ui('Pays de connexion') }]
+    : []),
+  ...(hasNetworkCities.value
+    ? [{ dataset: 'network_cities', label: ui('Villes de connexion') }]
+    : []),
   ...(filters.applicationId === ALL
     ? [{ dataset: 'apps', label: ui('Applications') }]
     : [])
@@ -925,6 +1205,24 @@ onMounted(async () => {
 .muted {
   color: var(--muted);
 }
+.kpi-groups {
+  display: grid;
+  gap: 16px;
+  margin-bottom: 8px;
+}
+.kpi-group-title {
+  margin: 0 0 8px;
+  font-size: 15px;
+}
+.kpi.secondary .kpi-value {
+  font-size: 20px;
+}
+.country-views {
+  margin-bottom: 4px;
+}
+.network-none {
+  margin-bottom: 12px;
+}
 .kpis {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr));
@@ -968,7 +1266,6 @@ onMounted(async () => {
   font-weight: 400;
 }
 .kpi-help {
-  grid-column: 1 / -1;
   margin: 0;
   font-size: 13px;
 }

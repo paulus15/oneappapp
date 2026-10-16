@@ -216,56 +216,158 @@ export function analyticsDelta(current, previous, { points = false } = {}) {
   }
 }
 
-/** KPI cards, in reading order, with the exact wording of each measure. */
-export function analyticsKpis(kpis = {}, { uniqueVisitorsNote = '' } = {}) {
+// Measures collected only since `totals_since` (see totalsCoverage).
+const TOTAL_KEYS = new Set([
+  'visits_total',
+  'unique_visitors_period',
+  'opens_total',
+  'unique_openers_period'
+])
+
+/**
+ * How far back all visits, all opens and unique people per period were measured.
+ * `banner`: 'since' (the range starts before `totals_since`), 'none' (nothing measured
+ * yet while the totals are 0) or null. `comparable`: false when the previous period of
+ * the same length starts before `totals_since`, its days counting 0 for lack of data.
+ * An API without `totals_since` changes nothing.
+ */
+export function totalsCoverage(data) {
+  if (!data || !('totals_since' in data))
+    return { banner: null, since: '', comparable: true }
+  const since = String(data.totals_since || '').slice(0, 10)
+  const from = String(data.range?.from || '').slice(0, 10)
+  const to = String(data.range?.to || '').slice(0, 10)
+  if (!since) {
+    const k = data.kpis || {}
+    const empty = !Number(k.visits_total) && !Number(k.opens_total)
+    return { banner: empty ? 'none' : null, since: '', comparable: false }
+  }
+  const days = rangeDays(from, to)
+  const previousFrom = Number.isNaN(days)
+    ? ''
+    : new Date(utc(from) - days * 86400000).toISOString().slice(0, 10)
+  return {
+    banner: from && from < since ? 'since' : null,
+    since,
+    comparable: Boolean(previousFrom) && previousFrom >= since
+  }
+}
+
+/** KPI groups, in reading order: visits, then "Ouvrir" clicks, then reviews. */
+export const KPI_GROUPS = Object.freeze(['visits', 'opens', 'rating'])
+
+/**
+ * KPI cards, in reading order, with the exact wording of each measure. Each card names
+ * its group (visits | opens | rating); a secondary card is a finer, per-day figure.
+ * The all-visits and per-period unique counts only exist on recent APIs: without them
+ * their cards are left out (never shown as 0) and the per-day unique visitors stay.
+ */
+export function analyticsKpis(
+  kpis = {},
+  { uniqueVisitorsNote = '', totalsComparable = true } = {}
+) {
   const previous = kpis.previous || {}
   // The previous period started before collection: comparing would invent a rise.
   const comparable = kpis.previous_complete !== false
-  const card = (key, label, note, options = {}) => ({
+  const has = key => isNumber(kpis[key])
+  const card = (group, key, label, note, options = {}) => ({
+    group,
     key,
     label,
     note,
+    secondary: options.secondary === true,
     value: options.rate ? formatRate(kpis[key]) : formatCount(kpis[key]),
     delta:
-      options.compare === false || !comparable
+      options.compare === false ||
+      !comparable ||
+      (TOTAL_KEYS.has(key) && !totalsComparable)
         ? null
         : analyticsDelta(kpis[key], previous[key], { points: options.rate })
   })
+  const periodVisitors = has('unique_visitors_period')
   return [
-    card(
-      'views',
-      ui('Consultations de la fiche'),
-      ui('Affichages de la fiche, une fois par jour, visiteur et provenance.')
-    ),
-    card(
-      'unique_visitors',
-      ui('Visiteurs uniques (par jour, cumulés)'),
-      // The API explains the measure in the interface language; a fallback otherwise.
-      uniqueVisitorsNote ||
+    has('visits_total') &&
+      card(
+        'visits',
+        'visits_total',
+        ui('Visites (toutes)'),
         ui(
-          'Chaque visiteur compte une fois par jour : sur plusieurs jours, la même personne compte plusieurs fois.'
+          'Chaque affichage de la fiche compte, même plusieurs fois par jour pour le même visiteur.'
         )
-    ),
+      ),
+    periodVisitors &&
+      card(
+        'visits',
+        'unique_visitors_period',
+        ui('Visiteurs uniques sur la période'),
+        ui(
+          'Même compte, ou même appareil (adresse IP + navigateur) pour les visiteurs non connectés : compté une seule fois sur toute la période. Un visiteur qui se connecte en cours de visite peut être compté deux fois.'
+        )
+      ),
     card(
+      'visits',
+      'views',
+      ui('Consultations de la fiche (1 par visiteur et par jour)'),
+      ui('Affichages de la fiche, une fois par jour, visiteur et provenance.'),
+      { secondary: true }
+    ),
+    // Superseded by the per-period count when the API gives it.
+    !periodVisitors &&
+      card(
+        'visits',
+        'unique_visitors',
+        ui('Visiteurs uniques (par jour, cumulés)'),
+        // The API explains the measure in the interface language; a fallback otherwise.
+        uniqueVisitorsNote ||
+          ui(
+            'Chaque visiteur compte une fois par jour : sur plusieurs jours, la même personne compte plusieurs fois.'
+          )
+      ),
+    has('opens_total') &&
+      card(
+        'opens',
+        'opens_total',
+        ui('Clics « Ouvrir » (tous)'),
+        ui(
+          'Chaque clic compte, même répété. Un clic sur « Ouvrir » n’est pas une installation.'
+        )
+      ),
+    has('unique_openers_period') &&
+      card(
+        'opens',
+        'unique_openers_period',
+        ui('Personnes ayant cliqué « Ouvrir » sur la période'),
+        ui(
+          'Même compte, ou même appareil (adresse IP + navigateur) pour les visiteurs non connectés : compté une seule fois sur toute la période. Un visiteur qui se connecte en cours de visite peut être compté deux fois.'
+        )
+      ),
+    card(
+      'opens',
       'activations',
-      ui('Clics sur « Ouvrir »'),
+      ui('Clics sur « Ouvrir » (1 par compte et par jour)'),
       ui(
         'Comptés un par compte et par jour. Un clic sur « Ouvrir » n’est pas une installation.'
-      )
+      ),
+      { secondary: has('opens_total') }
     ),
     card(
+      'opens',
       'conversion',
       ui('Taux de clic (Ouvrir / consultations)'),
-      ui('Affiché à partir de 20 consultations sur la période.'),
+      ui(
+        'Clics « Ouvrir » (1 par compte et par jour) divisés par les consultations de la fiche. Affiché à partir de 20 consultations sur la période.'
+      ),
       { rate: true }
     ),
     card(
+      'opens',
       'sdk_opens',
       ui('Ouvertures mesurées par le SDK'),
       ui('Uniquement pour les applications qui intègrent le SDK PWA Store.'),
       { compare: false }
     ),
     card(
+      'opens',
       'declared_installs',
       ui('Installations déclarées'),
       ui(
@@ -274,6 +376,7 @@ export function analyticsKpis(kpis = {}, { uniqueVisitorsNote = '' } = {}) {
       { compare: false }
     ),
     {
+      group: 'rating',
       key: 'average_rating',
       label: ui('Note moyenne (toutes périodes)'),
       note: i18n.global.t(
@@ -281,20 +384,26 @@ export function analyticsKpis(kpis = {}, { uniqueVisitorsNote = '' } = {}) {
         { n: formatCount(kpis.reviews) },
         Number(kpis.reviews) || 0
       ),
+      secondary: false,
       value: isNumber(kpis.average_rating)
         ? `${Number(kpis.average_rating).toLocaleString(currentLocale(), { maximumFractionDigits: 1 })} ★`
         : '—',
       delta: null
     }
-  ]
+  ].filter(Boolean)
 }
 
 /** True when the period has no activity at all (nothing to chart). */
 export function isEmptyOverview(data) {
   const k = data?.kpis || {}
-  return ['views', 'activations', 'sdk_opens', 'declared_installs'].every(
-    key => !Number(k[key])
-  )
+  return [
+    'views',
+    'visits_total',
+    'activations',
+    'opens_total',
+    'sdk_opens',
+    'declared_installs'
+  ].every(key => !Number(k[key]))
 }
 
 /* Period --------------------------------------------------------------------- */
@@ -387,6 +496,42 @@ export const countryRowLabel = (row, name) =>
       ? ui('Autres pays')
       : ui('Non déclaré')
 
+/** Country of connection row (estimated from the IP address): small ones grouped, or
+ * unknown when the server could not estimate it. */
+export const networkCountryRowLabel = (row, name) =>
+  row?.code ? name(row.code) : row?.other ? ui('Autres pays') : ui('Inconnu')
+
+/** City of connection row: a city, small ones grouped, or a city that is not known. */
+export const networkCityLabel = row =>
+  row?.city
+    ? String(row.city)
+    : row?.other
+      ? ui('Autres villes')
+      : ui('Ville inconnue')
+
+/** Licence attribution of the IP-to-location database: its text, and its link only when
+ * it is a plain web address. */
+export function geoAttributionLink(value) {
+  const text = typeof value?.text === 'string' ? value.text.trim() : ''
+  if (!text) return null
+  let url = ''
+  try {
+    const parsed = new URL(String(value.url || ''))
+    if (parsed.protocol === 'https:' || parsed.protocol === 'http:')
+      url = parsed.href
+  } catch {
+    url = ''
+  }
+  return { text, url }
+}
+
+/** Country view shown first: the estimate when the server makes one, else the declared. */
+export const defaultCountryView = data =>
+  Array.isArray(data?.network_countries) &&
+  data?.network_country_source !== 'none'
+    ? 'network'
+    : 'declared'
+
 export function formatDay(day) {
   const time = utc(day)
   return Number.isNaN(time)
@@ -405,6 +550,8 @@ export const EXPORT_DATASETS = Object.freeze([
   'series',
   'sources',
   'countries',
+  'network_countries',
+  'network_cities',
   'apps'
 ])
 

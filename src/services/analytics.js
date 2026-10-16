@@ -6,9 +6,10 @@ const base = '/developer/analytics'
 export const analyticsApi = {
   // The developer's applications, for the selector.
   apps: () => api.get('/developer/apps'),
-  // { data: { range, kpis, series, sources, countries, referrers, campaigns, top_apps, data_since } }
+  // { data: { range, kpis, series, sources, countries, network_countries,
+  //   network_country_source, network_cities, geo_attribution, referrers, campaigns, top_apps, data_since } }
   overview: params => api.get(`${base}/overview`, { params }),
-  // CSV file of one dataset (series | sources | countries | apps), through the session.
+  // CSV file of one dataset (series | sources | countries | network_countries | network_cities | apps).
   exportCsv: (params, dataset) =>
     api.get(`${base}/export.csv`, {
       params: { ...params, dataset },

@@ -58,7 +58,12 @@ import {
   listingSourceFor,
   seriesPoints,
   countryRowLabel,
-  sourceLabel
+  defaultCountryView,
+  geoAttributionLink,
+  networkCityLabel,
+  networkCountryRowLabel,
+  sourceLabel,
+  totalsCoverage
 } from '@/utils/analytics'
 import { countryLabel } from '@/utils/countries'
 import { provideListingSource } from '@/composables/useListingSource'
@@ -255,9 +260,9 @@ describe('analytics helpers', () => {
       previous: { views: 1000, conversion: 5 }
     })
     expect(cards.map(card => card.label)).toEqual([
-      'Consultations de la fiche',
+      'Consultations de la fiche (1 par visiteur et par jour)',
       'Visiteurs uniques (par jour, cumulés)',
-      'Clics sur « Ouvrir »',
+      'Clics sur « Ouvrir » (1 par compte et par jour)',
       'Taux de clic (Ouvrir / consultations)',
       'Ouvertures mesurées par le SDK',
       'Installations déclarées',
@@ -271,6 +276,165 @@ describe('analytics helpers', () => {
     expect(cards[6].value).toBe('4,3 ★')
     expect(cards[6].note).toBe('1 avis reçu sur la période')
     expect(formatRate(12.34)).toBe('12,3 %')
+  })
+
+  it('groups all visits, unique people per period and opens, with deltas', () => {
+    const cards = analyticsKpis({
+      visits_total: 500,
+      unique_visitors_period: 120,
+      views: 300,
+      unique_visitors: 200,
+      opens_total: 60,
+      unique_openers_period: 0,
+      activations: 40,
+      conversion: 13.3,
+      previous: {
+        visits_total: 400,
+        unique_visitors_period: 150,
+        opens_total: 0,
+        unique_openers_period: 10
+      }
+    })
+    const byKey = Object.fromEntries(cards.map(card => [card.key, card]))
+    expect(cards.map(card => [card.group, card.key])).toEqual([
+      ['visits', 'visits_total'],
+      ['visits', 'unique_visitors_period'],
+      ['visits', 'views'],
+      ['opens', 'opens_total'],
+      ['opens', 'unique_openers_period'],
+      ['opens', 'activations'],
+      ['opens', 'conversion'],
+      ['opens', 'sdk_opens'],
+      ['opens', 'declared_installs'],
+      ['rating', 'average_rating']
+    ])
+    expect(byKey.visits_total.label).toBe('Visites (toutes)')
+    expect(byKey.visits_total.value).toBe('500')
+    expect(byKey.visits_total.delta.text).toBe('↑ 25 %')
+    expect(byKey.unique_visitors_period.label).toBe(
+      'Visiteurs uniques sur la période'
+    )
+    expect(byKey.unique_visitors_period.note).toBe(
+      'Même compte, ou même appareil (adresse IP + navigateur) pour les visiteurs non connectés : compté une seule fois sur toute la période. Un visiteur qui se connecte en cours de visite peut être compté deux fois.'
+    )
+    expect(byKey.unique_visitors_period.delta.text).toBe('↓ 20 %')
+    expect(byKey.opens_total.label).toBe('Clics « Ouvrir » (tous)')
+    expect(byKey.opens_total.delta.text).toBe('—')
+    expect(byKey.unique_openers_period.label).toBe(
+      'Personnes ayant cliqué « Ouvrir » sur la période'
+    )
+    // A real 0 is shown, not hidden.
+    expect(byKey.unique_openers_period.value).toBe('0')
+    expect(byKey.unique_openers_period.delta.text).toBe('↓ 100 %')
+    expect(byKey.views.secondary).toBe(true)
+    expect(byKey.activations.secondary).toBe(true)
+    expect(byKey.visits_total.secondary).toBe(false)
+    // No new delta without a complete previous period.
+    const incomplete = analyticsKpis({
+      visits_total: 5,
+      previous_complete: false,
+      previous: { visits_total: 2 }
+    })
+    expect(incomplete.every(card => card.delta === null)).toBe(true)
+  })
+
+  it('leaves out the new cards on an older API instead of showing 0', () => {
+    const keys = analyticsKpis({ views: 3, unique_visitors: 2 }).map(
+      card => card.key
+    )
+    expect(keys).not.toContain('visits_total')
+    expect(keys).not.toContain('unique_visitors_period')
+    expect(keys).not.toContain('opens_total')
+    expect(keys).not.toContain('unique_openers_period')
+    expect(keys).toContain('unique_visitors')
+    expect(
+      analyticsKpis({ unique_visitors_period: null }).map(card => card.key)
+    ).not.toContain('unique_visitors_period')
+  })
+
+  it('names countries of connection and picks the view shown first', () => {
+    expect(
+      networkCountryRowLabel({ code: null, other: false }, countryLabel)
+    ).toBe('Inconnu')
+    expect(
+      networkCountryRowLabel({ code: null, other: true }, countryLabel)
+    ).toBe('Autres pays')
+    expect(networkCountryRowLabel({ code: 'ci' }, countryLabel)).toMatch(
+      /Côte d.Ivoire/
+    )
+    expect(
+      defaultCountryView({
+        network_countries: [],
+        network_country_source: 'dbip'
+      })
+    ).toBe('network')
+    expect(
+      defaultCountryView({
+        network_countries: [],
+        network_country_source: 'none'
+      })
+    ).toBe('declared')
+    expect(defaultCountryView({ countries: [] })).toBe('declared')
+  })
+
+  it('tells how far back all visits and unique people were measured', () => {
+    const range = { from: '2026-10-01', to: '2026-10-10' }
+    // Previous period: 21 – 30 sept.
+    expect(totalsCoverage({ range, totals_since: '2026-09-21' })).toEqual({
+      banner: null,
+      since: '2026-09-21',
+      comparable: true
+    })
+    expect(totalsCoverage({ range, totals_since: '2026-09-22' })).toEqual({
+      banner: null,
+      since: '2026-09-22',
+      comparable: false
+    })
+    expect(totalsCoverage({ range, totals_since: '2026-10-05' })).toMatchObject(
+      { banner: 'since', comparable: false }
+    )
+    expect(
+      totalsCoverage({ range, totals_since: null, kpis: { visits_total: 0 } })
+    ).toMatchObject({ banner: 'none', comparable: false })
+    // An older API without the field changes nothing.
+    expect(totalsCoverage({ range })).toMatchObject({
+      banner: null,
+      comparable: true
+    })
+    const cards = analyticsKpis(
+      {
+        visits_total: 5,
+        opens_total: 2,
+        views: 4,
+        previous: { visits_total: 1, opens_total: 1, views: 2 }
+      },
+      { totalsComparable: false }
+    )
+    const delta = key => cards.find(card => card.key === key).delta
+    expect(delta('visits_total')).toBe(null)
+    expect(delta('opens_total')).toBe(null)
+    expect(delta('views').text).toBe('↑ 100 %')
+  })
+
+  it('names cities of connection and keeps only web links for the attribution', () => {
+    expect(networkCityLabel({ city: 'Abidjan', other: false })).toBe('Abidjan')
+    expect(networkCityLabel({ city: null, other: true })).toBe('Autres villes')
+    expect(networkCityLabel({ city: null, other: false })).toBe(
+      'Ville inconnue'
+    )
+    expect(
+      geoAttributionLink({
+        text: 'IP Geolocation by DB-IP',
+        url: 'https://db-ip.com'
+      })
+    ).toEqual({ text: 'IP Geolocation by DB-IP', url: 'https://db-ip.com/' })
+    expect(
+      geoAttributionLink({ text: 'DB-IP', url: 'javascript:alert(1)' })
+    ).toEqual({ text: 'DB-IP', url: '' })
+    expect(geoAttributionLink(null)).toBe(null)
+    expect(geoAttributionLink({ text: '', url: 'https://db-ip.com' })).toBe(
+      null
+    )
   })
 
   it('uses the server explanation of unique visitors when given', () => {
@@ -736,6 +900,393 @@ describe('analytics page', () => {
       ...presetRange(30),
       granularity: 'day'
     })
+  })
+
+  const precise = (overrides = {}) =>
+    overview({
+      kpis: {
+        ...overview().kpis,
+        visits_total: 400,
+        unique_visitors_period: 150,
+        opens_total: 50,
+        unique_openers_period: 20,
+        previous: {
+          ...overview().kpis.previous,
+          visits_total: 200,
+          unique_visitors_period: 150,
+          opens_total: 100,
+          unique_openers_period: 0
+        }
+      },
+      series: [
+        {
+          period: '2026-09-16',
+          start: '2026-09-16',
+          end: '2026-09-16',
+          partial: false,
+          views: 10,
+          unique_visitors: 8,
+          visits_total: 14,
+          unique_visitors_bucket: 7,
+          activations: 1,
+          opens_total: 3,
+          unique_openers_bucket: 2,
+          sdk_opens: 0,
+          declared_installs: 0
+        }
+      ],
+      network_countries: [
+        {
+          code: 'SN',
+          other: false,
+          visits_total: 90,
+          unique_visitors: 40,
+          opens_total: 9
+        },
+        {
+          code: null,
+          other: true,
+          visits_total: 8,
+          unique_visitors: 6,
+          opens_total: 1
+        },
+        {
+          code: null,
+          other: false,
+          visits_total: 30,
+          unique_visitors: 25,
+          opens_total: 2
+        }
+      ],
+      network_country_source: 'dbip',
+      network_cities: [
+        {
+          country: 'SN',
+          city: 'Dakar',
+          other: false,
+          visits_total: 70,
+          unique_visitors: 30,
+          opens_total: 7
+        },
+        {
+          country: null,
+          city: null,
+          other: true,
+          visits_total: 9,
+          unique_visitors: 8,
+          opens_total: 1
+        },
+        {
+          country: 'CI',
+          city: null,
+          other: false,
+          visits_total: 12,
+          unique_visitors: 10,
+          opens_total: 0
+        }
+      ],
+      geo_attribution: {
+        text: 'IP Geolocation by DB-IP',
+        url: 'https://db-ip.com'
+      },
+      ...overrides
+    })
+
+  it('groups the KPI cards into visits and opens with their deltas', async () => {
+    await render(precise())
+    const group = key => wrapper.find(`[data-group="${key}"]`)
+    expect(group('visits').find('h2').text()).toBe('Visites')
+    expect(group('opens').find('h2').text()).toBe('Clics « Ouvrir »')
+    expect(
+      group('visits')
+        .findAll('[data-kpi]')
+        .map(card => card.attributes('data-kpi'))
+    ).toEqual(['visits_total', 'unique_visitors_period', 'views'])
+    expect(
+      group('opens')
+        .findAll('[data-kpi]')
+        .map(card => card.attributes('data-kpi'))
+    ).toEqual([
+      'opens_total',
+      'unique_openers_period',
+      'activations',
+      'conversion',
+      'sdk_opens',
+      'declared_installs'
+    ])
+    const card = key => wrapper.find(`[data-kpi="${key}"]`)
+    expect(card('visits_total').text()).toContain('Visites (toutes)')
+    expect(card('visits_total').find('.kpi-value').text()).toBe('400')
+    expect(card('visits_total').find('.delta').text()).toContain('↑ 100 %')
+    expect(card('unique_visitors_period').text()).toContain(
+      'Visiteurs uniques sur la période'
+    )
+    expect(card('unique_visitors_period').find('.delta').classes()).toContain(
+      'delta-flat'
+    )
+    expect(card('opens_total').text()).toContain('Clics « Ouvrir » (tous)')
+    expect(card('opens_total').find('.delta').text()).toContain('↓ 50 %')
+    expect(card('unique_openers_period').find('.delta').text()).toContain('—')
+    expect(card('views').classes()).toContain('secondary')
+    expect(card('views').text()).toContain(
+      'Consultations de la fiche (1 par visiteur et par jour)'
+    )
+    // The per-day unique visitors give way to the per-period count.
+    expect(card('unique_visitors').exists()).toBe(false)
+  })
+
+  it('hides the new cards and keeps the old ones on an older API', async () => {
+    await render()
+    for (const key of [
+      'visits_total',
+      'unique_visitors_period',
+      'opens_total',
+      'unique_openers_period'
+    ])
+      expect(wrapper.find(`[data-kpi="${key}"]`).exists()).toBe(false)
+    expect(wrapper.find('[data-kpi="unique_visitors"]').exists()).toBe(true)
+    expect(wrapper.find('[data-kpi="views"]').classes()).toContain('secondary')
+    // Old series: only the per-day unique visitors toggle, no country toggle.
+    const series = wrapper
+      .findAll('.extra')
+      .map(button => button.attributes('data-series'))
+    expect(series).toEqual([
+      'unique_visitors',
+      'sdk_opens',
+      'declared_installs'
+    ])
+    expect(wrapper.find('.country-views').exists()).toBe(false)
+    expect(wrapper.find('[data-dataset="network_countries"]').exists()).toBe(
+      false
+    )
+  })
+
+  it('hides the new deltas when the previous period is incomplete', async () => {
+    await render(
+      precise({
+        kpis: { ...precise().kpis, previous_complete: false }
+      })
+    )
+    expect(wrapper.find('[data-kpi="visits_total"]').exists()).toBe(true)
+    expect(wrapper.findAll('.delta')).toHaveLength(0)
+  })
+
+  it('warns when totals start inside the range and drops their deltas', async () => {
+    await render(
+      precise({
+        range: { from: '2026-09-16', to: '2026-10-15', granularity: 'day' },
+        totals_since: '2026-10-01'
+      })
+    )
+    expect(wrapper.find('.totals-since').text()).toContain(
+      'Visites totales et visiteurs uniques mesurés depuis le 1 octobre 2026 : les jours précédents ne sont pas comptés.'
+    )
+    for (const key of [
+      'visits_total',
+      'unique_visitors_period',
+      'opens_total',
+      'unique_openers_period'
+    ])
+      expect(wrapper.find(`[data-kpi="${key}"] .delta`).exists()).toBe(false)
+    expect(wrapper.find('[data-kpi="views"] .delta').exists()).toBe(true)
+    wrapper.unmount()
+    // Measured long enough: no banner, deltas back.
+    await render(precise({ totals_since: '2026-01-01' }))
+    expect(wrapper.find('.totals-since').exists()).toBe(false)
+    expect(wrapper.find('[data-kpi="visits_total"] .delta').exists()).toBe(true)
+    wrapper.unmount()
+    await render(
+      precise({
+        kpis: { ...precise().kpis, visits_total: 0, opens_total: 0 },
+        totals_since: null
+      })
+    )
+    expect(wrapper.find('.totals-since').text()).toContain('pas encore mesurés')
+  })
+
+  it('charts all visits, opens and unique people per bucket', async () => {
+    await render(precise())
+    const series = wrapper
+      .findAll('.extra')
+      .map(button => button.attributes('data-series'))
+    expect(series).toEqual([
+      'visits_total',
+      'unique_visitors_bucket',
+      'opens_total',
+      'unique_openers_bucket',
+      'sdk_opens',
+      'declared_installs'
+    ])
+    expect(wrapper.findAll('.extra').map(button => button.text())).toEqual([
+      'Visites (toutes)',
+      'Visiteurs uniques',
+      'Clics « Ouvrir » (tous)',
+      'Personnes ayant cliqué « Ouvrir »',
+      'Ouvertures SDK',
+      'Installations déclarées'
+    ])
+    expect(wrapper.find('.chart-caption').text()).toBe('Un point par jour.')
+    await wrapper
+      .find('[data-series="unique_visitors_bucket"]')
+      .trigger('click')
+    await wrapper.find('[data-series="visits_total"]').trigger('click')
+    expect(wrapper.vm.chartPoints.unique_visitors_bucket[0].value).toBe(7)
+    expect(wrapper.vm.chartPoints.visits_total[0].value).toBe(14)
+    expect(
+      wrapper
+        .findAllComponents({ name: 'TrendChart' })
+        .map(c => c.props('title'))
+    ).toEqual([
+      'Consultations de la fiche',
+      'Clics sur « Ouvrir »',
+      'Visites (toutes)',
+      'Visiteurs uniques'
+    ])
+    expect(wrapper.find('.chart-caption').text()).toBe(
+      'Un point par jour. Visiteurs uniques comptés une fois par période affichée (jour, semaine ou mois).'
+    )
+    // Both unique series: both notes.
+    await wrapper.find('[data-series="unique_openers_bucket"]').trigger('click')
+    expect(wrapper.vm.chartPoints.unique_openers_bucket[0].value).toBe(2)
+    expect(wrapper.find('.chart-caption').text()).toBe(
+      'Un point par jour. Visiteurs uniques comptés une fois par période affichée (jour, semaine ou mois). Personnes ayant cliqué « Ouvrir » comptées une fois par période affichée (jour, semaine ou mois).'
+    )
+    await wrapper
+      .find('[data-series="unique_visitors_bucket"]')
+      .trigger('click')
+    expect(wrapper.find('.chart-caption').text()).toBe(
+      'Un point par jour. Personnes ayant cliqué « Ouvrir » comptées une fois par période affichée (jour, semaine ou mois).'
+    )
+    wrapper.vm.seriesTable = true
+    await flushPromises()
+    const headers = wrapper
+      .findAll('.series-table thead th')
+      .map(th => th.text())
+    expect(headers).toContain('Personnes ayant cliqué « Ouvrir »')
+    expect(headers).not.toContain('Visiteurs uniques (par jour, cumulés)')
+  })
+
+  it('shows the countries of connection first, with unknown and grouped rows', async () => {
+    await render(precise())
+    expect(
+      wrapper.find('[data-view="network"]').attributes('aria-pressed')
+    ).toBe('true')
+    expect(wrapper.find('[data-view="network"]').text()).toBe(
+      'Pays de connexion (estimé)'
+    )
+    expect(wrapper.find('.network-note').text()).toBe(
+      'Estimé d’après l’adresse IP au moment de la visite ; l’adresse IP n’est jamais enregistrée.'
+    )
+    expect(wrapper.find('.network-none').exists()).toBe(false)
+    expect(wrapper.find('.network-multi').text()).toBe(
+      'Un visiteur venu de deux pays apparaît dans chacun.'
+    )
+    expect(
+      wrapper.findAll('.network-countries thead th').map(th => th.text())
+    ).toEqual([
+      'Pays',
+      'Visites',
+      'Visiteurs uniques',
+      'Clics « Ouvrir » (tous)'
+    ])
+    const rows = wrapper.findAll('.network-country-row').map(row => row.text())
+    expect(rows[0]).toMatch(/Sénégal.*90.*40.*9/)
+    expect(rows[1]).toContain('Autres pays')
+    expect(rows[2]).toContain('Inconnu')
+    expect(wrapper.find('.country-row').exists()).toBe(false)
+    // Switch to the declared country.
+    await wrapper.find('[data-view="declared"]').trigger('click')
+    expect(wrapper.find('.network-countries').exists()).toBe(false)
+    expect(wrapper.find('.declared-note').text()).toBe(
+      'Pays déclaré ou choisi par le visiteur sur le store, pas une géolocalisation.'
+    )
+    expect(wrapper.findAll('.country-row')).toHaveLength(3)
+  })
+
+  it('lists cities of connection with the licence attribution', async () => {
+    await render(precise())
+    expect(wrapper.findAll('.country-view').map(b => b.text())).toEqual([
+      'Pays de connexion (estimé)',
+      'Villes de connexion (estimé)',
+      'Pays déclaré'
+    ])
+    const attribution = () => wrapper.find('.geo-attribution a')
+    expect(attribution().text()).toBe('IP Geolocation by DB-IP')
+    expect(attribution().attributes()).toMatchObject({
+      href: 'https://db-ip.com/',
+      target: '_blank',
+      rel: 'noopener noreferrer'
+    })
+    await wrapper.find('[data-view="cities"]').trigger('click')
+    expect(
+      wrapper.findAll('.network-cities thead th').map(th => th.text())
+    ).toEqual([
+      'Ville',
+      'Pays',
+      'Visites',
+      'Visiteurs uniques',
+      'Clics « Ouvrir » (tous)'
+    ])
+    const rows = wrapper.findAll('.network-city-row').map(row => row.text())
+    expect(rows[0]).toMatch(/Dakar.*Sénégal.*70.*30.*7/)
+    expect(rows[1]).toContain('Autres villes')
+    expect(rows[2]).toMatch(/Ville inconnue.*Côte d.Ivoire/)
+    expect(attribution().exists()).toBe(true)
+    expect(wrapper.find('[data-dataset="network_cities"]').text()).toBe(
+      'Villes de connexion'
+    )
+    // The attribution belongs to the estimate only.
+    await wrapper.find('[data-view="declared"]').trigger('click')
+    expect(wrapper.find('.geo-attribution').exists()).toBe(false)
+  })
+
+  it('works without cities nor attribution from the server', async () => {
+    const data = precise()
+    delete data.network_cities
+    delete data.geo_attribution
+    await render(data)
+    expect(wrapper.find('[data-view="cities"]').exists()).toBe(false)
+    expect(wrapper.find('[data-dataset="network_cities"]').exists()).toBe(false)
+    expect(wrapper.find('.geo-attribution').exists()).toBe(false)
+    expect(wrapper.find('.network-countries').exists()).toBe(true)
+  })
+
+  it('opens on the declared country when the server makes no estimate', async () => {
+    await render(precise({ network_country_source: 'none' }))
+    expect(
+      wrapper.find('[data-view="declared"]').attributes('aria-pressed')
+    ).toBe('true')
+    expect(wrapper.find('.country-row').exists()).toBe(true)
+    expect(wrapper.find('.network-none').exists()).toBe(false)
+    await wrapper.find('[data-view="network"]').trigger('click')
+    expect(wrapper.find('.network-none').text()).toContain(
+      'Estimation non configurée : lancez « php artisan pwa:geoip-update » sur le serveur.'
+    )
+  })
+
+  it('exports the countries of connection', async () => {
+    await render(precise())
+    const item = wrapper.find('[data-dataset="network_countries"]')
+    expect(item.text()).toBe('Pays de connexion')
+    mocks.get.mockResolvedValueOnce({ data: new Blob(['a']), headers: {} })
+    await item.trigger('click')
+    await flushPromises()
+    expect(mocks.get).toHaveBeenLastCalledWith(
+      '/developer/analytics/export.csv',
+      {
+        params: {
+          ...presetRange(30),
+          granularity: 'day',
+          dataset: 'network_countries'
+        },
+        responseType: 'blob',
+        headers: { Accept: 'text/csv' }
+      }
+    )
+    expect(mocks.download).toHaveBeenCalledWith(
+      expect.any(Blob),
+      `pwa-store-analytics-network_countries-${presetRange(30).from}-${presetRange(30).to}.csv`
+    )
   })
 
   it('names the share-link columns precisely', async () => {
