@@ -27,6 +27,16 @@ export default {
     partial:
       'Période incomplète (coupée par les dates choisies) : {list} | Périodes incomplètes (coupées par les dates choisies) : {list}'
   },
+  integrations: {
+    activeTokens:
+      '{n} jeton actif sur {max} | {n} jeton actif sur {max} | {n} jetons actifs sur {max}',
+    webhooks:
+      '{n} webhook sur {max} | {n} webhook sur {max} | {n} webhooks sur {max}',
+    days: '{n} jour | {n} jour | {n} jours',
+    failures:
+      '{n} échec consécutif | {n} échec consécutif | {n} échecs consécutifs',
+    attempts: '{n} tentative | {n} tentative | {n} tentatives'
+  },
   lab: {
     info: '{n} info | {n} info | {n} infos',
     shown: 'Aucun point affiché | {n} point affiché | {n} points affichés',

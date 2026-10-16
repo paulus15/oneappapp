@@ -27,6 +27,16 @@ export default {
     partial:
       'Partial period (cut by the chosen dates): {list} | Partial periods (cut by the chosen dates): {list}'
   },
+  integrations: {
+    activeTokens:
+      '{n} active tokens out of {max} | {n} active token out of {max} | {n} active tokens out of {max}',
+    webhooks:
+      '{n} webhooks out of {max} | {n} webhook out of {max} | {n} webhooks out of {max}',
+    days: '{n} days | {n} day | {n} days',
+    failures:
+      '{n} consecutive failures | {n} consecutive failure | {n} consecutive failures',
+    attempts: '{n} attempts | {n} attempt | {n} attempts'
+  },
   lab: {
     info: '{n} info | {n} info | {n} info',
     shown: 'No item shown | {n} item shown | {n} items shown',

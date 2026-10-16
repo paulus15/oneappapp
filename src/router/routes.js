@@ -364,6 +364,11 @@ const routes = [
         meta: { requiresAuth: true, developerOnly: true, tool: 'beta' }
       },
       {
+        path: 'integrations',
+        component: () => import('@/pages/developer/IntegrationsPage.vue'),
+        meta: { requiresAuth: true, developerOnly: true, tool: 'integrations' }
+      },
+      {
         path: 'profile',
         component: () => import('@/pages/developer/DeveloperProfilePage.vue'),
         meta: { requiresAuth: true, developerOnly: true }
