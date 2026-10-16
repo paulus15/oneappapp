@@ -20,6 +20,15 @@ export const adminApi = {
   submissionReadiness: id => api.get(`/admin/apps/${id}/submission-readiness`),
   submitPublisherApplication: id => api.post(`/admin/apps/${id}/submit`),
   stats: () => api.get('/admin/stats'),
+  // { data: { todo, tools, assistant, queue, generated_at } }; a null todo counter means
+  // the admin lacks the permission to handle it.
+  overview: () => api.get('/admin/overview'),
+  // AI assistant (DeepSeek). The API key is write-only: GET only returns key_hint.
+  aiSettings: () => api.get('/admin/ai/settings'),
+  // Only the changed fields; api_key only when one was typed.
+  updateAiSettings: payload => api.put('/admin/ai/settings', payload),
+  // { api_key? } → { data: { ok, models, message } }; without a key, tests the stored one.
+  testAi: apiKey => api.post('/admin/ai/test', apiKey ? { api_key: apiKey } : {}),
   requests: params => api.get('/admin/publication-requests', { params }),
   request: id => api.get(`/admin/publication-requests/${id}`),
   startRequest: id => api.post(`/admin/publication-requests/${id}/start`),

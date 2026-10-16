@@ -31,20 +31,6 @@ const routes = [
         meta: { requiresAuth: true }
       },
       {
-        path: 'admin/countries',
-        component: () => import('@/pages/admin/CountryOverviewPage.vue'),
-        meta: { requiresAuth: true, adminOnly: true, permission: 'audit.view' }
-      },
-      {
-        path: 'admin/developers',
-        component: () => import('@/pages/admin/DeveloperReviewPage.vue'),
-        meta: {
-          requiresAuth: true,
-          adminOnly: true,
-          permission: 'developers.review'
-        }
-      },
-      {
         path: '',
         component: () => import('@/pages/store/StoreCatalogPage.vue')
       },
@@ -136,6 +122,34 @@ const routes = [
         path: 'beta/:id(\\d+)',
         component: () => import('@/pages/store/BetaCampaignPage.vue'),
         meta: { tool: 'beta', toolFallback: '/' }
+      },
+      {
+        path: 'notifications',
+        component: () => import('@/pages/account/NotificationsPage.vue'),
+        meta: { requiresAuth: true }
+      }
+    ]
+  },
+
+  // Back-office under its own layout (sidebar grouped by section). Same addresses and
+  // permissions as before: only the frame around the pages changes.
+  {
+    path: '/',
+    component: () => import('@/layouts/AdminLayout.vue'),
+    children: [
+      {
+        path: 'admin/countries',
+        component: () => import('@/pages/admin/CountryOverviewPage.vue'),
+        meta: { requiresAuth: true, adminOnly: true, permission: 'audit.view' }
+      },
+      {
+        path: 'admin/developers',
+        component: () => import('@/pages/admin/DeveloperReviewPage.vue'),
+        meta: {
+          requiresAuth: true,
+          adminOnly: true,
+          permission: 'developers.review'
+        }
       },
       {
         path: 'admin',
@@ -253,9 +267,14 @@ const routes = [
         }
       },
       {
-        path: 'notifications',
-        component: () => import('@/pages/account/NotificationsPage.vue'),
-        meta: { requiresAuth: true }
+        // AI assistant settings (DeepSeek key, model, quotas).
+        path: 'admin/ai',
+        component: () => import('@/pages/admin/AdminAiPage.vue'),
+        meta: {
+          requiresAuth: true,
+          adminOnly: true,
+          permission: 'settings.manage'
+        }
       },
       {
         path: 'admin/audit',
