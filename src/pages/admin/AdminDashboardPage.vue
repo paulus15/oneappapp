@@ -2,19 +2,19 @@
   <q-page class="workspace-page admin-dashboard">
     <header class="workspace-heading dashboard-heading">
       <div>
-        <span class="eyebrow">{{ ui("Administration") }}</span>
-        <h1>{{ ui("Tableau de bord") }}</h1>
+        <span class="eyebrow">{{ ui('Administration') }}</span>
+        <h1>{{ ui('Tableau de bord') }}</h1>
         <p>
           {{
             ui(
-              "Compteurs réels issus de la base. Rien n’est estimé : une donnée non mesurée n’apparaît pas.",
+              'Compteurs réels issus de la base. Rien n’est estimé : une donnée non mesurée n’apparaît pas.'
             )
           }}
         </p>
       </div>
       <div class="heading-actions">
         <small v-if="generatedAt" class="generated-at">{{
-          ui("Mis à jour à {time}", { time: generatedAt })
+          ui('Mis à jour à {time}', { time: generatedAt })
         }}</small>
         <q-btn
           class="refresh-overview"
@@ -53,10 +53,10 @@
       role="alert"
       >{{
         ui(
-          "Actualisation impossible : les chiffres affichés datent de {time}.",
+          'Actualisation impossible : les chiffres affichés datent de {time}.',
           {
-            time: generatedAt || "—",
-          },
+            time: generatedAt || '—'
+          }
         )
       }}</q-banner
     >
@@ -66,7 +66,7 @@
       class="overview-skeletons"
       role="status"
     >
-      <span class="sr-only">{{ ui("Chargement…") }}</span>
+      <span class="sr-only">{{ ui('Chargement…') }}</span>
       <div class="todo-grid" aria-hidden="true">
         <q-skeleton v-for="n in 4" :key="n" type="rect" height="96px" />
       </div>
@@ -77,7 +77,7 @@
 
     <template v-if="overview">
       <section aria-labelledby="todo-title">
-        <h2 id="todo-title" class="section-title">{{ ui("À traiter") }}</h2>
+        <h2 id="todo-title" class="section-title">{{ ui('À traiter') }}</h2>
         <div v-if="cards.length" class="todo-grid">
           <component
             :is="card.to ? 'router-link' : 'div'"
@@ -92,13 +92,13 @@
             <strong v-if="card.count > 0" class="todo-count">{{
               formatCount(card.count)
             }}</strong>
-            <strong v-else class="todo-none">{{ ui("Rien à traiter") }}</strong>
+            <strong v-else class="todo-none">{{ ui('Rien à traiter') }}</strong>
             <span class="todo-label">{{ card.label }}</span>
           </component>
         </div>
         <p v-else class="text-muted">
           {{
-            ui("Aucune file de traitement ne correspond à vos autorisations.")
+            ui('Aucune file de traitement ne correspond à vos autorisations.')
           }}
         </p>
       </section>
@@ -109,7 +109,7 @@
           aria-labelledby="tools-title"
         >
           <h2 id="tools-title" class="card-title">
-            {{ ui("Outils de l’écosystème") }}
+            {{ ui('Outils de l’écosystème') }}
           </h2>
           <ul class="tool-list">
             <li
@@ -124,7 +124,7 @@
               />
               <span class="tool-label">{{ tool.label }}</span>
               <span class="tool-state">{{
-                tool.on ? ui("Activé") : ui("Désactivé")
+                tool.on ? ui('Activé') : ui('Désactivé')
               }}</span>
             </li>
           </ul>
@@ -135,41 +135,41 @@
           aria-labelledby="assistant-title"
         >
           <h2 id="assistant-title" class="card-title">
-            {{ ui("Assistant IA") }}
+            {{ ui('Assistant IA') }}
           </h2>
           <p class="assistant-state" :class="assistantState.tone">
             <q-icon :name="assistantState.icon" aria-hidden="true" />
             {{ assistantState.label }}
           </p>
           <p v-if="assistant.model" class="text-muted">
-            {{ ui("Modèle") }} : {{ assistant.model }}
+            {{ ui('Modèle') }} : {{ assistant.model }}
           </p>
           <dl v-if="assistant.requests_today != null" class="figures">
             <div>
-              <dt>{{ ui("Questions aujourd’hui") }}</dt>
+              <dt>{{ ui('Questions aujourd’hui') }}</dt>
               <dd class="ai-requests">
                 {{ formatCount(assistant.requests_today) }}
               </dd>
             </div>
             <div>
-              <dt>{{ ui("Jetons ce mois-ci") }}</dt>
+              <dt>{{ ui('Jetons ce mois-ci') }}</dt>
               <dd class="ai-tokens">
                 {{ formatCount(assistant.tokens_month) }}
               </dd>
             </div>
             <div>
-              <dt>{{ ui("Budget restant") }}</dt>
+              <dt>{{ ui('Budget restant') }}</dt>
               <dd class="ai-budget">
                 {{
                   assistant.budget_left == null
-                    ? ui("Sans plafond")
+                    ? ui('Sans plafond')
                     : formatCount(assistant.budget_left)
                 }}
               </dd>
             </div>
           </dl>
           <router-link v-if="canManageSettings" to="/admin/ai" class="card-link"
-            >{{ ui("Régler l’assistant") }}
+            >{{ ui('Régler l’assistant') }}
             <q-icon name="arrow_forward" aria-hidden="true"
           /></router-link>
         </section>
@@ -181,24 +181,24 @@
           aria-labelledby="queue-title"
         >
           <h2 id="queue-title" class="card-title">
-            {{ ui("File d’attente") }}
+            {{ ui('File d’attente') }}
           </h2>
           <dl class="figures">
             <div>
-              <dt>{{ ui("Tâches en attente") }}</dt>
+              <dt>{{ ui('Tâches en attente') }}</dt>
               <dd class="queue-pending">{{ formatCount(queue.pending) }}</dd>
             </div>
             <div>
-              <dt>{{ ui("Tâches en échec") }}</dt>
+              <dt>{{ ui('Tâches en échec') }}</dt>
               <dd class="queue-failed">{{ formatCount(queue.failed) }}</dd>
             </div>
             <div>
-              <dt>{{ ui("Plus ancienne en attente") }}</dt>
+              <dt>{{ ui('Plus ancienne en attente') }}</dt>
               <dd class="queue-oldest">
                 {{
                   queue.oldest == null
-                    ? "—"
-                    : ui("{n} min", { n: formatCount(queue.oldest) })
+                    ? '—'
+                    : ui('{n} min', { n: formatCount(queue.oldest) })
                 }}
               </dd>
             </div>
@@ -207,14 +207,14 @@
             <q-icon name="warning" aria-hidden="true" />
             <div>
               <strong>{{
-                ui("Des tâches attendent depuis plus de {n} minutes.", {
-                  n: QUEUE_STALE_MINUTES,
+                ui('Des tâches attendent depuis plus de {n} minutes.', {
+                  n: QUEUE_STALE_MINUTES
                 })
               }}</strong>
               <p>
                 {{
                   ui(
-                    "Le worker de file d’attente ne semble pas tourner. Vérifiez le programme Supervisor qui lance :",
+                    'Le worker de file d’attente ne semble pas tourner. Vérifiez le programme Supervisor qui lance :'
                   )
                 }}
               </p>
@@ -226,166 +226,166 @@
           <p v-else-if="queue.hasFailures" class="queue-hint">
             {{
               ui(
-                "Des tâches ont échoué : consultez-les avec php artisan queue:failed.",
+                'Des tâches ont échoué : consultez-les avec php artisan queue:failed.'
               )
             }}
           </p>
           <p v-else class="queue-ok">
             <q-icon name="check_circle" aria-hidden="true" />
-            {{ ui("Aucun retard ni échec détecté dans la file d’attente.") }}
+            {{ ui('Aucun retard ni échec détecté dans la file d’attente.') }}
           </p>
         </section>
       </div>
     </template>
 
     <section v-if="stats" aria-labelledby="stats-title">
-      <h2 id="stats-title" class="section-title">{{ ui("Vue d’ensemble") }}</h2>
+      <h2 id="stats-title" class="section-title">{{ ui('Vue d’ensemble') }}</h2>
       <div class="workspace-grid">
         <q-card flat bordered class="workspace-card"
-          ><h3>{{ ui("Comptes") }}</h3>
+          ><h3>{{ ui('Comptes') }}</h3>
           <p v-for="(total, status) in stats.users" :key="status">
             {{ userLabels[status] || status }} : {{ total }}
           </p>
           <p class="text-muted">
             {{ stats.users_last_30_days }}
-            {{ ui("inscription(s) sur 30 jours") }}
+            {{ ui('inscription(s) sur 30 jours') }}
           </p></q-card
         >
         <q-card flat bordered class="workspace-card"
-          ><h3>{{ ui("Profils développeurs") }}</h3>
+          ><h3>{{ ui('Profils développeurs') }}</h3>
           <p v-if="!Object.keys(stats.developer_profiles || {}).length">
-            {{ ui("Aucun profil.") }}
+            {{ ui('Aucun profil.') }}
           </p>
           <p v-for="(total, status) in stats.developer_profiles" :key="status">
             {{ profileLabels[status] || status }} : {{ total }}
           </p></q-card
         >
         <q-card flat bordered class="workspace-card"
-          ><h3>{{ ui("Applications") }}</h3>
+          ><h3>{{ ui('Applications') }}</h3>
           <p v-for="(total, status) in stats.applications" :key="status">
             {{ statusLabel(status) }} : {{ total }}
           </p>
           <p class="text-muted">
             {{ stats.publicly_visible }}
-            {{ ui("visible(s) publiquement (éditeur vérifié)") }}
+            {{ ui('visible(s) publiquement (éditeur vérifié)') }}
           </p>
           <p v-if="stats.queues?.versions_to_review" class="text-muted">
             {{ stats.queues.versions_to_review }}
-            {{ ui("version(s) analysée(s) en attente de revue") }}
+            {{ ui('version(s) analysée(s) en attente de revue') }}
           </p></q-card
         >
         <q-card flat bordered class="workspace-card"
-          ><h3>{{ ui("Avis") }}</h3>
-          <p>{{ stats.reviews }} {{ ui("avis publiés") }}</p></q-card
+          ><h3>{{ ui('Avis') }}</h3>
+          <p>{{ stats.reviews }} {{ ui('avis publiés') }}</p></q-card
         >
       </div>
     </section>
   </q-page>
 </template>
 <script setup>
-import { ui } from "@/i18n/text";
+import { ui } from '@/i18n/text'
 
-import { computed, onMounted, ref } from "vue";
-import AdminNav from "@/components/AdminNav.vue";
-import EmptyState from "@/components/EmptyState.vue";
-import { useAdminOverview } from "@/composables/useAdminOverview";
-import { adminApi } from "@/services/admin";
-import { useAuthStore } from "@/stores/auth";
-import { statusLabel } from "@/utils/appStatus";
+import { computed, onMounted, ref } from 'vue'
+import AdminNav from '@/components/AdminNav.vue'
+import EmptyState from '@/components/EmptyState.vue'
+import { useAdminOverview } from '@/composables/useAdminOverview'
+import { adminApi } from '@/services/admin'
+import { useAuthStore } from '@/stores/auth'
+import { statusLabel } from '@/utils/appStatus'
 import {
   QUEUE_STALE_MINUTES,
   formatCount,
   overviewDate,
   queueHealth,
   todoCards,
-  toolRows,
-} from "@/utils/adminOverview";
+  toolRows
+} from '@/utils/adminOverview'
 
-const auth = useAuthStore();
+const auth = useAuthStore()
 const {
   overview,
   loading: overviewLoading,
   error: overviewError,
-  load: loadOverview,
-} = useAdminOverview();
-const stats = ref(null);
+  load: loadOverview
+} = useAdminOverview()
+const stats = ref(null)
 
-const cards = computed(() => todoCards(overview.value?.todo));
-const tools = computed(() => toolRows(overview.value?.tools));
-const queue = computed(() => queueHealth(overview.value?.queue));
-const assistant = computed(() => overview.value?.assistant || {});
-const generatedAt = computed(() => overviewDate(overview.value?.generated_at));
+const cards = computed(() => todoCards(overview.value?.todo))
+const tools = computed(() => toolRows(overview.value?.tools))
+const queue = computed(() => queueHealth(overview.value?.queue))
+const assistant = computed(() => overview.value?.assistant || {})
+const generatedAt = computed(() => overviewDate(overview.value?.generated_at))
 const canManageSettings = computed(
-  () => auth.user?.admin_permissions?.includes("settings.manage") === true,
-);
+  () => auth.user?.admin_permissions?.includes('settings.manage') === true
+)
 const assistantState = computed(() => {
-  const a = assistant.value;
+  const a = assistant.value
   if (!a.configured)
     return {
-      tone: "state-off",
-      icon: "key_off",
+      tone: 'state-off',
+      icon: 'key_off',
       label: ui(
-        "Non configuré : renseignez la clé API et choisissez un modèle DeepSeek.",
-      ),
-    };
+        'Non configuré : renseignez la clé API et choisissez un modèle DeepSeek.'
+      )
+    }
   if (!a.enabled)
     return {
-      tone: "state-paused",
-      icon: "pause_circle",
-      label: ui("Configuré mais désactivé pour les développeurs."),
-    };
+      tone: 'state-paused',
+      icon: 'pause_circle',
+      label: ui('Configuré mais désactivé pour les développeurs.')
+    }
   return {
-    tone: "state-on",
-    icon: "check_circle",
-    label: ui("Activé pour les développeurs."),
-  };
-});
+    tone: 'state-on',
+    icon: 'check_circle',
+    label: ui('Activé pour les développeurs.')
+  }
+})
 
 const userLabels = {
   get active() {
-    return ui("Actifs");
+    return ui('Actifs')
   },
   get suspended() {
-    return ui("Suspendus");
+    return ui('Suspendus')
   },
   get deactivated() {
-    return ui("Désactivés");
-  },
-};
+    return ui('Désactivés')
+  }
+}
 const profileLabels = {
   get draft() {
-    return ui("Brouillons");
+    return ui('Brouillons')
   },
   get pending_verification() {
-    return ui("En attente de vérification");
+    return ui('En attente de vérification')
   },
   get verified() {
-    return ui("Vérifiés");
+    return ui('Vérifiés')
   },
   get rejected() {
-    return ui("À corriger");
+    return ui('À corriger')
   },
   get suspended() {
-    return ui("Suspendus");
-  },
-};
+    return ui('Suspendus')
+  }
+}
 
-let statsSeq = 0;
+let statsSeq = 0
 async function loadStats() {
-  const seq = ++statsSeq;
+  const seq = ++statsSeq
   try {
-    const { data } = await adminApi.stats();
-    if (seq === statsSeq) stats.value = data;
+    const { data } = await adminApi.stats()
+    if (seq === statsSeq) stats.value = data
   } catch {
     // The overview above stays usable without the detailed counters.
   }
 }
 function refresh() {
-  loadOverview();
-  loadStats();
+  loadOverview()
+  loadStats()
 }
 // The layout loads the overview for its badges; the dashboard always shows fresh data.
-onMounted(refresh);
+onMounted(refresh)
 </script>
 <style scoped>
 .dashboard-heading {
