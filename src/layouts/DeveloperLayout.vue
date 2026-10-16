@@ -264,6 +264,15 @@ const workspaceNavigation = computed(() => [
           to: '/developer/beta'
         }
       ]
+    : []),
+  ...(tools.value.integrations
+    ? [
+        {
+          label: ui('Intégrations'),
+          icon: 'hub',
+          to: '/developer/integrations'
+        }
+      ]
     : [])
   // Volet Revenus masqué en attendant l’activation de la monétisation.
   // {

@@ -92,4 +92,16 @@ describe('developer layout navigation', () => {
       text: 'Statistiques avancées'
     })
   })
+
+  it('adds "Intégrations" only when the integrations flag is on', async () => {
+    state.tools = ref({ integrations: false })
+    expect(
+      (await navTargets()).some(item => item.to === '/developer/integrations')
+    ).toBe(false)
+    state.tools = ref({ integrations: true })
+    expect(await navTargets()).toContainEqual({
+      to: '/developer/integrations',
+      text: 'Intégrations'
+    })
+  })
 })
