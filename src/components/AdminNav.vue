@@ -1,6 +1,10 @@
 <template>
   <!-- Inside AdminLayout the sidebar already lists these pages: no second menu. -->
-  <nav v-if="!inAdminLayout" class="admin-nav" :aria-label="ui('Administration')">
+  <nav
+    v-if="!inAdminLayout"
+    class="admin-nav"
+    :aria-label="ui('Administration')"
+  >
     <q-tabs
       dense
       no-caps

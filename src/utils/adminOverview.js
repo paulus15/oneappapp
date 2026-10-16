@@ -130,7 +130,7 @@ export function toolRows(tools) {
   }))
 }
 
-// Beyond this age the oldest pending job means the worker is not running.
+// Pending jobs older than this threshold warrant checking worker health.
 export const QUEUE_STALE_MINUTES = 10
 
 export function queueHealth(queue) {

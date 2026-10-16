@@ -20,7 +20,8 @@ export function aiForm(settings = {}) {
 const normalized = form => ({
   model: blank(form.model),
   enabled: form.enabled === true,
-  daily_quota: blank(form.daily_quota) === null ? null : Number(form.daily_quota),
+  daily_quota:
+    blank(form.daily_quota) === null ? null : Number(form.daily_quota),
   monthly_token_budget:
     blank(form.monthly_token_budget) === null
       ? null
@@ -55,14 +56,17 @@ export function dailyQuotaError(value) {
 export function budgetError(value) {
   if (blank(value) === null) return ''
   const n = Number(value)
-  return Number.isInteger(n) && n >= 1
+  return Number.isInteger(n) && n >= 1000 && n <= 1000000000
     ? ''
-    : ui('Un nombre entier de jetons, ou vide pour ne pas fixer de plafond.')
+    : ui(
+        'Entre 1 000 et 1 000 000 000 jetons, ou vide pour ne pas fixer de plafond.'
+      )
 }
 
 // Enabling needs a stored key and a chosen model (the API answers 422 otherwise).
 export const canEnableAssistant = (settings, form) =>
-  settings?.has_key === true && Boolean(blank(form?.model))
+  settings?.has_key === true &&
+  modelOptions(settings).some(model => model.value === blank(form?.model))
 
 export function keyHintText(hint) {
   if (!hint) return ''
@@ -70,9 +74,31 @@ export function keyHintText(hint) {
   return text.startsWith('•') ? text : `••••${text}`
 }
 
-export const modelOptions = settings =>
-  (Array.isArray(settings?.models) ? settings.models : []).map(model => ({
+export const DEFAULT_DEEPSEEK_MODELS = [
+  {
+    id: 'deepseek-chat',
+    label: 'DeepSeek-V3 (deepseek-chat)',
+    description: ui(
+      'Modèle généraliste rapide et performant pour l’analyse de code et les corrections.'
+    )
+  },
+  {
+    id: 'deepseek-reasoner',
+    label: 'DeepSeek-R1 (deepseek-reasoner)',
+    description: ui(
+      'Modèle de raisonnement avancé pour les diagnostics approfondis et la logique complexe.'
+    )
+  }
+]
+
+export const modelOptions = settings => {
+  const list =
+    Array.isArray(settings?.models) && settings.models.length > 0
+      ? settings.models
+      : DEFAULT_DEEPSEEK_MODELS
+  return list.map(model => ({
     value: model.id,
     label: model.label || model.id,
     description: model.description || ''
   }))
+}

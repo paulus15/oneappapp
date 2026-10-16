@@ -50,9 +50,12 @@
       class="workspace-alert overview-stale q-mb-md"
       role="alert"
       >{{
-        ui('Actualisation impossible : les chiffres affichés datent de {time}.', {
-          time: generatedAt || '—'
-        })
+        ui(
+          'Actualisation impossible : les chiffres affichés datent de {time}.',
+          {
+            time: generatedAt || '—'
+          }
+        )
       }}</q-banner
     >
 
@@ -134,7 +137,10 @@
             <q-icon :name="assistantState.icon" aria-hidden="true" />
             {{ assistantState.label }}
           </p>
-          <dl class="figures">
+          <p v-if="assistant.model" class="text-muted"
+            >{{ ui('Modèle') }} : {{ assistant.model }}</p
+          >
+          <dl v-if="assistant.requests_today != null" class="figures">
             <div>
               <dt>{{ ui('Questions aujourd’hui') }}</dt>
               <dd class="ai-requests">{{
@@ -143,7 +149,9 @@
             </div>
             <div>
               <dt>{{ ui('Jetons ce mois-ci') }}</dt>
-              <dd class="ai-tokens">{{ formatCount(assistant.tokens_month) }}</dd>
+              <dd class="ai-tokens">{{
+                formatCount(assistant.tokens_month)
+              }}</dd>
             </div>
             <div>
               <dt>{{ ui('Budget restant') }}</dt>
@@ -161,6 +169,7 @@
         </section>
 
         <section
+          v-if="overview.queue"
           class="workspace-card queue-card"
           :class="{ 'queue-warning': queue.stale || queue.hasFailures }"
           aria-labelledby="queue-title"
@@ -215,7 +224,7 @@
           </p>
           <p v-else class="queue-ok">
             <q-icon name="check_circle" aria-hidden="true" />
-            {{ ui('La file d’attente est traitée normalement.') }}
+            {{ ui('Aucun retard ni échec détecté dans la file d’attente.') }}
           </p>
         </section>
       </div>
@@ -304,7 +313,9 @@ const assistantState = computed(() => {
     return {
       tone: 'state-off',
       icon: 'key_off',
-      label: ui('Non configuré : aucune clé API enregistrée.')
+      label: ui(
+        'Non configuré : renseignez la clé API et choisissez un modèle DeepSeek.'
+      )
     }
   if (!a.enabled)
     return {

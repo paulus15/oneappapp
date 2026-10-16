@@ -28,7 +28,8 @@ export const adminApi = {
   // Only the changed fields; api_key only when one was typed.
   updateAiSettings: payload => api.put('/admin/ai/settings', payload),
   // { api_key? } → { data: { ok, models, message } }; without a key, tests the stored one.
-  testAi: apiKey => api.post('/admin/ai/test', apiKey ? { api_key: apiKey } : {}),
+  testAi: apiKey =>
+    api.post('/admin/ai/test', apiKey ? { api_key: apiKey } : {}),
   requests: params => api.get('/admin/publication-requests', { params }),
   request: id => api.get(`/admin/publication-requests/${id}`),
   startRequest: id => api.post(`/admin/publication-requests/${id}/start`),
