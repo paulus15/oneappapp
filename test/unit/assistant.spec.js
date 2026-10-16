@@ -64,6 +64,13 @@ describe('Labo assistant', () => {
         { model: 'supported' }
       )
     ).toBe(true)
+    expect(
+      canEnableAssistant({ has_key: true }, { model: 'deepseek-chat' })
+    ).toBe(true)
+    expect(
+      canEnableAssistant({ has_key: true }, { model: 'deepseek-reasoner' })
+    ).toBe(true)
+    expect(canEnableAssistant({ has_key: true }, { model: null })).toBe(false)
   })
   it('does not fetch history or show the form when unconfigured', async () => {
     api.status.mockResolvedValue({ data: { data: { available: false } } })

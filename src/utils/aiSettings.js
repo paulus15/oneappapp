@@ -74,9 +74,31 @@ export function keyHintText(hint) {
   return text.startsWith('•') ? text : `••••${text}`
 }
 
-export const modelOptions = settings =>
-  (Array.isArray(settings?.models) ? settings.models : []).map(model => ({
+export const DEFAULT_DEEPSEEK_MODELS = [
+  {
+    id: 'deepseek-chat',
+    label: 'DeepSeek-V3 (deepseek-chat)',
+    description: ui(
+      'Modèle généraliste rapide et performant pour l’analyse de code et les corrections.'
+    )
+  },
+  {
+    id: 'deepseek-reasoner',
+    label: 'DeepSeek-R1 (deepseek-reasoner)',
+    description: ui(
+      'Modèle de raisonnement avancé pour les diagnostics approfondis et la logique complexe.'
+    )
+  }
+]
+
+export const modelOptions = settings => {
+  const list =
+    Array.isArray(settings?.models) && settings.models.length > 0
+      ? settings.models
+      : DEFAULT_DEEPSEEK_MODELS
+  return list.map(model => ({
     value: model.id,
     label: model.label || model.id,
     description: model.description || ''
   }))
+}
