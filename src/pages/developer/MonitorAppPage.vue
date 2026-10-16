@@ -94,7 +94,7 @@
             color="primary"
             icon="refresh"
             :label="ui('Vérifier maintenant')"
-            :loading="checking"
+            :loading="checking || waitingResult"
             :disable="!checkAllowed"
             @click="checkNow"
           />
@@ -111,7 +111,12 @@
             class="check-notice"
             :class="`notice-${checkNotice.tone}`"
             role="status"
-            >{{ checkNotice.text }}</small
+            ><q-spinner
+              v-if="waitingResult"
+              size="14px"
+              class="q-mr-xs"
+              aria-hidden="true"
+            />{{ checkNotice.text }}</small
           >
         </div>
       </header>
@@ -498,6 +503,8 @@ const detail = ref(null),
   error = ref(''),
   tab = ref('incidents'),
   checking = ref(false),
+  // A manual check was accepted: the page polls until its result is recorded.
+  waitingResult = ref(false),
   checkNotice = ref(null),
   saving = ref(false),
   selectedDay = ref(null)
@@ -627,10 +634,71 @@ async function load({ silent = false } = {}) {
   }
 }
 
-let refreshTimer = null
+// After "Vérifier maintenant", poll until a newer check is recorded (the server runs it right
+// after answering), then show its result. Stops on app change, unmount or after POLL_LIMIT_MS.
+const POLL_MS = 4000
+const POLL_LIMIT_MS = 90000
+let pollTimer = null
+function stopPolling() {
+  clearTimeout(pollTimer)
+  pollTimer = null
+  waitingResult.value = false
+}
+
+function checkResultNotice(monitor) {
+  const status = monitorStatus(monitor.state)
+  const parts = [status.label]
+  if (monitor.response_ms !== null && monitor.response_ms !== undefined)
+    parts.push(monitorDuration(monitor.response_ms))
+  const tone =
+    monitor.state === 'up'
+      ? 'positive'
+      : monitor.state === 'unknown'
+        ? 'info'
+        : 'warning'
+  return {
+    tone,
+    text: ui('Vérification terminée : {p0}', { p0: parts.join(' · ') })
+  }
+}
+
+function watchForResult(id, since) {
+  stopPolling()
+  waitingResult.value = true
+  const started = Date.now()
+  const tick = async () => {
+    if (id !== appId.value) return stopPolling()
+    await load({ silent: true })
+    if (id !== appId.value) return stopPolling()
+    const monitor = detail.value?.monitor
+    if (monitor?.last_checked_at && monitor.last_checked_at !== since) {
+      stopPolling()
+      void checks.reload()
+      void incidents.reload()
+      checkNotice.value = checkResultNotice(monitor)
+      $q.notify({
+        type: checkNotice.value.tone,
+        message: checkNotice.value.text
+      })
+      return
+    }
+    if (Date.now() - started >= POLL_LIMIT_MS) {
+      stopPolling()
+      checkNotice.value = {
+        tone: 'info',
+        text: ui(
+          'La vérification prend plus de temps que prévu. Son résultat apparaîtra dans l’historique dès qu’il sera enregistré.'
+        )
+      }
+      return
+    }
+    pollTimer = setTimeout(tick, POLL_MS)
+  }
+  pollTimer = setTimeout(tick, POLL_MS)
+}
+
 function resetForApp() {
-  clearTimeout(refreshTimer)
-  refreshTimer = null
+  stopPolling()
   detail.value = null
   checkNotice.value = null
   selectedDay.value = null
@@ -674,18 +742,11 @@ async function checkNow() {
   checking.value = true
   checkNotice.value = null
   try {
-    const { data } = await monitorApi.check(id)
+    const since = detail.value?.monitor?.last_checked_at ?? null
+    await monitorApi.check(id)
     if (id !== appId.value) return
-    const text = data?.message
-      ? ui(data.message)
-      : ui('Vérification demandée. Le résultat apparaîtra dans un instant.')
-    checkNotice.value = { tone: 'positive', text }
-    $q.notify({ type: 'positive', message: text })
-    clearTimeout(refreshTimer)
-    refreshTimer = setTimeout(() => {
-      void load({ silent: true })
-      void checks.reload()
-    }, 8000)
+    checkNotice.value = { tone: 'info', text: ui('Vérification en cours…') }
+    watchForResult(id, since)
   } catch (e) {
     if (id !== appId.value) return
     const statusCode = e.response?.status
@@ -694,6 +755,9 @@ async function checkNow() {
     const text = statusCode === 429 ? throttledMessage(e) : apiMessage(e)
     checkNotice.value = { tone, text }
     $q.notify({ type: tone, message: text })
+    // A check of this app is already queued: wait for its result too.
+    if (statusCode === 409)
+      watchForResult(id, detail.value?.monitor?.last_checked_at ?? null)
     // 422: monitoring was turned off or the app became unmonitorable elsewhere.
     if (statusCode === 422) void load({ silent: true })
   } finally {
@@ -719,7 +783,7 @@ function throttledMessage(e) {
 }
 
 watch(appId, loadAll, { immediate: true })
-onBeforeUnmount(() => clearTimeout(refreshTimer))
+onBeforeUnmount(stopPolling)
 </script>
 <style scoped>
 .back-link {

@@ -328,6 +328,70 @@ describe('monitor detail', () => {
     expect(wrapper.vm.checkNotice.text).toContain('un peu plus tard')
   })
 
+  it('shows progress after a manual check, then its result', async () => {
+    await render()
+    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout', 'Date'] })
+    try {
+      mocks.post.mockResolvedValue({ data: { message: 'Contrôle lancé.' } })
+      await wrapper.vm.checkNow()
+      expect(wrapper.vm.waitingResult).toBe(true)
+      expect(wrapper.vm.checkNotice).toEqual({
+        tone: 'info',
+        text: 'Vérification en cours…'
+      })
+      // The same check is still the latest one: keep waiting.
+      await vi.advanceTimersByTimeAsync(4000)
+      await flushPromises()
+      expect(wrapper.vm.waitingResult).toBe(true)
+      const fresh = {
+        ...detail,
+        monitor: {
+          ...detail.monitor,
+          state: 'down',
+          response_ms: null,
+          last_checked_at: new Date(Date.now() + 1000).toISOString()
+        }
+      }
+      mocks.get.mockImplementation(url =>
+        Promise.resolve(
+          url === '/developer/monitor/apps/7'
+            ? { data: { data: fresh } }
+            : page([])
+        )
+      )
+      mocks.get.mockClear()
+      await vi.advanceTimersByTimeAsync(4000)
+      await flushPromises()
+      expect(wrapper.vm.waitingResult).toBe(false)
+      expect(wrapper.vm.checkNotice).toEqual({
+        tone: 'warning',
+        text: 'Vérification terminée : Indisponible'
+      })
+      // The history is refreshed with the new check.
+      expect(mocks.get).toHaveBeenCalledWith(
+        '/developer/monitor/apps/7/checks',
+        expect.anything()
+      )
+    } finally {
+      vi.useRealTimers()
+    }
+  })
+
+  it('stops waiting for a manual check after 90 seconds', async () => {
+    await render()
+    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout', 'Date'] })
+    try {
+      mocks.post.mockResolvedValue({ data: {} })
+      await wrapper.vm.checkNow()
+      await vi.advanceTimersByTimeAsync(92000)
+      await flushPromises()
+      expect(wrapper.vm.waitingResult).toBe(false)
+      expect(wrapper.vm.checkNotice.text).toContain('plus de temps que prévu')
+    } finally {
+      vi.useRealTimers()
+    }
+  })
+
   it('reports an already scheduled check as information', async () => {
     await render()
     mocks.post.mockRejectedValue(
