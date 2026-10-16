@@ -15,7 +15,7 @@
       <q-icon name="privacy_tip" aria-hidden="true" />
       <p>{{
         ui(
-          'Les questions et les résultats d’audit sont envoyés à DeepSeek (serveurs hors de votre infrastructure). Aucune donnée personnelle n’est transmise ; mentionnez ce traitement dans votre politique de confidentialité.'
+          'Les questions et les résultats d’audit sont envoyés à DeepSeek (serveurs hors de votre infrastructure). Les questions peuvent contenir des données personnelles : évitez toute information sensible et mentionnez ce traitement dans votre politique de confidentialité.'
         )
       }}</p>
     </aside>
@@ -44,6 +44,17 @@
     </EmptyState>
 
     <template v-else-if="settings">
+      <q-banner
+        v-if="settings.deployment_enabled === false"
+        class="workspace-alert q-mb-md"
+        role="status"
+      >
+        {{
+          ui(
+            'L’assistant est désactivé dans la configuration du serveur. Les réglages peuvent être enregistrés, mais le service ne sera disponible qu’après son activation par l’équipe technique.'
+          )
+        }}
+      </q-banner>
       <section class="workspace-card ai-section" aria-labelledby="ai-key-title">
         <h2 id="ai-key-title" class="section-title">{{
           ui('Fournisseur et clé API')
@@ -217,7 +228,8 @@
             outlined
             clearable
             type="number"
-            min="1"
+            min="1000"
+            max="1000000000"
             :label="ui('Budget mensuel de jetons (facultatif)')"
             :hint="ui('Vide : pas de plafond mensuel.')"
             :error="Boolean(budgetMessage)"
@@ -267,7 +279,11 @@
     </template>
 
     <q-dialog v-model="removeOpen">
-      <q-card class="confirm-card" role="alertdialog" aria-labelledby="remove-title">
+      <q-card
+        class="confirm-card"
+        role="alertdialog"
+        aria-labelledby="remove-title"
+      >
         <q-card-section>
           <h2 id="remove-title">{{ ui('Supprimer la clé API ?') }}</h2>
           <p>{{
@@ -296,7 +312,7 @@
   </q-page>
 </template>
 <script setup>
-import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useQuasar } from 'quasar'
 import AdminNav from '@/components/AdminNav.vue'
 import EmptyState from '@/components/EmptyState.vue'
@@ -304,6 +320,8 @@ import { ui } from '@/i18n/text'
 import { currentLocale } from '@/i18n'
 import { apiMessage } from '@/services/account'
 import { adminApi } from '@/services/admin'
+import { loadPlatform } from '@/composables/usePlatform'
+import { loadAdminOverview } from '@/composables/useAdminOverview'
 import { formatCount } from '@/utils/adminOverview'
 import {
   DAILY_QUOTA_MAX,
@@ -353,6 +371,9 @@ const selectedModel = computed(() =>
 const enableAllowed = computed(() =>
   canEnableAssistant(settings.value, form.value)
 )
+watch(enableAllowed, allowed => {
+  if (!allowed) form.value.enabled = false
+})
 const usage = computed(() => settings.value?.usage || {})
 const quotaError = computed(() => dailyQuotaError(form.value.daily_quota))
 const budgetMessage = computed(() =>
@@ -374,7 +395,10 @@ const updatedLine = computed(() => {
     timeStyle: 'short'
   })
   return s.updated_by?.name
-    ? ui('Modifié le {date} par {name}', { date: when, name: s.updated_by.name })
+    ? ui('Modifié le {date} par {name}', {
+        date: when,
+        name: s.updated_by.name
+      })
     : ui('Modifié le {date}', { date: when })
 })
 
@@ -432,6 +456,10 @@ async function test() {
       message: result.message || '',
       models: Array.isArray(result.models) ? result.models : []
     }
+    if (result.ok === true && !typed) {
+      const response = await adminApi.aiSettings()
+      settings.value = response.data?.data || settings.value
+    }
     if (result.ok === true && typed) {
       testedKey = typed
       testedKeyPending.value = true
@@ -443,12 +471,21 @@ async function test() {
   }
 }
 
+function refreshCapabilities() {
+  // Refresh failures must never turn an already-saved setting into a save error.
+  void Promise.allSettled([
+    loadPlatform({ refresh: true }),
+    loadAdminOverview()
+  ])
+}
+
 async function send(body, message) {
   saving.value = true
   saveError.value = ''
   try {
     const { data } = await adminApi.updateAiSettings(body)
     apply(data?.data || {})
+    refreshCapabilities()
     replacing.value = false
     $q.notify({ type: 'positive', message })
     return true
@@ -461,7 +498,8 @@ async function send(body, message) {
 }
 
 async function save() {
-  if (!dirty.value || saving.value) return
+  if (!dirty.value || saving.value || quotaError.value || budgetMessage.value)
+    return
   const body = { ...payload.value }
   if (body.api_key) {
     testedKey = ''
@@ -486,6 +524,7 @@ async function removeKey() {
   try {
     const { data } = await adminApi.updateAiSettings({ remove_key: true })
     apply(data?.data || {})
+    refreshCapabilities()
     removeOpen.value = false
     testResult.value = null
     $q.notify({ type: 'positive', message: ui('Clé API supprimée.') })

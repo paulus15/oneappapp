@@ -187,11 +187,24 @@
           ui('Utilisez « Enregistrer en PDF » dans la fenêtre d’impression.')
         }}
       </p>
-      <LabProReport v-if="pro" :analysis="current" />
+      <LabProReport
+        v-if="pro"
+        :analysis="current"
+        :assistant="tools.assistant"
+        @assist="assist"
+      />
       <div v-else class="lab-legacy-report">
         <LabLegacyReport :analysis="current" />
       </div>
     </template>
+
+    <LabAssistant
+      v-if="current && tools.assistant && !detailLoading && !detailError"
+      :key="current.id"
+      ref="assistantPanel"
+      :analysis-id="current.id"
+      :selected-check="assistantCheck"
+    />
 
     <LabHistory
       ref="history"
@@ -204,8 +217,10 @@
 </template>
 
 <script setup>
-import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
+import { computed, nextTick, onBeforeUnmount, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
+import LabAssistant from '@/components/lab/LabAssistant.vue'
+import { usePlatform } from '@/composables/usePlatform'
 import DeveloperToolsNav from '@/components/DeveloperToolsNav.vue'
 import EmptyState from '@/components/EmptyState.vue'
 import LabCompare from '@/components/lab/LabCompare.vue'
@@ -225,6 +240,17 @@ import {
 } from '@/utils/lab'
 
 const router = useRouter()
+const { tools } = usePlatform()
+const assistantPanel = ref(null),
+  assistantCheck = ref(null)
+async function assist(check) {
+  assistantCheck.value = check
+  await nextTick()
+  assistantPanel.value?.$el?.scrollIntoView?.({
+    behavior: 'smooth',
+    block: 'start'
+  })
+}
 
 const url = ref(''),
   applicationId = ref(null),

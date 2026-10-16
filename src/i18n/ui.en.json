@@ -1,4 +1,7 @@
 {
+  "Non configuré : renseignez la clé API et choisissez un modèle DeepSeek.": "Not configured: enter the API key and select a DeepSeek model.",
+  "Aucun retard ni échec détecté dans la file d’attente.": "No delayed or failed tasks detected in the queue.",
+  "Modèle": "Model",
   "Labo PWA": "PWA Lab",
   "Outils du Labo PWA": "PWA Lab tools",
   "Diagnostic PWA": "PWA diagnostics",

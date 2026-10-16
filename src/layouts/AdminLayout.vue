@@ -99,7 +99,10 @@
       :breakpoint="1024"
       class="admin-drawer"
     >
-      <nav class="drawer-shell" :aria-label="ui('Navigation de l’administration')">
+      <nav
+        class="drawer-shell"
+        :aria-label="ui('Navigation de l’administration')"
+      >
         <section
           v-for="group in groups"
           :key="group.key"
@@ -152,7 +155,11 @@
       </nav>
     </q-drawer>
 
-    <q-page-container id="admin-main" class="admin-page-container" tabindex="-1">
+    <q-page-container
+      id="admin-main"
+      class="admin-page-container"
+      tabindex="-1"
+    >
       <router-view v-slot="{ Component, route }">
         <transition name="page" mode="out-in">
           <component :is="Component" :key="route.path" />
@@ -165,13 +172,15 @@
 <script setup>
 import { ui } from '@/i18n/text'
 
-import { computed, onMounted, provide, ref } from 'vue'
+import { computed, onMounted, onUnmounted, provide, ref, watch } from 'vue'
+import { useQuasar } from 'quasar'
 import { useRouter } from 'vue-router'
 import BrandLogo from '@/components/BrandLogo.vue'
 import LanguageSwitcher from '@/components/LanguageSwitcher.vue'
 import NotificationBell from '@/components/NotificationBell.vue'
 import {
   ADMIN_LAYOUT_KEY,
+  resetAdminOverview,
   useAdminOverview
 } from '@/composables/useAdminOverview'
 import { usePlatform } from '@/composables/usePlatform'
@@ -183,6 +192,7 @@ import { todoBadge } from '@/utils/adminOverview'
 provide(ADMIN_LAYOUT_KEY, true)
 
 const router = useRouter()
+const $q = useQuasar()
 const authStore = useAuthStore()
 const { tools } = usePlatform()
 const { isDark, toggleTheme } = useTheme()
@@ -205,6 +215,22 @@ const groups = computed(() =>
       }))
     })
   )
+)
+
+// Do not retain privileged counters across admin sessions or permission changes.
+watch(
+  () => [authStore.user?.id, ...(authStore.user?.admin_permissions || [])],
+  () => {
+    resetAdminOverview()
+    if (authStore.user) load()
+  }
+)
+onUnmounted(resetAdminOverview)
+watch(
+  () => router.currentRoute.value.path,
+  () => {
+    if ($q.screen.lt.md) drawerOpen.value = false
+  }
 )
 
 // The badges work without the overview: a failure only hides them. The dashboard
