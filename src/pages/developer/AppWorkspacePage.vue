@@ -868,6 +868,7 @@
                     @click="tab = 'version'"
                   />
                 </li>
+                <ManifestWaiverNotice :application="app" />
                 <li v-if="readiness?.ready" class="ok">
                   <q-icon name="check_circle" color="positive" />
                   <span>{{ t('workspace.recap.allGood') }}</span>
@@ -1024,6 +1025,7 @@ import AppContentPanel from '@/components/AppContentPanel.vue'
 import CountrySelect from '@/components/CountrySelect.vue'
 import ExternalResourcesReport from '@/components/ExternalResourcesReport.vue'
 import UrlCheckOverlay from '@/components/UrlCheckOverlay.vue'
+import ManifestWaiverNotice from '@/components/ManifestWaiverNotice.vue'
 
 const route = useRoute(),
   q = useQuasar(),

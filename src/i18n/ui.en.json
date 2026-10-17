@@ -2276,5 +2276,17 @@
   "Réactiver le webhook {p0}": "Re-enable the webhook {p0}",
   "Modifier le webhook {p0}": "Edit the webhook {p0}",
   "Générer un nouveau secret pour {p0}": "Generate a new secret for {p0}",
-  "HTTPS sur le port 443, nom de domaine public. Exemple : https://exemple.com/webhooks/pwastore": "HTTPS on port 443, public domain name. Example: https://example.com/webhooks/pwastore"
+  "HTTPS sur le port 443, nom de domaine public. Exemple : https://exemple.com/webhooks/pwastore": "HTTPS on port 443, public domain name. Example: https://example.com/webhooks/pwastore",
+  "Contrôle du script obligatoire avant soumission": "Script check required before submission",
+  "Le script PWAStore doit être détecté sur le lien de cette application.": "The PWA Store script must be detected on this app’s link.",
+  "Le contrôle du script est facultatif pour cette application. Le contrôle de l’URL reste actif et l’exigence du manifeste PWA n’en dépend pas.": "The script check is optional for this app. The URL check stays active and the PWA manifest requirement does not depend on it.",
+  "Manifeste PWA obligatoire": "PWA manifest required",
+  "Décochez pour permettre la soumission de cette application sans manifeste PWA, par vous ou par le développeur. Les autres contrôles (HTTPS, accessibilité) restent obligatoires.": "Uncheck to allow this app to be submitted without a PWA manifest, by you or by the developer. The other checks (HTTPS, availability) remain mandatory.",
+  "Le manifeste PWA est de nouveau obligatoire pour cette application.": "The PWA manifest is required again for this app.",
+  "Le manifeste PWA est désormais facultatif pour cette application.": "The PWA manifest is now optional for this app.",
+  "Rendre le manifeste facultatif ?": "Make the manifest optional?",
+  "Cette application pourra être soumise sans manifeste PWA, par vous ou par le développeur. Les autres contrôles restent obligatoires.": "This app can then be submitted without a PWA manifest, by you or by the developer. The other checks remain mandatory.",
+  "Rendre facultatif": "Make optional",
+  "Manifeste PWA facultatif pour cette application (décision de l’administration).": "PWA manifest optional for this app (administration decision).",
+  "Contrôle du script facultatif pour cette application.": "Script check optional for this app."
 }

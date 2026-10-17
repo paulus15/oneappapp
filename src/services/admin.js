@@ -15,8 +15,10 @@ export const adminApi = {
     api.get('/admin/publisher-applications', { params }),
   assignPublisher: (id, publisher_id) =>
     api.put(`/admin/apps/${id}/publisher`, { publisher_id }),
-  submissionSettings: (id, sdk_check_required) =>
-    api.put(`/admin/apps/${id}/submission-settings`, { sdk_check_required }),
+  // Only the changed flag: { sdk_check_required } or { manifest_required }.
+  // → { data: { sdk_check_required, manifest_required } }
+  submissionSettings: (id, settings) =>
+    api.put(`/admin/apps/${id}/submission-settings`, settings),
   submissionReadiness: id => api.get(`/admin/apps/${id}/submission-readiness`),
   submitPublisherApplication: id => api.post(`/admin/apps/${id}/submit`),
   stats: () => api.get('/admin/stats'),
