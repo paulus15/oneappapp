@@ -20,10 +20,27 @@ export function resolveLegacySuggestions(to, platform) {
     : '/developer/feedback'
 }
 
+// Only the home page and account access steps are available without a session.
+const guestPaths = new Set([
+  '/',
+  '/login',
+  '/register',
+  '/forgot-password',
+  '/verify-email',
+  '/confirm-email'
+])
+
+export function requiresSession(route) {
+  return (
+    !!route?.meta?.requiresAuth ||
+    !guestPaths.has(route?.path?.replace(/\/+$/, '') || '/')
+  )
+}
+
 // Pure navigation rules, kept free of router/Quasar imports so they can be unit tested.
 export function resolveAccess(to, auth) {
   if (to.meta.guestOnly && auth.isAuthenticated) return '/account'
-  if (to.meta.requiresAuth && !auth.isAuthenticated)
+  if (requiresSession(to) && !auth.isAuthenticated)
     return { path: '/login', query: { redirect: to.fullPath } }
   if (to.meta.adminOnly && !auth.isAdmin) return '/errors/403'
   if (
@@ -40,9 +57,8 @@ export function resolveAccess(to, auth) {
   return true
 }
 
-// After a 401: only pages that require a session send the visitor to the login page;
-// public pages (catalogue, app details, login/OTP steps) stay where they are.
+// Apply the same access policy when a session expires during a visit.
 export function unauthorizedRedirect(route) {
-  if (!route?.meta?.requiresAuth || route.path === '/login') return null
+  if (!route || !requiresSession(route) || route.path === '/login') return null
   return { path: '/login', query: { redirect: route.fullPath } }
 }

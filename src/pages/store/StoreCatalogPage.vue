@@ -40,7 +40,7 @@
           </div>
         </div>
         <div class="band-filters">
-          <CountryChoice pill />
+          <CountryChoice pill prompt-when-missing />
           <CategoryChips
             v-if="sections.categories.length"
             v-model="activeCategory"

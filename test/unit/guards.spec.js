@@ -94,10 +94,10 @@ describe('resolveAccess', () => {
     expect(resolveAccess(page, manager)).toBe(true)
   })
 
-  it('keeps the public developer portal page reachable on mobile', () => {
-    expect(resolveAccess(route('/developers'), guest, { isMobile: true })).toBe(
-      true
-    )
+  it('requires login for the developer portal on mobile', () => {
+    expect(
+      resolveAccess(route('/developers'), guest, { isMobile: true })
+    ).toEqual({ path: '/login', query: { redirect: '/developers' } })
   })
 })
 
@@ -121,7 +121,11 @@ describe('unauthorizedRedirect', () => {
   })
 
   it('keeps visitors on public pages and on the login/OTP steps', () => {
-    expect(unauthorizedRedirect(route('/app/demo'))).toBeNull()
+    expect(unauthorizedRedirect(route('/'))).toBeNull()
+    expect(unauthorizedRedirect(route('/apps/demo'))).toEqual({
+      path: '/login',
+      query: { redirect: '/apps/demo' }
+    })
     expect(
       unauthorizedRedirect(route('/login', { guestOnly: true }))
     ).toBeNull()
@@ -155,5 +159,44 @@ describe('resolveToolAccess', () => {
       .filter(child => child.meta?.tool === 'monitor')
       .map(child => child.path)
     expect(paths).toEqual(['monitor', 'monitor/:id'])
+  })
+})
+
+it.each([
+  '/apps/42',
+  '/applications',
+  '/categories',
+  '/rankings',
+  '/about',
+  '/beta',
+  '/new-page'
+])('requires a session for %s even without route metadata', path => {
+  expect(resolveAccess(route(path), guest)).toEqual({
+    path: '/login',
+    query: { redirect: path }
+  })
+  expect(resolveAccess(route(path), user)).toBe(true)
+})
+
+it.each([
+  '/',
+  '/login',
+  '/register',
+  '/forgot-password',
+  '/verify-email',
+  '/confirm-email'
+])('keeps %s accessible to guests', path => {
+  expect(resolveAccess(route(path), guest)).toBe(true)
+})
+
+it('preserves the requested query and hash after login', () => {
+  expect(
+    resolveAccess(
+      { ...route('/apps/42'), fullPath: '/apps/42?tab=reviews#review' },
+      guest
+    )
+  ).toEqual({
+    path: '/login',
+    query: { redirect: '/apps/42?tab=reviews#review' }
   })
 })

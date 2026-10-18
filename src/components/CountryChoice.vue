@@ -40,7 +40,11 @@
       <q-icon name="public" />
       <span>{{ code || t('geo.visitor.short') }}</span>
     </button>
-    <q-dialog v-model="open" aria-labelledby="country-choice-title">
+    <q-dialog
+      v-model="open"
+      :persistent="promptWhenMissing && !code && !authStore.isAuthenticated"
+      aria-labelledby="country-choice-title"
+    >
       <q-card class="country-card">
         <q-card-section>
           <h2 id="country-choice-title" class="country-title">{{
@@ -75,7 +79,7 @@
   </span>
 </template>
 <script setup>
-import { computed, onMounted, ref } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import CountrySelect from '@/components/CountrySelect.vue'
 import { useAuthStore } from '@/stores/auth'
@@ -92,7 +96,7 @@ const authStore = useAuthStore()
 const code = ref(visitorCountry())
 const selected = ref(code.value)
 const open = ref(false)
-const props = defineProps({ pill: Boolean })
+const props = defineProps({ pill: Boolean, promptWhenMissing: Boolean })
 const countries = ref([])
 // The account's country for members, the chosen (or detected) one for visitors.
 const pillCountry = computed(() =>
@@ -110,6 +114,20 @@ const pillFlag = computed(() =>
 )
 const pillName = computed(() => countryName(pillCountry.value))
 
+const countryReady = ref(false)
+watch(
+  () => [
+    countryReady.value,
+    authStore.isAuthenticated,
+    props.promptWhenMissing
+  ],
+  () => {
+    if (authStore.isAuthenticated) open.value = false
+    else if (countryReady.value && props.promptWhenMissing && !code.value)
+      open.value = true
+  }
+)
+
 // Show the detected country once the first-visit detection answers.
 onMounted(async () => {
   if (props.pill) activeCountries().then(list => (countries.value = list))
@@ -118,6 +136,7 @@ onMounted(async () => {
     code.value = detected
     selected.value ||= detected
   }
+  countryReady.value = true
 })
 
 function apply(value) {
