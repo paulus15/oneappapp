@@ -20,6 +20,7 @@ export const accountApi = {
   quotas: () => api.get('/developer/quotas'),
   developers: (page = 1, filters = {}) =>
     api.get('/admin/developers', { params: { page, ...filters } }),
+  updateDeveloper: (id, data) => api.put(`/admin/developers/${id}`, data),
   reviewDeveloper: (id, data) =>
     api.post(`/admin/developers/${id}/review`, data),
   // A reviewer sends a draft profile the developer left unsent (same checks, reason kept).

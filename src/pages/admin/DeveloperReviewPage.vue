@@ -10,6 +10,7 @@
       }}</p></header
     >
     <AdminNav />
+    <AdminDeveloperEdit ref="editor" @saved="load" />
     <div class="row q-col-gutter-sm q-mb-md">
       <div class="col-12 col-md-5"
         ><q-input
@@ -119,6 +120,12 @@
         ><DeveloperDocuments :profile-id="p.id" admin /><div
           class="workspace-actions"
           ><q-btn
+            outline
+            no-caps
+            icon="edit"
+            :label="ui('Modifier le profil développeur')"
+            :disable="busy || p.user_id === auth.user?.id"
+            @click="editor.edit(p)" /><q-btn
             v-if="['draft', 'rejected'].includes(p.status)"
             unelevated
             no-caps
@@ -156,12 +163,16 @@ import { useLoadMore } from '@/composables/useLoadMore'
 import { currentLocale } from '@/i18n'
 import { ui } from '@/i18n/text'
 
+import AdminDeveloperEdit from '@/components/AdminDeveloperEdit.vue'
+import { useAuthStore } from '@/stores/auth'
 import AdminNav from '@/components/AdminNav.vue'
 import DeveloperDocuments from '@/components/DeveloperDocuments.vue'
 import { identityLabels } from '@/utils/identity'
 import { onMounted, reactive, ref } from 'vue'
 import { useQuasar } from 'quasar'
 import { accountApi, apiMessage } from '@/services/account'
+const auth = useAuthStore()
+const editor = ref(null)
 const list = useLoadMore(async page => {
   const { data } = await accountApi.developers(page, {
     status: filters.status || undefined,

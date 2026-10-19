@@ -2288,5 +2288,7 @@
   "Cette application pourra être soumise sans manifeste PWA, par vous ou par le développeur. Les autres contrôles restent obligatoires.": "This app can then be submitted without a PWA manifest, by you or by the developer. The other checks remain mandatory.",
   "Rendre facultatif": "Make optional",
   "Manifeste PWA facultatif pour cette application (décision de l’administration).": "PWA manifest optional for this app (administration decision).",
-  "Contrôle du script facultatif pour cette application.": "Script check optional for this app."
+  "Contrôle du script facultatif pour cette application.": "Script check optional for this app.",
+  "Modifier le profil développeur": "Edit developer profile",
+  "Le statut de vérification reste inchangé.": "The verification status remains unchanged."
 }
