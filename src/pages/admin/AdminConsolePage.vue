@@ -97,6 +97,13 @@
                   · {{ app.source_type === 'url' ? 'URL' : ui('Build') }} ·
                   {{ app.identifier }}
                 </div>
+                <div
+                  v-if="app.official_site_url || app.external_url"
+                  class="text-caption text-primary ellipsis q-mt-xs"
+                >
+                  <q-icon name="public" size="13px" class="q-mr-xs" />
+                  {{ app.official_site_url || app.external_url }}
+                </div>
               </q-item-section>
             </q-item>
           </q-list>
@@ -147,14 +154,77 @@
               :to="`/admin/requests/${selectedApp.open_request_id}`"
             />
             <q-btn
-              v-else-if="selectedApp.status === 'published'"
+              v-else
               flat
               dense
               no-caps
               icon="storefront"
-              :label="t('workspace.viewInStore')"
+              :label="
+                selectedApp.status === 'published'
+                  ? t('workspace.viewInStore')
+                  : ui('Aperçu de la fiche')
+              "
               :to="`/apps/${selectedApp.id}`"
             />
+          </div>
+
+          <div
+            v-if="selectedApp.official_site_url || selectedApp.external_url"
+            class="app-urls q-mb-md q-pa-sm rounded-borders"
+          >
+            <div
+              v-if="selectedApp.official_site_url"
+              class="row items-center q-gutter-xs text-caption"
+            >
+              <q-icon name="public" size="16px" color="primary" />
+              <span class="text-weight-bold">{{ ui('Lien officiel :') }}</span>
+              <a
+                v-if="safeExternalUrl(selectedApp.official_site_url)"
+                :href="safeExternalUrl(selectedApp.official_site_url)"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="text-primary text-weight-bold url-link"
+              >
+                {{ selectedApp.official_site_url }}
+                <q-icon name="open_in_new" size="14px" class="q-ml-xs" />
+              </a>
+              <span v-else class="text-muted">{{
+                selectedApp.official_site_url
+              }}</span>
+            </div>
+            <div
+              v-if="
+                selectedApp.external_url &&
+                selectedApp.external_url !== selectedApp.official_site_url
+              "
+              class="row items-center q-gutter-xs text-caption"
+              :class="{ 'q-mt-xs': selectedApp.official_site_url }"
+            >
+              <q-icon name="link" size="16px" color="primary" />
+              <span class="text-weight-bold">{{ ui('Lien PWA :') }}</span>
+              <a
+                v-if="safeExternalUrl(selectedApp.external_url)"
+                :href="safeExternalUrl(selectedApp.external_url)"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="text-primary url-link"
+              >
+                {{ selectedApp.external_url }}
+                <q-icon name="open_in_new" size="14px" class="q-ml-xs" />
+              </a>
+              <span v-else class="text-muted">{{
+                selectedApp.external_url
+              }}</span>
+            </div>
+          </div>
+          <div
+            v-else-if="selectedApp.status === 'draft'"
+            class="app-urls q-mb-md q-pa-sm rounded-borders text-caption text-muted row items-center"
+          >
+            <q-icon name="link_off" size="16px" class="q-mr-xs" />
+            <span>{{
+              ui('Aucun lien officiel enregistré pour ce brouillon.')
+            }}</span>
           </div>
           <AdminApplicationSubmission
             v-if="canManageCatalog"
@@ -311,6 +381,7 @@ import {
   statusColor,
   statusLabel
 } from '@/utils/appStatus'
+import { safeExternalUrl } from '@/utils/listing'
 
 const { t } = useI18n()
 const $q = useQuasar(),
@@ -494,6 +565,16 @@ onMounted(fetchApps)
   background: var(--surface-low);
   border: 1px solid var(--outline);
   border-radius: 12px;
+}
+.app-urls {
+  background: var(--surface-low);
+  border: 1px solid var(--outline);
+}
+.url-link {
+  text-decoration: none;
+  &:hover {
+    text-decoration: underline;
+  }
 }
 @media (max-width: 700px) {
   .admin-card {

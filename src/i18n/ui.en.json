@@ -2290,5 +2290,13 @@
   "Manifeste PWA facultatif pour cette application (décision de l’administration).": "PWA manifest optional for this app (administration decision).",
   "Contrôle du script facultatif pour cette application.": "Script check optional for this app.",
   "Modifier le profil développeur": "Edit developer profile",
-  "Le statut de vérification reste inchangé.": "The verification status remains unchanged."
+  "Le statut de vérification reste inchangé.": "The verification status remains unchanged.",
+  "Lien officiel :": "Official link:",
+  "Lien PWA :": "PWA link:",
+  "Aucun lien officiel enregistré pour ce brouillon.": "No official link registered for this draft.",
+  "Aperçu de la fiche": "Preview listing",
+  "Mode brouillon — Application non publiée": "Draft mode — App not published",
+  "Statut : {p0} — Application non publiée": "Status: {p0} — App not published",
+  "Cette fiche est en cours de préparation. Seuls le développeur et les administrateurs y ont accès.": "This listing is being prepared. Only the developer and administrators can access it.",
+  "Lien officiel enregistré :": "Registered official link:"
 }

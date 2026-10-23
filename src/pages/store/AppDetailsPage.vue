@@ -59,6 +59,44 @@
     </div>
 
     <article v-else-if="app" class="details-shell">
+      <q-banner
+        v-if="app.status !== 'published' && isOwnerOrAdmin"
+        class="draft-preview-banner q-mb-md"
+        rounded
+      >
+        <template #avatar>
+          <q-icon name="edit_note" color="warning" size="28px" />
+        </template>
+        <div class="text-subtitle2 text-weight-bold">
+          {{
+            app.status === 'draft'
+              ? ui('Mode brouillon — Application non publiée')
+              : ui('Statut : {p0} — Application non publiée', {
+                  p0: statusLabel(app.status)
+                })
+          }}
+        </div>
+        <div class="text-caption">
+          {{
+            ui(
+              'Cette fiche est en cours de préparation. Seuls le développeur et les administrateurs y ont accès.'
+            )
+          }}
+        </div>
+        <div v-if="officialUrl" class="q-mt-xs text-caption">
+          <span class="text-weight-bold">{{ ui('Lien officiel enregistré :') }} </span>
+          <a
+            :href="officialUrl"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="text-primary text-weight-bold"
+          >
+            {{ officialUrl }}
+            <q-icon name="open_in_new" size="14px" />
+          </a>
+        </div>
+      </q-banner>
+
       <div class="details-cover">
         <CoverImage
           :cover="card.cover"
@@ -465,6 +503,7 @@ import AppScreenshots from '@/components/AppScreenshots.vue'
 import SuggestionButton from '@/components/SuggestionButton.vue'
 import { useWorkspaceAccess } from '@/composables/useWorkspaceAccess'
 import { ui } from '@/i18n/text'
+import { statusLabel } from '@/utils/appStatus'
 import { permissionInfo } from '@/utils/appPermissions'
 import { canWebInstall, webInstall } from '@/utils/webInstall'
 import { catalogApi } from '@/services/catalog'
@@ -580,6 +619,13 @@ const isOwnerOrAdmin = computed(() => {
   )
 })
 
+const officialUrl = computed(() =>
+  safeExternalUrl(
+    app.value?.official_site_url ||
+      (app.value?.source_type === 'url' ? app.value?.external_url : '')
+  )
+)
+
 const screenshots = computed(() => {
   const shots = app.value?.media?.screenshots || {}
   return ['mobile', 'tablet'].flatMap(device =>
@@ -672,11 +718,16 @@ const info = computed(() => {
   const email = safeEmail(a.contact_email)
   add('contact', 'mail', email, email ? `mailto:${email}` : '')
   for (const [key, icon, field] of [
+    ['website', 'language', 'official_site_url'],
     ['support', 'support_agent', 'support_url'],
     ['privacyPolicy', 'policy', 'privacy_policy_url'],
     ['terms', 'gavel', 'terms_url']
   ]) {
-    const url = safeExternalUrl(a[field])
+    const raw =
+      field === 'official_site_url'
+        ? a.official_site_url || (a.source_type === 'url' ? a.external_url : '')
+        : a[field]
+    const url = safeExternalUrl(raw)
     if (url) add(key, icon, new URL(url).host, url, true)
   }
   return rows
@@ -1002,6 +1053,13 @@ async function recordWebInstall() {
 
 async function openApp() {
   if (extracting.value) return
+  if (isOwnerOrAdmin.value && app.value?.status !== 'published') {
+    const directUrl = officialUrl.value
+    if (directUrl) {
+      window.open(directUrl, '_blank', 'noopener,noreferrer')
+      return
+    }
+  }
   extracting.value = true
   // Open synchronously to preserve the user's browser gesture.
   const target = window.open('about:blank', '_blank')
@@ -1143,6 +1201,11 @@ watch(
   flex-direction: column;
   gap: 16px;
   min-width: 0;
+}
+.draft-preview-banner {
+  background: rgba(234, 179, 8, 0.1);
+  border: 1px solid rgba(234, 179, 8, 0.35);
+  color: var(--text);
 }
 .details-cover {
   overflow: hidden;
