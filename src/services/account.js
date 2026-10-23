@@ -26,6 +26,7 @@ export const accountApi = {
   // A reviewer sends a draft profile the developer left unsent (same checks, reason kept).
   submitDeveloper: (id, data) =>
     api.post(`/admin/developers/${id}/submit`, data),
+  remindDeveloper: id => api.post(`/admin/developers/${id}/remind`),
   source: (id, data) => api.put(`/apps/${id}/source`, data),
   checkUrl: id => api.post(`/apps/${id}/check-url`),
   submitApp: (id, data = {}) => api.post(`/apps/${id}/submit`, data),

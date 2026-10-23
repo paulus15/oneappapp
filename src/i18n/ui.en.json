@@ -2297,6 +2297,18 @@
   "Aperçu de la fiche": "Preview listing",
   "Mode brouillon — Application non publiée": "Draft mode — App not published",
   "Statut : {p0} — Application non publiée": "Status: {p0} — App not published",
-  "Cette fiche est en cours de préparation. Seuls le développeur et les administrateurs y ont accès.": "This listing is being prepared. Only the developer and administrators can access it.",
-  "Lien officiel enregistré :": "Registered official link:"
+  "Lien officiel enregistré :": "Registered official link:",
+  "Dernier rappel envoyé le {p0}": "Last reminder sent on {p0}",
+  "Envoyer un rappel": "Send reminder",
+  "Envoyer un rappel par e-mail": "Send email reminder",
+  "Envoyer un e-mail de rappel à {email} pour l’inviter à finaliser son profil développeur ?": "Send an email reminder to {email} inviting them to finalize their developer profile?",
+  "Rappel disponible après 3 jours d’inactivité.": "Reminder available after 3 days of inactivity.",
+  "Un rappel a déjà été envoyé au cours des 3 derniers jours.": "A reminder was already sent within the last 3 days.",
+  "E-mail de rappel envoyé au développeur.": "Reminder email sent to developer.",
+  "Rappeler le développeur": "Remind developer",
+  "Envoyer un e-mail de rappel au développeur ({email}) pour l’inviter à finaliser et soumettre son application en brouillon ?": "Send an email reminder to developer ({email}) inviting them to finalize and submit their draft app?",
+  "Rappelé le {p0}": "Reminded on {p0}",
+  "Un administrateur ne peut pas s’envoyer de rappel.": "An administrator cannot send a reminder to themselves.",
+  "ce développeur": "this developer",
+  "le développeur": "the developer"
 }

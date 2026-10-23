@@ -42,6 +42,7 @@ export const adminApi = {
   noteRequest: (id, internal_note) =>
     api.put(`/admin/publication-requests/${id}/note`, { internal_note }),
   apps: params => api.get('/admin/apps', { params }),
+  remindApp: id => api.post(`/admin/apps/${id}/remind`),
   review: (id, data) => api.post(`/admin/apps/${id}/review`, data),
   archive: (id, reason) => api.delete(`/apps/${id}`, { data: { reason } }),
   catalog: (id, data) => api.put(`/apps/${id}`, data),

@@ -104,6 +104,19 @@
                   <q-icon name="public" size="13px" class="q-mr-xs" />
                   {{ app.official_site_url || app.external_url }}
                 </div>
+                <div
+                  v-if="app.status === 'draft' && app.last_reminded_at"
+                  class="text-caption text-amber-9 q-mt-xs"
+                >
+                  <q-icon name="mark_email_read" size="13px" class="q-mr-xs" />
+                  {{
+                    ui('Rappelé le {p0}', {
+                      p0: new Date(app.last_reminded_at).toLocaleDateString(
+                        currentLocale()
+                      )
+                    })
+                  }}
+                </div>
               </q-item-section>
             </q-item>
           </q-list>
@@ -226,6 +239,21 @@
               ui('Aucun lien officiel enregistré pour ce brouillon.')
             }}</span>
           </div>
+          <p
+            v-if="
+              selectedApp.status === 'draft' && selectedApp.last_reminded_at
+            "
+            class="text-caption text-muted q-mb-md"
+          >
+            <q-icon name="mark_email_read" size="14px" class="q-mr-xs" />
+            {{
+              ui('Dernier rappel envoyé le {p0}', {
+                p0: new Date(selectedApp.last_reminded_at).toLocaleDateString(
+                  currentLocale()
+                )
+              })
+            }}
+          </p>
           <AdminApplicationSubmission
             v-if="canManageCatalog"
             :key="selectedApp.id"
@@ -237,6 +265,21 @@
           >
 
           <div class="workspace-actions q-mb-md">
+            <q-btn
+              v-if="selectedApp.status === 'draft'"
+              outline
+              no-caps
+              dense
+              color="warning"
+              icon="mail"
+              :label="ui('Rappeler le développeur')"
+              :disable="busy || !canRemindApp(selectedApp)"
+              @click="remindApp(selectedApp)"
+            >
+              <q-tooltip v-if="remindAppTooltip(selectedApp)">{{
+                remindAppTooltip(selectedApp)
+              }}</q-tooltip>
+            </q-btn>
             <q-btn
               v-for="decision in selectedApp.open_request_id
                 ? []
@@ -510,6 +553,65 @@ function updateTrustScore() {
     ui('Score de confiance enregistré.')
   )
 }
+
+const THREE_DAYS_MS = 3 * 24 * 60 * 60 * 1000
+
+function isOlderThanThreeDays(dateString) {
+  if (!dateString) return true
+  return Date.now() - new Date(dateString).getTime() >= THREE_DAYS_MS
+}
+
+function canRemindApp(app) {
+  if (!app || app.status !== 'draft') return false
+  if (app.developer_id === auth.user?.id) return false
+  if (!isOlderThanThreeDays(app.updated_at)) return false
+  if (app.last_reminded_at && !isOlderThanThreeDays(app.last_reminded_at))
+    return false
+  return true
+}
+
+function remindAppTooltip(app) {
+  if (!app) return ''
+  if (app.developer_id === auth.user?.id) {
+    return ui('Un administrateur ne peut pas s’envoyer de rappel.')
+  }
+  if (!isOlderThanThreeDays(app.updated_at)) {
+    return ui('Rappel disponible après 3 jours d’inactivité.')
+  }
+  if (app.last_reminded_at && !isOlderThanThreeDays(app.last_reminded_at)) {
+    return ui('Un rappel a déjà été envoyé au cours des 3 derniers jours.')
+  }
+  return ''
+}
+
+function remindApp(app) {
+  const recipient =
+    app.developer?.email || app.developer?.name || ui('le développeur')
+  $q.dialog({
+    title: ui('Envoyer un rappel par e-mail'),
+    message: ui(
+      'Envoyer un e-mail de rappel au développeur ({email}) pour l’inviter à finaliser et soumettre son application en brouillon ?',
+      { email: recipient }
+    ),
+    cancel: true,
+    persistent: true
+  }).onOk(async () => {
+    busy.value = true
+    try {
+      const { data } = await adminApi.remindApp(app.id)
+      app.last_reminded_at = data?.last_reminded_at || new Date().toISOString()
+      $q.notify({
+        type: 'positive',
+        message: data?.message || ui('E-mail de rappel envoyé au développeur.')
+      })
+    } catch (e) {
+      error.value = apiMessage(e)
+    } finally {
+      busy.value = false
+    }
+  })
+}
+
 onMounted(fetchApps)
 </script>
 

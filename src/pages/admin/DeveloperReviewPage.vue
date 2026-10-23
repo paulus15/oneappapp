@@ -117,6 +117,14 @@
           >{{ ui('Profil incomplet :') }} {{ p.missing_fields.join(', ') }}</p
         ><p v-if="p.decision_reason"
           >{{ ui('Dernier motif :') }} {{ p.decision_reason }}</p
+        ><p v-if="p.last_reminded_at" class="text-caption text-muted"
+          ><q-icon name="mark_email_read" size="14px" class="q-mr-xs" />{{
+            ui('Dernier rappel envoyé le {p0}', {
+              p0: new Date(p.last_reminded_at).toLocaleDateString(
+                currentLocale()
+              )
+            })
+          }}</p
         ><DeveloperDocuments :profile-id="p.id" admin /><div
           class="workspace-actions"
           ><q-btn
@@ -134,6 +142,20 @@
             :label="ui('Soumettre pour le développeur')"
             :disable="busy || !!p.missing_fields?.length"
             @click="submitFor(p)" /><q-btn
+            v-if="
+              ['draft', 'pending_verification', 'rejected'].includes(p.status)
+            "
+            outline
+            no-caps
+            color="warning"
+            icon="mail"
+            :label="ui('Envoyer un rappel')"
+            :disable="busy || p.user_id === auth.user?.id || !canRemind(p)"
+            @click="remind(p)"
+            ><q-tooltip v-if="remindTooltip(p)">{{
+              remindTooltip(p)
+            }}</q-tooltip></q-btn
+          ><q-btn
             v-for="state in transitions[p.status]"
             :key="state"
             outline
@@ -299,5 +321,72 @@ function decide(profile, status) {
     }
   })
 }
+
+const THREE_DAYS_MS = 3 * 24 * 60 * 60 * 1000
+
+function isOlderThanThreeDays(dateString) {
+  if (!dateString) return true
+  return Date.now() - new Date(dateString).getTime() >= THREE_DAYS_MS
+}
+
+function canRemind(profile) {
+  if (!profile || profile.user_id === auth.user?.id) return false
+  if (!['draft', 'pending_verification', 'rejected'].includes(profile.status))
+    return false
+  if (!isOlderThanThreeDays(profile.updated_at)) return false
+  if (
+    profile.last_reminded_at &&
+    !isOlderThanThreeDays(profile.last_reminded_at)
+  )
+    return false
+  return true
+}
+
+function remindTooltip(profile) {
+  if (!profile) return ''
+  if (profile.user_id === auth.user?.id) {
+    return ui('Un administrateur ne peut pas s’envoyer de rappel.')
+  }
+  if (!isOlderThanThreeDays(profile.updated_at)) {
+    return ui('Rappel disponible après 3 jours d’inactivité.')
+  }
+  if (
+    profile.last_reminded_at &&
+    !isOlderThanThreeDays(profile.last_reminded_at)
+  ) {
+    return ui('Un rappel a déjà été envoyé au cours des 3 derniers jours.')
+  }
+  return ''
+}
+
+function remind(profile) {
+  const recipient =
+    profile.user?.email || profile.public_name || ui('ce développeur')
+  q.dialog({
+    title: ui('Envoyer un rappel par e-mail'),
+    message: ui(
+      'Envoyer un e-mail de rappel à {email} pour l’inviter à finaliser son profil développeur ?',
+      { email: recipient }
+    ),
+    cancel: true,
+    persistent: true
+  }).onOk(async () => {
+    busy.value = true
+    try {
+      const { data } = await accountApi.remindDeveloper(profile.id)
+      profile.last_reminded_at =
+        data?.last_reminded_at || new Date().toISOString()
+      q.notify({
+        type: 'positive',
+        message: data?.message || ui('E-mail de rappel envoyé au développeur.')
+      })
+    } catch (e) {
+      error.value = apiMessage(e)
+    } finally {
+      busy.value = false
+    }
+  })
+}
+
 onMounted(load)
 </script>
