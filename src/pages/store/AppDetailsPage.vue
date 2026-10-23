@@ -84,7 +84,9 @@
           }}
         </div>
         <div v-if="officialUrl" class="q-mt-xs text-caption">
-          <span class="text-weight-bold">{{ ui('Lien officiel enregistré :') }} </span>
+          <span class="text-weight-bold"
+            >{{ ui('Lien officiel enregistré :') }}
+          </span>
           <a
             :href="officialUrl"
             target="_blank"
