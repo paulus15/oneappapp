@@ -78,7 +78,7 @@ defineProps({ compact: Boolean, responsive: Boolean })
   clip-path: inset(0 0 0 50%);
   filter: brightness(0);
 }
-:global(.body--dark) .pwa-brand__store {
+.body--dark .pwa-brand__store {
   filter: brightness(0) invert(1);
 }
 @media (max-width: 599px) {
