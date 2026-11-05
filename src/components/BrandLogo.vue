@@ -19,7 +19,7 @@
     <img
       v-if="!compact"
       class="pwa-brand__wordmark"
-      src="/brand/pwa-store-wordmark.png"
+      src="/brand/pwa-store-wordmark-transparent.png"
       alt=""
       width="150"
       height="50"
@@ -50,9 +50,6 @@ defineProps({ compact: Boolean, responsive: Boolean })
   width: 150px;
   height: 50px;
   object-fit: contain;
-  // Preserve the supplied white-backed artwork in both themes.
-  background: white;
-  border-radius: 8px;
 }
 @media (max-width: 599px) {
   .pwa-brand--responsive .pwa-brand__wordmark {
