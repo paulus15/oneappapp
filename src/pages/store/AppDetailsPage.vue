@@ -1054,6 +1054,11 @@ async function recordWebInstall() {
 }
 
 async function openApp() {
+  // The installation fallback can be clicked after the session has ended.
+  if (!authStore.isAuthenticated) {
+    await signInToActivate()
+    return
+  }
   if (extracting.value) return
   if (isOwnerOrAdmin.value && app.value?.status !== 'published') {
     const directUrl = officialUrl.value

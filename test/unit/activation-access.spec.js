@@ -63,6 +63,35 @@ describe('account-only app activation', () => {
     expect(mocks.post).not.toHaveBeenCalled()
     expect(opened).not.toHaveBeenCalled()
   })
+  it('loads the public listing for a guest without requesting activation', async () => {
+    await mountPage()
+    expect(mocks.get).toHaveBeenCalledWith('/apps/17', expect.any(Object))
+    expect(wrapper.text()).toContain('Demo')
+    expect(mocks.push).not.toHaveBeenCalled()
+    expect(mocks.post).not.toHaveBeenCalled()
+    expect(opened).not.toHaveBeenCalled()
+  })
+  it('requires login before downloading a version', async () => {
+    await mountPage()
+    mocks.get.mockClear()
+    await wrapper.vm.downloadVersion(8)
+    expect(mocks.push).toHaveBeenCalledWith({
+      path: '/login',
+      query: { redirect: '/apps/17?from=store' }
+    })
+    expect(mocks.get).not.toHaveBeenCalled()
+    expect(mocks.post).not.toHaveBeenCalled()
+  })
+  it('requires login for the installation fallback before opening a window', async () => {
+    await mountPage()
+    await wrapper.vm.openApp()
+    expect(mocks.push).toHaveBeenCalledWith({
+      path: '/login',
+      query: { redirect: '/apps/17?from=store' }
+    })
+    expect(mocks.post).not.toHaveBeenCalled()
+    expect(opened).not.toHaveBeenCalled()
+  })
   it('opens the URL returned by the server for an authenticated account', async () => {
     mocks.auth.isAuthenticated = true
     mocks.post.mockResolvedValue({

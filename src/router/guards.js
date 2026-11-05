@@ -20,21 +20,10 @@ export function resolveLegacySuggestions(to, platform) {
     : '/developer/feedback'
 }
 
-// Only the home page and account access steps are available without a session.
-const guestPaths = new Set([
-  '/',
-  '/login',
-  '/register',
-  '/forgot-password',
-  '/verify-email',
-  '/confirm-email'
-])
-
+// Public browsing is the default. Account, developer and admin routes declare
+// requiresAuth in their metadata; downloads, activation and reviews guard their actions.
 export function requiresSession(route) {
-  return (
-    !!route?.meta?.requiresAuth ||
-    !guestPaths.has(route?.path?.replace(/\/+$/, '') || '/')
-  )
+  return !!route?.meta?.requiresAuth
 }
 
 // Pure navigation rules, kept free of router/Quasar imports so they can be unit tested.

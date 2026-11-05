@@ -94,10 +94,10 @@ describe('resolveAccess', () => {
     expect(resolveAccess(page, manager)).toBe(true)
   })
 
-  it('requires login for the developer portal on mobile', () => {
-    expect(
-      resolveAccess(route('/developers'), guest, { isMobile: true })
-    ).toEqual({ path: '/login', query: { redirect: '/developers' } })
+  it('keeps the public developer portal accessible on mobile', () => {
+    expect(resolveAccess(route('/developers'), guest, { isMobile: true })).toBe(
+      true
+    )
   })
 })
 
@@ -122,10 +122,7 @@ describe('unauthorizedRedirect', () => {
 
   it('keeps visitors on public pages and on the login/OTP steps', () => {
     expect(unauthorizedRedirect(route('/'))).toBeNull()
-    expect(unauthorizedRedirect(route('/apps/demo'))).toEqual({
-      path: '/login',
-      query: { redirect: '/apps/demo' }
-    })
+    expect(unauthorizedRedirect(route('/apps/demo'))).toBeNull()
     expect(
       unauthorizedRedirect(route('/login', { guestOnly: true }))
     ).toBeNull()
@@ -166,15 +163,28 @@ it.each([
   '/apps/42',
   '/applications',
   '/categories',
+  '/categories/games',
+  '/collections/featured',
+  '/publishers/1',
+  '/entities/1',
+  '/recommended',
+  '/trending',
+  '/popular',
+  '/developers',
   '/rankings',
   '/about',
   '/beta',
+  '/beta/1',
+  '/contact',
+  '/help',
+  '/terms',
+  '/privacy',
+  '/publishing-rules',
+  '/errors/403',
   '/new-page'
-])('requires a session for %s even without route metadata', path => {
-  expect(resolveAccess(route(path), guest)).toEqual({
-    path: '/login',
-    query: { redirect: path }
-  })
+])('keeps public browsing accessible for %s', path => {
+  expect(resolveAccess(route(path), guest)).toBe(true)
+  expect(unauthorizedRedirect(route(path))).toBeNull()
   expect(resolveAccess(route(path), user)).toBe(true)
 })
 
@@ -192,11 +202,38 @@ it.each([
 it('preserves the requested query and hash after login', () => {
   expect(
     resolveAccess(
-      { ...route('/apps/42'), fullPath: '/apps/42?tab=reviews#review' },
+      {
+        ...route('/account', { requiresAuth: true }),
+        fullPath: '/account?tab=reviews#review'
+      },
       guest
     )
   ).toEqual({
     path: '/login',
-    query: { redirect: '/apps/42?tab=reviews#review' }
+    query: { redirect: '/account?tab=reviews#review' }
   })
+})
+
+// Exercise the actual route declarations, including inherited metadata.
+it('requires a session for every personal, developer and admin route', async () => {
+  const { default: routes } = await import('@/router/routes')
+  function check(records, parentPath = '', parentMeta = {}) {
+    for (const record of records) {
+      const path = record.path.startsWith('/')
+        ? record.path
+        : `${parentPath.replace(/\/$/, '')}/${record.path}`
+      const meta = { ...parentMeta, ...record.meta }
+      if (record.children) check(record.children, path, meta)
+      else if (
+        !record.redirect &&
+        /^\/(account|notifications|developer|admin)(\/|$)/.test(path)
+      ) {
+        expect(resolveAccess(route(path, meta), guest)).toEqual({
+          path: '/login',
+          query: { redirect: path }
+        })
+      }
+    }
+  }
+  check(routes)
 })

@@ -97,6 +97,21 @@ describe('cookie-only API client', () => {
     })
   })
 
+  it('keeps the public listing visible when the session expires', async () => {
+    auth.isAuthenticated = true
+    router.currentRoute.value = {
+      path: '/apps/17',
+      fullPath: '/apps/17?from=store',
+      meta: {}
+    }
+    adapter.mockImplementation(async config => {
+      throw { response: { status: 401 }, config }
+    })
+    await expect(api.get('/auth/me')).rejects.toBeTruthy()
+    expect(auth.clearSession).toHaveBeenCalledWith({ keepChallenge: false })
+    expect(router.push).not.toHaveBeenCalled()
+  })
+
   it('keeps an anonymous OTP challenge after an invalid code', async () => {
     adapter.mockImplementation(async config => {
       throw { response: { status: 401 }, config }
